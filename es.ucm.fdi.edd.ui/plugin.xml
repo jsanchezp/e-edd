@@ -28,5 +28,19 @@
             name="Graphviz View">
       </view>
    </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="es.ucm.fdi.edd.ui.category"
+            name="EDD">
+      </category>
+      <wizard
+            category="es.ucm.fdi.edd.ui.category"
+            class="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
+            name="EDD Questions Wizard">
+      </wizard>
+   </extension>
 
 </plugin>
