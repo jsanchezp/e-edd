@@ -8,7 +8,15 @@
 package es.ucm.fdi.edd.ui.views.utils;
 
 import java.awt.geom.AffineTransform;
+import java.io.ByteArrayInputStream;
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 
+import org.apache.commons.io.FilenameUtils;
+import org.apache.commons.io.IOUtils;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.ControlAdapter;
 import org.eclipse.swt.events.ControlEvent;
@@ -19,11 +27,14 @@ import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.ImageData;
+import org.eclipse.swt.graphics.Point;
 import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.FileDialog;
 import org.eclipse.swt.widgets.ScrollBar;
+
+import com.abstratt.graphviz.GraphViz;
 
 /**
  * A scrollable image canvas that extends org.eclipse.swt.graphics.Canvas.
@@ -247,9 +258,28 @@ public class SWTImageCanvas extends Canvas {
 			sourceImage.dispose();
 			sourceImage = null;
 		}
-		sourceImage = new Image(getDisplay(), filename);
+		String ext = FilenameUtils.getExtension(filename);
+		if (ext.equalsIgnoreCase("dot")) {
+			sourceImage = getImage(new File(filename), getSize());
+		} else {
+			sourceImage = new Image(getDisplay(), filename);
+		}
 		showOriginal();
 		return sourceImage;
+	}
+	
+	private Image getImage(File file, Point point) {
+		try {
+			return GraphViz.load(new ByteArrayInputStream(IOUtils.toByteArray(new FileInputStream(file))), "png", point);
+		} catch (FileNotFoundException e) {
+			e.printStackTrace();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
 	}
 
 	/**
@@ -260,8 +290,8 @@ public class SWTImageCanvas extends Canvas {
 		FileDialog fileChooser = new FileDialog(getShell(), SWT.OPEN);
 		fileChooser.setText("Open image file");
 		fileChooser.setFilterPath(currentDir);
-		fileChooser.setFilterExtensions(new String[] { "*.gif; *.jpg; *.png; *.ico; *.bmp" });
-		fileChooser.setFilterNames(new String[] { "SWT image" + " (gif, jpeg, png, ico, bmp)" });
+		fileChooser.setFilterExtensions(new String[] { "*.gif; *.jpg; *.png; *.ico; *.bmp", "*.dot" });
+		fileChooser.setFilterNames(new String[] { "SWT image (gif, jpeg, png, ico, bmp)", "DOT Graphs (dot)" });
 		String filename = fileChooser.open();
 		if (filename != null) {
 			loadImage(filename);

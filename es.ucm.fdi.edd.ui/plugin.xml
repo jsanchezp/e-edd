@@ -2,18 +2,6 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
-         point="com.abstratt.content.contentProvider">
-      <provider
-            class="com.abstratt.imageviewer.DefaultGraphicalContentProvider">
-         <association
-               contentType="com.abstratt.imageviewer.image">
-         </association>
-         <reader
-               class="com.abstratt.imageviewer.FileToByteArrayContentReader">
-         </reader>
-      </provider>
-   </extension>
-   <extension
          point="org.eclipse.ui.newWizards">
       <category
             id="es.ucm.fdi.edd.ui.category"
