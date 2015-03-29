@@ -21,8 +21,6 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.SWT;
-import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -35,11 +33,11 @@ import org.osgi.framework.Bundle;
 
 import com.abstratt.content.ContentSupport;
 import com.abstratt.content.IContentProviderRegistry.IProviderDescription;
-import com.abstratt.imageviewer.GraphicalViewer;
 import com.abstratt.imageviewer.IGraphicalContentProvider;
 import com.abstratt.imageviewer.IGraphicalFileProvider;
 
 import es.ucm.fdi.edd.ui.Activator;
+import es.ucm.fdi.edd.ui.views.utils.SWTImageCanvas;
 
 /**
  * A view that wraps a {@link GraphicalViewer}.
@@ -51,7 +49,6 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	private static final String EDD_PROJECT = "TmpEDD";
 //	private static final String SAMPLE_URI = "platform:/plugin/es.ucm.fdi.edd.graphiti/diagram/Sample.dot";
 	
-	private Canvas canvas;
 	private GraphicalViewer viewer;
 	private String basePartName;
 	private IFile selectedFile;
@@ -71,8 +68,7 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	@Override
 	public void createPartControl(Composite parent) {
 		basePartName = getPartName();
-		canvas = new Canvas(parent, SWT.NONE);
-		viewer = new GraphicalViewer(canvas);
+		viewer = new GraphicalViewer(parent);
 		installResourceListener();
 		installSelectionListener();
 		installPartListener();
@@ -231,8 +227,7 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 			return;
 		selectedFile = null;
 		if (viewer.getContentProvider() != null)
-			// to avoid one provider trying to interpret an
-			// incompatible input
+			// to avoid one provider trying to interpret an incompatible input
 			viewer.setInput(null);
 		IContentDescription contentDescription = null;
 		try {
@@ -293,5 +288,9 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	
 	public IFile getSelectedFile() {
 		return selectedFile;
+	}
+	
+	public SWTImageCanvas getCanvas() {
+		return viewer.getCanvas();
 	}
 }

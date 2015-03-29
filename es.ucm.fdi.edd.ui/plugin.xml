@@ -2,6 +2,32 @@
 <?eclipse version="3.4"?>
 <plugin>
    <extension
+         point="com.abstratt.content.contentProvider">
+      <provider
+            class="com.abstratt.imageviewer.DefaultGraphicalContentProvider">
+         <association
+               contentType="com.abstratt.imageviewer.image">
+         </association>
+         <reader
+               class="com.abstratt.imageviewer.FileToByteArrayContentReader">
+         </reader>
+      </provider>
+   </extension>
+   <extension
+         point="org.eclipse.ui.newWizards">
+      <category
+            id="es.ucm.fdi.edd.ui.category"
+            name="EDD">
+      </category>
+      <wizard
+            category="es.ucm.fdi.edd.ui.category"
+            class="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
+            name="EDD Questions Wizard">
+      </wizard>
+   </extension>
+   <extension
          point="org.eclipse.ui.perspectiveExtensions">
       <perspectiveExtension
             targetID="org.eclipse.debug.ui.DebugPerspective">
@@ -11,6 +37,13 @@
                ratio="0.5"
                relationship="stack"
                relative="es.ucm.fdi.edd.graphiti.views.EDDView">
+         </view>
+         <view
+               id="es.ucm.fdi.edd.ui.views.EDDViewer"
+               minimized="false"
+               ratio="0.5"
+               relationship="stack"
+               relative="es.ucm.fdi.edd.ui.views.GraphvizView">
          </view>
       </perspectiveExtension>
    </extension>
@@ -27,20 +60,126 @@
             id="es.ucm.fdi.edd.ui.views.GraphvizView"
             name="Graphviz View">
       </view>
+      <view
+            category="es.ucm.fdi.edd.ui.category"
+            class="es.ucm.fdi.edd.ui.views.EDDViewer"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.views.EDDViewer"
+            name="EDD Viewer"
+            restorable="true">
+      </view>
    </extension>
    <extension
-         point="org.eclipse.ui.newWizards">
-      <category
-            id="es.ucm.fdi.edd.ui.category"
-            name="EDD">
-      </category>
-      <wizard
-            category="es.ucm.fdi.edd.ui.category"
-            class="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
-            icon="icons/sample.gif"
-            id="es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard"
-            name="EDD Questions Wizard">
-      </wizard>
+         point="org.eclipse.ui.viewActions">
+      <viewContribution
+            id="es.ucm.fdi.edd.ui.viewContributions"
+            targetID="es.ucm.fdi.edd.ui.views.GraphvizView">
+         <!-- ZoomIn button -->
+         <action
+               label="ZoomIn"
+               icon="icons/ZoomIn16.gif"
+               tooltip="Zoom in"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.zoomin">
+         </action>
+         <!-- ZoomOut button -->
+         <action
+               label="ZoomOut"
+               icon="icons/ZoomOut16.gif"
+               tooltip="Zoom out"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.zoomout">
+         </action>
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.SaveToFileAction"
+               disabledIcon="platform:/plugin/com.abstratt.imageviewer/icons/dsave_edit.gif"
+               icon="platform:/plugin/com.abstratt.imageviewer/icons/esave_edit.gif"
+               id="com.abstratt.imageviewer.saveFile"
+               label="Save to..."
+               style="push"
+               toolbarPath="file_actions"
+               tooltip="Save this image to a file">
+         </action>
+      </viewContribution>
+      <viewContribution
+            id="es.ucm.fdi.edd.ui.viewEDDContributions"
+            targetID="es.ucm.fdi.edd.ui.views.EDDViewer">
+         <!-- Open button -->
+         <action
+               label="open"
+               icon="icons/Open16.gif"
+               tooltip="Open image"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.open">
+               <!--id="org.eclipse.ui.file.open"-->
+         </action>
+         <!-- Rotation button -->
+         <action
+               label="Rotate"
+               icon="icons/Rotate16.gif"
+               tooltip="Rotate"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.rotate">
+         </action>
+         <!-- Fit button -->
+         <action
+               label="FitWindow"
+               icon="icons/Fit16.gif"
+               tooltip="Fit window"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.fit">
+         </action>
+         <!-- Original button -->
+         <action
+               label="OriginalSize"
+               icon="icons/Original16.gif"
+               tooltip="Original size"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.original">
+         </action>
+         <!-- ZoomIn button -->
+         <action
+               label="ZoomIn"
+               icon="icons/ZoomIn16.gif"
+               tooltip="Zoom in"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.zoomin">
+         </action>
+         <!-- ZoomOut button -->
+         <action
+               label="ZoomOut"
+               icon="icons/ZoomOut16.gif"
+               tooltip="Zoom out"
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegate"
+               toolbarPath="push_group"
+               enablesFor="*"
+               id="toolbar.zoomout">
+         </action>
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.SaveToFileAction"
+               disabledIcon="platform:/plugin/com.abstratt.imageviewer/icons/dsave_edit.gif"
+               icon="platform:/plugin/com.abstratt.imageviewer/icons/esave_edit.gif"
+               id="es.ucm.fdi.edd.ui.views.actions.SaveToFileAction"
+               label="Save to..."
+               style="push"
+               toolbarPath="file_actions"
+               tooltip="Save this image to a file">
+         </action>
+      </viewContribution>
    </extension>
 
 </plugin>
