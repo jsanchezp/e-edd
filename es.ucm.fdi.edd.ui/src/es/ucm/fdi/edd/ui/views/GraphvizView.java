@@ -21,6 +21,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -37,7 +38,6 @@ import com.abstratt.imageviewer.IGraphicalContentProvider;
 import com.abstratt.imageviewer.IGraphicalFileProvider;
 
 import es.ucm.fdi.edd.ui.Activator;
-import es.ucm.fdi.edd.ui.views.utils.SWTImageCanvas;
 
 /**
  * A view that wraps a {@link GraphicalViewer}.
@@ -46,7 +46,7 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.GraphvizView";
 
-	private static final String EDD_PROJECT = "TmpEDD";
+	private static final String EDD_PROJECT = "E-EDD";
 //	private static final String SAMPLE_URI = "platform:/plugin/es.ucm.fdi.edd.graphiti/diagram/Sample.dot";
 	
 	private GraphicalViewer viewer;
@@ -290,7 +290,21 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		return selectedFile;
 	}
 	
-	public SWTImageCanvas getCanvas() {
+	public Canvas getCanvas() {
 		return viewer.getCanvas();
+	}
+	
+	public void zoomIn() {
+		float scale = viewer.getScale();
+		scale += .2f;
+		scale = Math.max(0, scale);
+		viewer.setScale(scale);
+	}
+
+	public void zoomOut() {
+		float scale = viewer.getScale();
+		scale -= .2f;
+		scale = Math.max(0, scale);
+		viewer.setScale(scale);
 	}
 }

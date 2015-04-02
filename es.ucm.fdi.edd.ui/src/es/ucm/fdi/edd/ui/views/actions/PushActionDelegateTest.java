@@ -2,13 +2,11 @@ package es.ucm.fdi.edd.ui.views.actions;
 
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.graphics.ImageData;
-import org.eclipse.swt.graphics.PaletteData;
+import org.eclipse.swt.widgets.Canvas;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import es.ucm.fdi.edd.ui.views.GraphvizView;
-import es.ucm.fdi.edd.ui.views.utils.SWTImageCanvas;
 
 public class PushActionDelegateTest implements IViewActionDelegate {
 
@@ -35,71 +33,14 @@ public class PushActionDelegateTest implements IViewActionDelegate {
 	 */
 	public void run(IAction action) {
 		String id = action.getId();
-		// Canvas imageCanvas = view.getCanvas();
-		// Listener listener = new Listener() {
-		// int zoomFactor = 50;
-		// public void handleEvent(Event event) {
-		// switch (event.type) {
-		// case SWT.MouseWheel:
-		// zoomFactor = Math.max(0, zoomFactor + event.count);
-		// Canvas canvas = (Canvas)event.widget;
-		// canvas.redraw();
-		// break;
-		// case SWT.Paint:
-		// event.gc.drawText("Zoom = "+zoomFactor, 10, 10);
-		// break;
-		// }
-		// }
-		// };
-		// imageCanvas.addListener(SWT.MouseWheel, listener);
-		// imageCanvas.addListener(SWT.Paint, listener);
-
-		SWTImageCanvas imageCanvas = view.getCanvas();
+		 
+		Canvas imageCanvas = view.getCanvas();
 		if (imageCanvas != null) {
-			if (id.equals("toolbar.open")) {
-				imageCanvas.onFileOpen();
-				return;
-			}
-			if (imageCanvas.getSourceImage() == null) {
-				System.out.println("the source image is null");
-				return;
-			}
 			if (id.equals("toolbar.zoomin")) {
-				imageCanvas.zoomIn();
+				view.zoomIn();
 				return;
 			} else if (id.equals("toolbar.zoomout")) {
-				imageCanvas.zoomOut();
-				return;
-			} else if (id.equals("toolbar.fit")) {
-				imageCanvas.fitCanvas();
-				return;
-			} else if (id.equals("toolbar.rotate")) {
-				/* rotate image anti-clockwise */
-				ImageData src = imageCanvas.getImageData();
-				if (src == null)
-					return;
-				PaletteData srcPal = src.palette;
-				PaletteData destPal;
-				ImageData dest;
-				/* construct a new ImageData */
-				if (srcPal.isDirect) {
-					destPal = new PaletteData(srcPal.redMask, srcPal.greenMask,
-							srcPal.blueMask);
-				} else {
-					destPal = new PaletteData(srcPal.getRGBs());
-				}
-				dest = new ImageData(src.height, src.width, src.depth, destPal);
-				/* rotate by rearranging the pixels */
-				for (int i = 0; i < src.width; i++) {
-					for (int j = 0; j < src.height; j++) {
-						int pixel = src.getPixel(i, j);
-						dest.setPixel(j, src.width - 1 - i, pixel);
-					}
-				}
-				imageCanvas.setImageData(dest);
-				return;
-			} else if (id.equals("toolbar.original")) {
-				imageCanvas.showOriginal();
+				view.zoomOut();
 				return;
 			}
 		}
