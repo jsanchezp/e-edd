@@ -62,6 +62,42 @@
       <viewContribution
             id="es.ucm.fdi.edd.ui.viewContributions"
             targetID="es.ucm.fdi.edd.ui.views.GraphvizView">
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               enablesFor="*"
+               icon="icons/Open16.gif"
+               id="toolbar.open"
+               label="open"
+               toolbarPath="push_group"
+               tooltip="Open image">
+         </action>
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               enablesFor="*"
+               icon="icons/Rotate16.gif"
+               id="toolbar.rotate"
+               label="Rotate"
+               toolbarPath="push_group"
+               tooltip="Rotate">
+         </action>
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               enablesFor="*"
+               icon="icons/Fit16.gif"
+               id="toolbar.fit"
+               label="FitWindow"
+               toolbarPath="push_group"
+               tooltip="Fit window">
+         </action>
+         <action
+               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
+               enablesFor="*"
+               icon="icons/Original16.gif"
+               id="toolbar.original"
+               label="OriginalSize"
+               toolbarPath="push_group"
+               tooltip="Original size">
+         </action>
          <!-- ZoomIn button -->
          <action
                label="ZoomIn"

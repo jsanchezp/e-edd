@@ -21,7 +21,7 @@ import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
-import org.eclipse.swt.widgets.Canvas;
+import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Display;
 import org.eclipse.ui.IEditorPart;
@@ -249,7 +249,8 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		this.providerDefinition = providerDefinition;
 		IGraphicalContentProvider provider = (IGraphicalContentProvider) providerDefinition.getProvider();
 		viewer.setContentProvider(provider);
-		viewer.setInput(providerDefinition.read(file));
+		Object input = providerDefinition.read(file);
+		viewer.setInput(input);
 	}
 
 	private void requestUpdate() {
@@ -290,10 +291,6 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		return selectedFile;
 	}
 	
-	public Canvas getCanvas() {
-		return viewer.getCanvas();
-	}
-	
 	public void zoomIn() {
 		float scale = viewer.getScale();
 		scale += .2f;
@@ -306,5 +303,35 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		scale -= .2f;
 		scale = Math.max(0, scale);
 		viewer.setScale(scale);
+	}
+
+	public void fitCanvas(boolean fit) {
+		viewer.setFitCanvas(fit);
+	}
+
+	public ImageData getImageData() {
+//		Canvas canvas = viewer.getCanvas();
+//		Image image = new Image (canvas.getDisplay(), canvas.getBounds().width, canvas.getBounds().height);
+//		return image.getImageData();
+		
+		return viewer.getImageData();
+	}
+
+	public void setImageData(ImageData dest) {
+//		Image image = new Image(viewer.getCanvas().getDisplay(), dest);
+//		IContentProvider provider = providerDefinition.getProvider();
+//		byte[] data = image.getImageData().data;
+//		provider.inputChanged(viewer, viewer.getInput(), data);
+		
+		viewer.setImageData(dest);
+	}
+
+	public void showOriginal() {
+		viewer.setScale(1.0f);
+	}
+
+	public void loadImage(String filename) {
+		reload(createIFile(new File(filename)));
+		showOriginal();
 	}
 }

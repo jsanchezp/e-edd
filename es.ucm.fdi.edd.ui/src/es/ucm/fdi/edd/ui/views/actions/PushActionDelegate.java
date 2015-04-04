@@ -1,20 +1,13 @@
 package es.ucm.fdi.edd.ui.views.actions;
 
-import org.eclipse.core.runtime.Assert;
 import org.eclipse.jface.action.IAction;
 import org.eclipse.jface.viewers.ISelection;
-import org.eclipse.swt.SWT;
 import org.eclipse.swt.graphics.ImageData;
 import org.eclipse.swt.graphics.PaletteData;
-import org.eclipse.swt.widgets.Canvas;
-import org.eclipse.swt.widgets.Event;
-import org.eclipse.swt.widgets.Listener;
 import org.eclipse.ui.IViewActionDelegate;
 import org.eclipse.ui.IViewPart;
 
 import es.ucm.fdi.edd.ui.views.EDDViewer;
-import es.ucm.fdi.edd.ui.views.GraphicalViewer;
-import es.ucm.fdi.edd.ui.views.GraphvizView;
 import es.ucm.fdi.edd.ui.views.utils.SWTImageCanvas;
 
 public class PushActionDelegate implements IViewActionDelegate {
@@ -31,10 +24,7 @@ public class PushActionDelegate implements IViewActionDelegate {
 	 * @see org.eclipse.ui.IViewActionDelegate#init(org.eclipse.ui.IViewPart)
 	 */
 	public void init(IViewPart viewPart) {
-		if (viewPart instanceof GraphvizView) {
-//			this.view = (GraphvizView) viewPart;
-		}
-		else if (viewPart instanceof EDDViewer) {
+		if (viewPart instanceof EDDViewer) {
 			this.view = (EDDViewer) viewPart;
 		}
 	}
