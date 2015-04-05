@@ -17,7 +17,8 @@ import org.eclipse.ui.ide.IDE;
 
 public class EDDQuestionsWizard extends Wizard implements INewWizard {
 
-	private EDDQuestionsWizardPage page;
+	private EDDQuestionsWizardPage page1;
+	private EDDQuestionsWizardPage2 page2;
 	private ISelection selection;
 
 	/**
@@ -32,8 +33,10 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * Adding the page to the wizard.
 	 */
 	public void addPages() {
-		page = new EDDQuestionsWizardPage(selection);
-		addPage(page);
+		page1 = new EDDQuestionsWizardPage(selection);
+		page2 = new EDDQuestionsWizardPage2(selection);
+		addPage(page1);
+		addPage(page2);
 	}
 
 	/**
@@ -41,8 +44,8 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * will create an operation and run it using wizard as execution context.
 	 */
 	public boolean performFinish() {
-		final String containerName = page.getContainerName();
-		final String fileName = page.getFileName();
+		final String containerName = page2.getContainerName();
+		final String fileName = page2.getFileName();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor)
 					throws InvocationTargetException {
@@ -62,8 +65,7 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 			return false;
 		} catch (InvocationTargetException e) {
 			Throwable realException = e.getTargetException();
-			MessageDialog.openError(getShell(), "Error",
-					realException.getMessage());
+			MessageDialog.openError(getShell(), "Error", realException.getMessage());
 			return false;
 		}
 		return true;
@@ -95,16 +97,17 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 			}
 			stream.close();
 		} catch (IOException e) {
+			e.printStackTrace();
 		}
 		monitor.worked(1);
 		monitor.setTaskName("Opening file for editing...");
 		getShell().getDisplay().asyncExec(new Runnable() {
 			public void run() {
-				IWorkbenchPage page = PlatformUI.getWorkbench()
-						.getActiveWorkbenchWindow().getActivePage();
+				IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
 				try {
 					IDE.openEditor(page, file, true);
 				} catch (PartInitException e) {
+					e.printStackTrace();
 				}
 			}
 		});
@@ -120,8 +123,7 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	}
 
 	private void throwCoreException(String message) throws CoreException {
-		IStatus status = new Status(IStatus.ERROR, "es.ucm.fdi.edd.ui",
-				IStatus.OK, message, null);
+		IStatus status = new Status(IStatus.ERROR, "es.ucm.fdi.edd.ui",	IStatus.OK, message, null);
 		throw new CoreException(status);
 	}
 

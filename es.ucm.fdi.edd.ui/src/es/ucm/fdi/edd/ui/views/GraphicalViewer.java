@@ -50,6 +50,7 @@ public class GraphicalViewer extends ContentViewer {
 		canvas = new Canvas(parent, SWT.BORDER | SWT.V_SCROLL | SWT.H_SCROLL | SWT.NO_BACKGROUND);
 		canvas.addControlListener(new ControlAdapter() { /* resize listener. */
 			public void controlResized(ControlEvent event) {
+				canvas.setBounds(parent.getClientArea());
 				requestImageRedraw();
 				syncScrollBars();
 			}
@@ -178,8 +179,8 @@ public class GraphicalViewer extends ContentViewer {
 	
 	/* Paint function */
 	private void paint(GC gc) {
-		Rectangle clientRect = canvas.getClientArea(); /* Canvas' painting area */
 		sourceImage = getImage(canvas.getSize());
+		Rectangle clientRect = canvas.getClientArea(); /* Canvas' painting area */
 		if (sourceImage != null) {
 			Rectangle imageRect = SWT2Dutil.inverseTransformRect(transform, clientRect);
 			int gap = 2; /* find a better start point to render */
