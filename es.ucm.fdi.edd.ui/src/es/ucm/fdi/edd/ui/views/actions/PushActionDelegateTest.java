@@ -51,7 +51,7 @@ public class PushActionDelegateTest implements IViewActionDelegate {
 			view.zoomOut();
 			return;
 		}else if (id.equals("toolbar.fit")) {
-			view.fitCanvas(true);
+			view.fitCanvas();
 			return;
 		} else if (id.equals("toolbar.rotate")) {
 			/* rotate image anti-clockwise */

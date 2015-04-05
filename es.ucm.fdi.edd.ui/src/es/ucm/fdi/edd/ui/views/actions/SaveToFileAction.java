@@ -24,28 +24,26 @@ import org.eclipse.ui.IViewPart;
 
 import com.abstratt.content.IContentProviderRegistry.IProviderDescription;
 import com.abstratt.imageviewer.AbstractGraphicalContentProvider;
-import com.abstratt.imageviewer.GraphicalView;
 import com.abstratt.imageviewer.IGraphicalContentProvider;
 
-import es.ucm.fdi.edd.ui.views.EDDViewer;
+import es.ucm.fdi.edd.ui.views.GraphvizView;
 
 public class SaveToFileAction implements IViewActionDelegate {
 
-	private static final String[] VALID_EXTENSIONS = { "jpg", "png", "gif",
-			"tif", "bmp" };
-	private static final int[] VALID_FORMATS = { SWT.IMAGE_JPEG, SWT.IMAGE_PNG,
-			SWT.IMAGE_GIF, SWT.IMAGE_TIFF, SWT.IMAGE_BMP };
+	private static final String[] VALID_EXTENSIONS = {"jpg", "png", "gif", "tif", "bmp"};
+	private static final int[] VALID_FORMATS = {SWT.IMAGE_JPEG, SWT.IMAGE_PNG, SWT.IMAGE_GIF, SWT.IMAGE_TIFF, SWT.IMAGE_BMP};
 	private static final String[] VALID_EXTENSION_MASKS;
+
 	static {
 		VALID_EXTENSION_MASKS = new String[VALID_FORMATS.length];
 		for (int i = 0; i < VALID_EXTENSION_MASKS.length; i++)
-			VALID_EXTENSION_MASKS[i] = "*." + VALID_EXTENSIONS[i];
+			VALID_EXTENSION_MASKS [i] = "*."+VALID_EXTENSIONS[i];			
 	}
-
-	private EDDViewer view;
+	
+	private GraphvizView view;
 
 	public void init(IViewPart view) {
-		this.view = (EDDViewer) view;
+		this.view = (GraphvizView) view;
 	}
 
 	public void run(IAction action) {
@@ -58,7 +56,7 @@ public class SaveToFileAction implements IViewActionDelegate {
 		boolean pathIsValid = false;
 		IPath path = null;
 		int fileFormat = 0;
-		while (!pathIsValid) {
+		while (!pathIsValid ) {
 			FileDialog saveDialog = new FileDialog(Display.getCurrent().getActiveShell(), SWT.SAVE);
 			saveDialog.setText("Choose a location to save to");
 			saveDialog.setFileName(selectedFile.getLocation().removeFileExtension().lastSegment());
@@ -83,14 +81,14 @@ public class SaveToFileAction implements IViewActionDelegate {
 			if (parentDir.isDirectory())
 				pathIsValid = true;
 			else
-				MessageDialog.openError(null, "Invalid file path","Could not create directory");
+				MessageDialog.openError(null, "Invalid file path", "Could not create directory");
 		}
-
+		
 		new SaveImageJob(fileFormat, path, providerDefinition).schedule();
 	}
-
+	
 	private class SaveImageJob extends Job {
-
+		
 		private IProviderDescription providerDefinition;
 		private IPath path;
 		private int fileFormat;
@@ -109,7 +107,7 @@ public class SaveToFileAction implements IViewActionDelegate {
 			try {
 				IGraphicalContentProvider provider = (IGraphicalContentProvider) providerDefinition.getProvider();
 				Object input = providerDefinition.read(view.getSelectedFile());
-				provider.saveImage(Display.getDefault(), new Point(0, 0), input, path, fileFormat);
+				provider.saveImage(Display.getDefault(), new Point(0,0), input, path, fileFormat);
 			} catch (CoreException e) {
 				return e.getStatus();
 			} finally {
@@ -123,5 +121,4 @@ public class SaveToFileAction implements IViewActionDelegate {
 	public void selectionChanged(IAction action, ISelection selection) {
 		// don't care
 	}
-
 }

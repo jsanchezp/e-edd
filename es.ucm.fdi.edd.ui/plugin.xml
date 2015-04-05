@@ -74,15 +74,6 @@
          <action
                class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
                enablesFor="*"
-               icon="icons/Rotate16.gif"
-               id="toolbar.rotate"
-               label="Rotate"
-               toolbarPath="push_group"
-               tooltip="Rotate">
-         </action>
-         <action
-               class="es.ucm.fdi.edd.ui.views.actions.PushActionDelegateTest"
-               enablesFor="*"
                icon="icons/Fit16.gif"
                id="toolbar.fit"
                label="FitWindow"

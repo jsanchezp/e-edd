@@ -262,7 +262,6 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 				reload(selectedFile);
 			}
 		});
-
 	}
 
 	public void resourceChanged(IResourceChangeEvent event) {
@@ -292,46 +291,30 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	}
 	
 	public void zoomIn() {
-		float scale = viewer.getScale();
-		scale += .2f;
-		scale = Math.max(0, scale);
-		viewer.setScale(scale);
+		viewer.zoomIn();
 	}
 
 	public void zoomOut() {
-		float scale = viewer.getScale();
-		scale -= .2f;
-		scale = Math.max(0, scale);
-		viewer.setScale(scale);
+		viewer.zoomOut();
 	}
 
-	public void fitCanvas(boolean fit) {
-		viewer.setFitCanvas(fit);
-	}
-
-	public ImageData getImageData() {
-//		Canvas canvas = viewer.getCanvas();
-//		Image image = new Image (canvas.getDisplay(), canvas.getBounds().width, canvas.getBounds().height);
-//		return image.getImageData();
-		
-		return viewer.getImageData();
-	}
-
-	public void setImageData(ImageData dest) {
-//		Image image = new Image(viewer.getCanvas().getDisplay(), dest);
-//		IContentProvider provider = providerDefinition.getProvider();
-//		byte[] data = image.getImageData().data;
-//		provider.inputChanged(viewer, viewer.getInput(), data);
-		
-		viewer.setImageData(dest);
+	public void fitCanvas() {
+		viewer.fitCanvas();
 	}
 
 	public void showOriginal() {
-		viewer.setScale(1.0f);
+		viewer.showOriginal();
 	}
 
 	public void loadImage(String filename) {
 		reload(createIFile(new File(filename)));
-		showOriginal();
+	}
+
+	public ImageData getImageData() {
+		return viewer.getImageData();
+	}
+
+	public void setImageData(ImageData dest) {
+		viewer.setImageData(dest);
 	}
 }
