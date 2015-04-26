@@ -20,7 +20,7 @@ import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 
-public class EDDQuestionsWizardPage2 extends WizardPage {
+public class EDDQuestionsWizardPageFinal extends WizardPage {
 
 	private Text containerText;
 	private Text fileText;
@@ -31,7 +31,7 @@ public class EDDQuestionsWizardPage2 extends WizardPage {
 	 * 
 	 * @param pageName
 	 */
-	public EDDQuestionsWizardPage2(ISelection selection) {
+	public EDDQuestionsWizardPageFinal(ISelection selection) {
 		super("wizardPage");
 		setTitle("EDD Questions Wizard");
 		setDescription("This wizard creates a new file with *.mpe extension that can be opened by a multi-page editor.");

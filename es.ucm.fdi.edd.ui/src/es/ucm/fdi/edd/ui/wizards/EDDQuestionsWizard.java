@@ -1,24 +1,30 @@
 package es.ucm.fdi.edd.ui.wizards;
 
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.wizard.IWizardPage;
 import org.eclipse.jface.wizard.Wizard;
 import org.eclipse.ui.INewWizard;
 import org.eclipse.ui.IWorkbench;
 import org.eclipse.core.runtime.*;
 import org.eclipse.jface.operation.*;
+
 import java.lang.reflect.InvocationTargetException;
+
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.core.resources.*;
 import org.eclipse.core.runtime.CoreException;
+
 import java.io.*;
+
 import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 
 public class EDDQuestionsWizard extends Wizard implements INewWizard {
 
 	private EDDQuestionsWizardPage page1;
-	private EDDQuestionsWizardPage2 page2;
+	private EDDQuestionsWizardQuestionPage page2;
+	private EDDQuestionsWizardPageFinal pageFinal;
 	private ISelection selection;
 
 	/**
@@ -33,10 +39,26 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * Adding the page to the wizard.
 	 */
 	public void addPages() {
+		//http://eclipseblog.ostroukhovs.com/2009/08/22/non-lineal-wizards/
 		page1 = new EDDQuestionsWizardPage(selection);
-		page2 = new EDDQuestionsWizardPage2(selection);
+		page2 = new EDDQuestionsWizardQuestionPage(selection);
+		pageFinal = new EDDQuestionsWizardPageFinal(selection);
 		addPage(page1);
 		addPage(page2);
+		addPage(pageFinal);
+	}
+	
+	@Override
+	public IWizardPage getNextPage(IWizardPage page) {
+	   IWizardPage nextPage = super.getNextPage(page);
+	   if (nextPage == null) {
+		   for (int i=0; i<10; i++) {   
+			   EDDQuestionsWizardQuestionPage dynamic = new EDDQuestionsWizardQuestionPage(selection, i);
+			   addPage(dynamic);
+		   }
+	   }
+	   
+	   return nextPage;
 	}
 
 	/**
@@ -44,8 +66,8 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * will create an operation and run it using wizard as execution context.
 	 */
 	public boolean performFinish() {
-		final String containerName = page2.getContainerName();
-		final String fileName = page2.getFileName();
+		final String containerName = pageFinal.getContainerName();
+		final String fileName = pageFinal.getFileName();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor)
 					throws InvocationTargetException {
