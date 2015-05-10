@@ -1,15 +1,23 @@
 package es.ucm.fdi.edd.ui.wizards;
 
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.ResourcesPlugin;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.jface.dialogs.IDialogPage;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.IStructuredSelection;
 import org.eclipse.jface.wizard.WizardPage;
 import org.eclipse.swt.SWT;
+import org.eclipse.swt.events.ModifyEvent;
+import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.layout.GridData;
@@ -18,9 +26,14 @@ import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.PlatformUI;
+import org.eclipse.ui.ide.IDE;
+import org.erlide.ui.editors.erl.ErlangEditor;
+import org.erlide.ui.editors.util.EditorUtility;
 
-import es.ucm.fdi.edd.core.json.model.BloquePreguntas;
-import es.ucm.fdi.edd.core.json.model.JsonDocument;
 import es.ucm.fdi.edd.core.json.model.Pregunta;
 
 public class EDDQuestionsWizardQuestionPage extends WizardPage {
@@ -72,6 +85,38 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
 		label.setText("Question:");
 
 		questionText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		questionText.addModifyListener(new ModifyListener() {
+			@SuppressWarnings("restriction")
+			@Override
+			public void modifyText(ModifyEvent event) {
+				selectAndReveal();
+			}
+
+			private void selectAndReveal() {
+				try {
+					Path path = new Path("/EDD/examples/mergesort/merge_ok.erl");
+				    IFile erlFile = ResourcesPlugin.getWorkspace().getRoot().getFile(path);
+					IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+					IEditorPart editorPart = IDE.openEditor(page, erlFile);
+					ErlangEditor editor = (ErlangEditor) editorPart;
+					final IDocument document = editor.getDocument();
+					
+					int line = 5 + index;
+					int lineStart = document.getLineOffset(line);
+	                int lineLength = document.getLineLength(line);
+	                EditorUtility.revealInEditor(editorPart, lineStart, lineLength);
+					
+	                String text = "mergesort([], _Comp) -> [];";  //questionText.getText();
+					FindReplaceDocumentAdapter dad = new FindReplaceDocumentAdapter(document);
+					IRegion region = dad.find(0, text, true, false, false, false);
+//					EditorUtility.revealInEditor(editorPart, region);
+	            } catch (PartInitException e) {
+					e.printStackTrace();
+				} catch (BadLocationException e) {
+					e.printStackTrace();
+				}
+			}
+		});
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
 		questionText.setLayoutData(gd);

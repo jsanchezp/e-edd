@@ -14,7 +14,7 @@
               "-id": "1",
               "-idAyuda": "1",
               "-idTipoPregunta": "4",
-              "-pregunta": "¿Qué plataforma para móviles soporta varias familias de procesadores, además de la familia ARM?",
+              "-pregunta": "merge:merge([b], [a], fun merge:comp/2) = [b, a]?",
               "respuestaLink": [
                 {
                   "-idRespuesta": "1",
@@ -42,7 +42,7 @@
               "-id": "2",
               "-idAyuda": "2",
               "-idTipoPregunta": "4",
-              "-pregunta": "¿Qué dos plataformas son de software libre?",
+              "-pregunta": "merge:comp(b, a) = false?",
               "respuestaLink": [
                 {
                   "-idRespuesta": "6",
@@ -66,7 +66,7 @@
               "-id": "3",
               "-idAyuda": "3",
               "-idTipoPregunta": "4",
-              "-pregunta": "¿Qué plataforma no permiten la ejecución de código nativo del procesador?",
+              "-pregunta": "merge:merge([a], [], fun merge:comp/2) = [a]?",
               "respuestaLink": [
                 {
                   "-idRespuesta": "1",
@@ -90,7 +90,7 @@
               "-id": "4",
               "-idAyuda": "4",
               "-idTipoPregunta": "4",
-              "-pregunta": "¿Qué plataforma para móviles NO utiliza WebKit como motor de navegación Web?",
+              "-pregunta": "Do you want to follow the debugging session inside this function?",
               "respuestaLink": [
                 {
                   "-idRespuesta": "2",
@@ -118,7 +118,7 @@
               "-id": "5",
               "-idAyuda": "5",
               "-idTipoPregunta": "4",
-              "-pregunta": "¿Qué plataforma ... 2.0?",
+              "-pregunta": "fun(val1, ..., valn) = val?",
               "respuestaLink": [
                 {
                   "-idRespuesta": "2",
