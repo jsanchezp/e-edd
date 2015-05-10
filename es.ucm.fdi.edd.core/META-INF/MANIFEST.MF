@@ -10,5 +10,9 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-ClassPath: lib/gson-2.3.1.jar,
  lib/OtpErlang.jar,
+ lib/UmlGraph.jar,
+ lib/tools.jar,
  .
 Bundle-Vendor: %Bundle-Vendor
+Export-Package: es.ucm.fdi.edd.core.json.model,
+ es.ucm.fdi.edd.core.json.utils

@@ -36,18 +36,15 @@ public class JsonUtils {
 		}
 	}
 
-	@SuppressWarnings("hiding")
-	public <Object> Object from(byte[] bytes, Class<Object> clazz)
-			throws UnsupportedEncodingException {
-		Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes),
-				UTF_8);
+	public Object from(byte[] bytes, Class<?> clazz) throws UnsupportedEncodingException {
+		Reader reader = new InputStreamReader(new ByteArrayInputStream(bytes), UTF_8);
 		return gson.fromJson(reader, clazz);
 	}
 
-	public Object fromFile(String filePath, Class<Object> clazz)
-			throws IOException {
+	public Object fromFile(String filePath, Class<?> clazz) throws IOException {
 		FileReader fileReader = new FileReader(filePath);
-		return gson.fromJson(fileReader, clazz);
+		Object fromJson = gson.fromJson(fileReader, clazz);
+		return fromJson;
 	}
 
 	public void toStream(Object object, OutputStream bytes) throws IOException {
@@ -56,8 +53,7 @@ public class JsonUtils {
 		writer.close();
 	}
 
-	public void toStream(Object object, OutputStream bytes, String variableName)
-			throws IOException {
+	public void toStream(Object object, OutputStream bytes, String variableName) throws IOException {
 		Writer writer = new OutputStreamWriter(bytes, UTF_8);
 		writer.append(getVarExpresion(variableName));
 		gson.toJson(object, writer);
@@ -74,8 +70,7 @@ public class JsonUtils {
 		writer.close();
 	}
 
-	public void toFile(Object object, String filePath, String variableName)
-			throws IOException {
+	public void toFile(Object object, String filePath, String variableName)	throws IOException {
 		Writer writer = new FileWriter(filePath);
 		writer.append(getVarExpresion(variableName));
 		gson.toJson(object, writer);

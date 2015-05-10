@@ -21,7 +21,7 @@ public class EDDQuestionsWizardPage extends WizardPage {
 	 * @param pageName
 	 */
 	public EDDQuestionsWizardPage(ISelection selection) {
-		super("wizardPage");
+		super("initialPage");
 		setTitle("EDD Questions Wizard");
 		setDescription("The debugger asks for a list of trusted functions, i.e., functions that the programmer is sure are correct, so that 'edd' will never ask about them.");
 		this.selection = selection;

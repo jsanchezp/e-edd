@@ -14,7 +14,8 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.emf.transaction,
  org.eclipse.gef,
  org.eclipse.ui,
- org.eclipse.ui.ide
+ org.eclipse.ui.ide,
+ es.ucm.fdi.edd.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor

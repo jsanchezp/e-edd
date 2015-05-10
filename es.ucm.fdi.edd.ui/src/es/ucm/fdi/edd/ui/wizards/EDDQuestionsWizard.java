@@ -9,6 +9,7 @@ import org.eclipse.core.runtime.*;
 import org.eclipse.jface.operation.*;
 
 import java.lang.reflect.InvocationTargetException;
+import java.util.LinkedList;
 
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.viewers.ISelection;
@@ -20,12 +21,19 @@ import java.io.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 
+import es.ucm.fdi.edd.core.json.model.JsonDocument;
+import es.ucm.fdi.edd.core.json.model.Pregunta;
+import es.ucm.fdi.edd.core.json.utils.JsonHelper;
+
 public class EDDQuestionsWizard extends Wizard implements INewWizard {
 
-	private EDDQuestionsWizardPage page1;
-	private EDDQuestionsWizardQuestionPage page2;
-	private EDDQuestionsWizardPageFinal pageFinal;
+	private static final String JSON_PATH = "C:\\Guia.json";
+	private EDDQuestionsWizardPage initialPage;
+	private EDDQuestionsWizardPageFinal finalPage;
 	private ISelection selection;
+	
+	private JsonDocument document;
+	private LinkedList<Pregunta> questions;
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -40,22 +48,22 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 */
 	public void addPages() {
 		//http://eclipseblog.ostroukhovs.com/2009/08/22/non-lineal-wizards/
-		page1 = new EDDQuestionsWizardPage(selection);
-		page2 = new EDDQuestionsWizardQuestionPage(selection);
-		pageFinal = new EDDQuestionsWizardPageFinal(selection);
-		addPage(page1);
-		addPage(page2);
-		addPage(pageFinal);
+		initialPage = new EDDQuestionsWizardPage(selection);
+		finalPage = new EDDQuestionsWizardPageFinal(selection);
+		addPage(initialPage);
+		
 	}
 	
 	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
 	   IWizardPage nextPage = super.getNextPage(page);
-	   if (nextPage == null) {
-		   for (int i=0; i<10; i++) {   
+	   if (nextPage == null && getPageCount() == 1) {
+		   for (int i=0; i<questions.size(); i++) {   
 			   EDDQuestionsWizardQuestionPage dynamic = new EDDQuestionsWizardQuestionPage(selection, i);
 			   addPage(dynamic);
 		   }
+		   addPage(finalPage);
+		   return getPage("dynamicPage_0");
 	   }
 	   
 	   return nextPage;
@@ -66,8 +74,8 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * will create an operation and run it using wizard as execution context.
 	 */
 	public boolean performFinish() {
-		final String containerName = pageFinal.getContainerName();
-		final String fileName = pageFinal.getFileName();
+		final String containerName = finalPage.getContainerName();
+		final String fileName = finalPage.getFileName();
 		IRunnableWithProgress op = new IRunnableWithProgress() {
 			public void run(IProgressMonitor monitor)
 					throws InvocationTargetException {
@@ -157,5 +165,22 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 */
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
+		this.document = readJson();
+		questions = document.getGuia().getTemas().getSubTemas().getBloquePreguntas().getPreguntas();
+	}
+
+	private JsonDocument readJson() {
+		try {
+			JsonDocument document = (JsonDocument) JsonHelper.readJson(JSON_PATH, JsonDocument.class);
+			return document;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	public LinkedList<Pregunta> getQuestions() {
+		return questions;
 	}
 }

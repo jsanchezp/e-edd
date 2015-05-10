@@ -1,6 +1,7 @@
 package es.ucm.fdi.edd.ui.wizards;
 
 import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.Map;
 import java.util.Map.Entry;
 
@@ -18,6 +19,10 @@ import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Text;
 
+import es.ucm.fdi.edd.core.json.model.BloquePreguntas;
+import es.ucm.fdi.edd.core.json.model.JsonDocument;
+import es.ucm.fdi.edd.core.json.model.Pregunta;
+
 public class EDDQuestionsWizardQuestionPage extends WizardPage {
 	
 	private static final Map<String, String> myMap;
@@ -33,28 +38,21 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
     }
 
 	private ISelection selection;
+	private Text questionText;
+	private int index;
 
 	/**
 	 * Constructor for SampleNewWizardPage.
-	 * 
-	 * @param pageName
-	 */
-	public EDDQuestionsWizardQuestionPage(ISelection selection) {
-		super("wizardPage");
-		setTitle("EDD Questions Wizard");
-		setDescription("The debugger asks for a list of trusted functions, i.e., functions that the programmer is sure are correct, so that 'edd' will never ask about them.");
-		this.selection = selection;
-	}
-
-	/**
 	 * @param selection
+	 * @param document
 	 * @param i
 	 */
-	public EDDQuestionsWizardQuestionPage(ISelection selection, int i) {
-		super("wizardPage_"+i);
+	public EDDQuestionsWizardQuestionPage(ISelection selection, int index) {
+		super("dynamicPage_" + index);
 		setTitle("EDD Questions Wizard");
-		setDescription("Wizard page " + i);
+		setDescription("Wizard page " + index);
 		this.selection = selection;
+		this.index = index;
 	}
 
 	/**
@@ -73,10 +71,10 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
 		Label label = new Label(container, SWT.NULL);
 		label.setText("Question:");
 
-		Text fileText = new Text(container, SWT.BORDER | SWT.SINGLE);
+		questionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
 		gd.horizontalSpan = 2;
-		fileText.setLayoutData(gd);
+		questionText.setLayoutData(gd);
 		
 	    createRadioButtonsSection(container);
 	    createComponentsButton(container);
@@ -194,5 +192,13 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
 	
 	private boolean validatePage() {
 		return false;
+	}
+	
+	@Override
+	public void setVisible(boolean visible) {
+		super.setVisible(visible);
+		EDDQuestionsWizard wizard = (EDDQuestionsWizard) getWizard();
+		Pregunta question = wizard.getQuestions().get(index);
+		questionText.setText(question.getPregunta());
 	}
 }

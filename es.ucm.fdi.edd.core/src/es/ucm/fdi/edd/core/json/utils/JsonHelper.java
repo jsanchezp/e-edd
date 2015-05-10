@@ -24,6 +24,12 @@ public class JsonHelper {
 		
 		return null;
 	}
+	
+	public static Object readJson(String path, Class<?> clazz) throws IOException {
+		JsonUtils jsonUtils = new JsonUtils();
+		Object root = jsonUtils.fromFile(path, clazz);
+		return root;
+	}
 
 	public static Object readJson(InputStream is, Class<?> clazz) throws UnsupportedEncodingException {
 		byte[] bytes = convertInputStreamToByteArray(is);

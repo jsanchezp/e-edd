@@ -1,7 +1,5 @@
 package es.ucm.fdi.edd.core.json.model;
 
-import java.util.LinkedList;
-
 import com.google.gson.annotations.SerializedName;
 
 public class Tema {
@@ -11,7 +9,7 @@ public class Tema {
 	@SerializedName("-name")
 	private String name;
 	@SerializedName("subTema")
-	private LinkedList<SubTema> subTemas;
+	private SubTema subTemas;
 	
 	public Tema(Long id, String name) {
 		this.id = id;
@@ -34,11 +32,11 @@ public class Tema {
 		this.name = name;
 	}
 
-	public LinkedList<SubTema> getSubTemas() {
+	public SubTema getSubTemas() {
 		return subTemas;
 	}
 
-	public void setSubTemas(LinkedList<SubTema> subTemas) {
+	public void setSubTemas(SubTema subTemas) {
 		this.subTemas = subTemas;
 	}
 }

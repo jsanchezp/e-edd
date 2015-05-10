@@ -1,7 +1,5 @@
 package es.ucm.fdi.edd.core.json.model;
 
-import java.util.LinkedList;
-
 import com.google.gson.annotations.SerializedName;
 
 public class Guia {
@@ -13,7 +11,7 @@ public class Guia {
 	@SerializedName("-image")
 	private String image;
 	@SerializedName("tema")
-	private LinkedList<Tema> temas;
+	private Tema temas;
 	private BloqueRespuestas bloqueRespuestas;
 	private BloqueTipoPregunta bloqueTipoPregunta;
 	
@@ -39,11 +37,11 @@ public class Guia {
 		this.name = name;
 	}
 
-	public LinkedList<Tema> getTemas() {
+	public Tema getTemas() {
 		return temas;
 	}
 
-	public void setTemas(LinkedList<Tema> temas) {
+	public void setTemas(Tema temas) {
 		this.temas = temas;
 	}
 
