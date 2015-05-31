@@ -140,7 +140,7 @@ public class GraphicalViewer extends ContentViewer {
 		ScrollBar horizontal = canvas.getHorizontalBar();
 		horizontal.setIncrement((int) (canvas.getClientArea().width / 100));
 		horizontal.setPageIncrement(canvas.getClientArea().width);
-		Rectangle imageBound = sourceImage.getBounds();
+		Rectangle imageBound = sourceImage.isDisposed() ? canvas.getBounds() : sourceImage.getBounds();
 		int cw = canvas.getClientArea().width, ch = canvas.getClientArea().height;
 		if (imageBound.width * sx > cw) { /* image is wider than client area */
 			horizontal.setMaximum((int) (imageBound.width * sx));
