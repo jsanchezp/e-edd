@@ -197,6 +197,9 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
 		gv.addln("\tgraph [dpi = 400]; ");
+		gv.addln("\tratio=\"fill\"; ");
+		gv.addln("\tsize=\"8.3,11.7!\"; ");
+		gv.addln("\tmargin = 0; ");
 //		gv.addln("\tnode [shape=circle]; ");
 		gv.addln("\tnode [style=filled]; ");
 		gv.addln("\tnode [fillcolor=\"#EEEEEE\"]; ");
