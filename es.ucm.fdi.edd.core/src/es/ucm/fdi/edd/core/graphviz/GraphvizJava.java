@@ -13,11 +13,13 @@ public class GraphvizJava {
 	/**
 	 * Realiza la construccion del comando en la linea de comandos esto es: 
 	 * 		dot -Tpng -o archivo.png archivo.dot
+	 * 
+	 * 		dot -Tpng -o example.png archivo.dot -Gsize=3,5\! -Gdpi=200 
 	 */
 	public void dibujar(String direccionDot, String direccionPng) {
 		try {
 			ProcessBuilder pbuilder;
-			pbuilder = new ProcessBuilder("dot", "-Tpng", "-o", direccionPng, direccionDot);
+			pbuilder = new ProcessBuilder("dot", "-Tpng", "-Gsize=3,5\\!" ,"-Gdpi=200", "-o", direccionPng, direccionDot);
 			pbuilder.redirectErrorStream(true);
 			pbuilder.start();
 		} catch (Exception e) {

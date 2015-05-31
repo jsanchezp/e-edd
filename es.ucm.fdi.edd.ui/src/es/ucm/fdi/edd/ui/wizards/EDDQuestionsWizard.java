@@ -196,17 +196,24 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	private void buildDOT() {
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
-		gv.addln(" node [shape=circle]; ");
-		gv.addln(" node [style=filled]; ");
-		gv.addln(" node [fillcolor=\"#EEEEEE\"]; ");
-		gv.addln(" node [color=\"#EEEEEE\"]; ");
-		gv.addln(" edge [color=\"#31CEF0\"]; ");
+		gv.addln("\tgraph [dpi = 400]; ");
+//		gv.addln("\tnode [shape=circle]; ");
+		gv.addln("\tnode [style=filled]; ");
+		gv.addln("\tnode [fillcolor=\"#EEEEEE\"]; ");
+		gv.addln("\tnode [color=\"#EEEEEE\"]; ");
+		gv.addln("\tedge [color=\"#31CEF0\"]; ");
+		for (int i=0; i<vertices.size(); i++) {
+			Vertices vertice = vertices.get(i);
+			String node = vertice.getNode();
+			gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\"];");
+		}
 		LinkedList<Edges> edges = document.getEdges();
 		for (Edges edge : edges) {
-			int from = edge.getFrom();
-			gv.addln(from + " -> "+ edge.getTo() + " [label=\"" + vertices.get(from).getQuestion() + "\"];");
+			gv.addln(edge.getFrom() + " -> "+ edge.getTo() + ";");
+//			int from = edge.getFrom();
+//			gv.addln(from + " -> "+ edge.getTo() + " [label=\"" + vertices.get(from).getQuestion() + "\"];");
 		}
-//		gv.addln("rankdir=LR;");
+//		gv.addln("rankdir=LR;"); // Para cambiar el sentido 
 		gv.addln(gv.end_graph());
 		String dotSource = gv.getDotSource();
 		System.out.println(dotSource);
