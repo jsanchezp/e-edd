@@ -34,7 +34,7 @@ import org.eclipse.ui.ide.IDE;
 import org.erlide.ui.editors.erl.ErlangEditor;
 import org.erlide.ui.editors.util.EditorUtility;
 
-import es.ucm.fdi.edd.core.json.model.Pregunta;
+import es.ucm.fdi.edd.core.json.model.Vertices;
 
 public class EDDQuestionsWizardQuestionPage extends WizardPage {
 	
@@ -243,7 +243,7 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
 	public void setVisible(boolean visible) {
 		super.setVisible(visible);
 		EDDQuestionsWizard wizard = (EDDQuestionsWizard) getWizard();
-		Pregunta question = wizard.getQuestions().get(index);
-		questionText.setText(question.getPregunta());
+		Vertices vertice = wizard.getVertices().get(index);
+		questionText.setText(vertice.getQuestion());
 	}
 }

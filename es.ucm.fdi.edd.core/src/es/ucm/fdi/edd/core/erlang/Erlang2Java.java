@@ -6,8 +6,10 @@ import com.ericsson.otp.erlang.OtpNode;
 
 public class Erlang2Java {
 
-	private static final String NODE = "cliente@localhost";
+	private static final String NODE = "eddjava@localhost";
 	private static final String COOKIE = "erlide";
+	
+	private static final String THREAD_NAME = "erlServer";
 
 	public static void main(String[] args) {			
 		Erlang2Java main = new Erlang2Java();
@@ -19,13 +21,11 @@ public class Erlang2Java {
 		try {
 			node = new OtpNode(NODE);
 			node.setCookie(COOKIE);
-			Thread cliente = new Thread(new Cliente("Cliente", node), "Cliente");
-//			Thread t1 = new Thread(new Mole("Moley", node), "Moley");
-			cliente.start();
-//			t1.start();
+			Thread erlServer = new Thread(new ErlangServer(THREAD_NAME, node), THREAD_NAME);
+			erlServer.start();
 		} catch (IOException e) {
 			System.out.println("No se puede iniciar nodo. Has arrancado epmd?");
-			System.out.println(e.getMessage());
+			e.printStackTrace();
 		}
 	}
 }

@@ -1,15 +1,15 @@
-package es.ucm.fdi.edd.core.json.model;
+package es.ucm.fdi.edd.core.json.model2;
 
 import com.google.gson.annotations.SerializedName;
 
-public class RespuestaLink {
-	
+public class Respuesta {
+
 	@SerializedName("-idRespuesta")
 	private Long idRespuesta;
-	@SerializedName("-esRespuesta")
-	private boolean respuesta;
-	
-	public RespuestaLink(Long idRespuesta, boolean respuesta) {
+	@SerializedName("#text")
+	private String respuesta;
+
+	public Respuesta(Long idRespuesta, String respuesta) {
 		this.idRespuesta = idRespuesta;
 		this.respuesta = respuesta;
 	}
@@ -22,11 +22,11 @@ public class RespuestaLink {
 		this.idRespuesta = idRespuesta;
 	}
 
-	public boolean isRespuesta() {
+	public String getRespuesta() {
 		return respuesta;
 	}
 
-	public void setRespuesta(boolean respuesta) {
+	public void setRespuesta(String respuesta) {
 		this.respuesta = respuesta;
 	}
 }

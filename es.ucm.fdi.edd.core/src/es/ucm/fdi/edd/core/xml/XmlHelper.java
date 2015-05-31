@@ -6,7 +6,7 @@ import org.w3c.dom.Element;
 import org.w3c.dom.Node;
 import org.w3c.dom.NodeList;
 
-import es.ucm.fdi.edd.core.json.model.Pregunta;
+import es.ucm.fdi.edd.core.json.model2.Pregunta;
 
 public class XmlHelper {
 

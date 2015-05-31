@@ -1,10 +1,10 @@
 package es.ucm.fdi.edd.core.erlang;
 
 import com.ericsson.otp.erlang.OtpErlangAtom;
-import com.ericsson.otp.erlang.OtpErlangLong;
 import com.ericsson.otp.erlang.OtpErlangObject;
 import com.ericsson.otp.erlang.OtpErlangPid;
 import com.ericsson.otp.erlang.OtpErlangRangeException;
+import com.ericsson.otp.erlang.OtpErlangString;
 import com.ericsson.otp.erlang.OtpErlangTuple;
 import com.ericsson.otp.erlang.OtpException;
 import com.ericsson.otp.erlang.OtpMbox;
@@ -13,22 +13,27 @@ import com.ericsson.otp.erlang.OtpNode;
 /**
  * Ejemplo:
  * 		cmd> erl -sname console -setcookie erlide
+ * 		cmd> erl -sname edderlang -setcookie erlide -run edd_jserver start -noshell -s erlang halt
  * 
- * (console@localhost)1> {java, cliente@localhost} ! {self(), {move_worm, "Moley", 10}}.
+ * (console@localhost)1> {edd, eddjava@localhost} ! {self(), {move_worm, "Moley", 10}}.
  */
-public class Cliente implements Runnable {
+public class ErlangServer implements Runnable {
 	
-	private static final String MAILBOX = "java";
+	private static final String MAILBOX = "edd";
 	
 	private OtpMbox mailbox; 
 	
-	public Cliente(String name, OtpNode node) {
+	/**
+	 * @param name
+	 * @param node
+	 */
+	public ErlangServer(String name, OtpNode node) {
 		this.mailbox = node.createMbox(MAILBOX);
 	}
 
 	@Override
 	public void run() {
-		System.out.println("Proceso cliente iniciado.");
+		System.out.println("Erlang EDD server running...");
 		while (true) {
 			try {
 				OtpErlangObject mensaje = mailbox.receive();
@@ -50,16 +55,17 @@ public class Cliente implements Runnable {
 		}
 	}
 
+	/**
+	 * @param pidSender
+	 * @param response
+	 * @throws OtpErlangRangeException
+	 */
 	private void processMessage(OtpErlangPid pidSender, OtpErlangTuple response) throws OtpErlangRangeException {
 		if (response.arity() > 1 && response.elementAt(0) instanceof OtpErlangAtom) {
 			OtpErlangAtom operation = (OtpErlangAtom) response.elementAt(0);
 			switch(operation.atomValue()) {
-				case "move_worm":
-					processMoveWorm(pidSender, response);
-					break;
-				case "move_snake":
-					break;
-				case "move_mole":
+				case "buggy_call":
+					processBuggyCall(pidSender, response);
 					break;
 				default:
 					errorResponse(pidSender, response);
@@ -68,36 +74,44 @@ public class Cliente implements Runnable {
 			errorResponse(pidSender, response);
 		}
 	}
-
-	//{PidWorm, {move_worm, WormName, To}}
-	private void processMoveWorm(OtpErlangPid pidSender, OtpErlangTuple response) throws OtpErlangRangeException {
-		if (response.arity() == 3) {
-			OtpErlangAtom wormName = ((OtpErlangAtom) response.elementAt(1));
-			Long to = ((OtpErlangLong) response.elementAt(2)).longValue();
-			System.out.println(pidSender + ": " + wormName + ", " + to);
-			switch (wormName.atomValue()) {
-				case "jim":
-					break;
-				case "swarley":
-					break;
-				default:
-					break;
-			}
+	
+	/**
+	 * @param pidSender
+	 * @param response
+	 */
+	private void processBuggyCall(OtpErlangPid pidSender, OtpErlangTuple response) {
+		if (response.arity() == 2) {
+			String a = ((OtpErlangString) response.elementAt(1)).stringValue();
+			String b = ((OtpErlangString) response.elementAt(2)).stringValue();
+			System.out.println(pidSender + ": " + a + ", " + b);
+			
+			// Construimos la respuesta y la enviamos
+			OtpErlangObject[] reply = new OtpErlangObject[2];
+			reply[0] = new OtpErlangString(a);
+			reply[1] = new OtpErlangString(b);
+			OtpErlangTuple myTuple = new OtpErlangTuple(reply);
+			sendMessage(pidSender, myTuple);
 		} else {
 			errorResponse(pidSender, response);
 		}
 	}
 	
+	/**
+	 * @param pidSender
+	 * @param msg
+	 */
 	private void errorResponse(OtpErlangPid pidSender, OtpErlangTuple msg) {
 		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
-		OtpErlangTuple response = new OtpErlangTuple(new OtpErlangObject[] {
-				errorAtom, msg });
+		OtpErlangTuple response = new OtpErlangTuple(new OtpErlangObject[] {errorAtom, msg});
 		sendMessage(pidSender, response);
 	}
 
+	/**
+	 * @param pidSender
+	 * @param msg
+	 */
 	private void sendMessage(OtpErlangPid pidSender, OtpErlangObject msg) {
-		OtpErlangTuple tuple = new OtpErlangTuple(new OtpErlangObject[] {
-				mailbox.self(), msg });
+		OtpErlangTuple tuple = new OtpErlangTuple(new OtpErlangObject[] {mailbox.self(), msg});
 		mailbox.send(pidSender, tuple);
 	}
 }

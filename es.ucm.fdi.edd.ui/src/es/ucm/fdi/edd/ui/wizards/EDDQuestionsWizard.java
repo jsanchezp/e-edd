@@ -21,19 +21,22 @@ import java.io.*;
 import org.eclipse.ui.*;
 import org.eclipse.ui.ide.IDE;
 
+import es.ucm.fdi.edd.core.erlang.jinterface.EDDJInterface;
+import es.ucm.fdi.edd.core.graphviz.GraphViz;
+import es.ucm.fdi.edd.core.json.model.Edges;
 import es.ucm.fdi.edd.core.json.model.JsonDocument;
-import es.ucm.fdi.edd.core.json.model.Pregunta;
+import es.ucm.fdi.edd.core.json.model.Vertices;
 import es.ucm.fdi.edd.core.json.utils.JsonHelper;
 
 public class EDDQuestionsWizard extends Wizard implements INewWizard {
 
-	private static final String JSON_PATH = "C:\\Guia.json";
+	private static final String JSON_PATH = "C:\\Test2.json";
 	private EDDQuestionsWizardPage initialPage;
 	private EDDQuestionsWizardPageFinal finalPage;
 	private ISelection selection;
 	
 	private JsonDocument document;
-	private LinkedList<Pregunta> questions;
+	private LinkedList<Vertices> vertices;
 
 	/**
 	 * Constructor for SampleNewWizard.
@@ -41,13 +44,14 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	public EDDQuestionsWizard() {
 		super();
 		setNeedsProgressMonitor(true);
+		setForcePreviousAndNextButtons(true);
 	}
 
 	/**
 	 * Adding the page to the wizard.
 	 */
 	public void addPages() {
-		//http://eclipseblog.ostroukhovs.com/2009/08/22/non-lineal-wizards/
+		super.addPages();
 		initialPage = new EDDQuestionsWizardPage(selection);
 		finalPage = new EDDQuestionsWizardPageFinal(selection);
 		addPage(initialPage);
@@ -56,17 +60,26 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	
 	@Override
 	public IWizardPage getNextPage(IWizardPage page) {
-	   IWizardPage nextPage = super.getNextPage(page);
-	   if (nextPage == null && getPageCount() == 1) {
-		   for (int i=0; i<questions.size(); i++) {   
-			   EDDQuestionsWizardQuestionPage dynamic = new EDDQuestionsWizardQuestionPage(selection, i);
-			   addPage(dynamic);
-		   }
-		   addPage(finalPage);
-		   return getPage("dynamicPage_0");
-	   }
+		IWizardPage nextPage = super.getNextPage(page);
+		if (nextPage == null && getPageCount() == 1) {
+			
+			try {
+				// FIXME Ejemplo de uso...
+				String[] args = new String[] {"ackermann:main([3,4])", "../examples/ackermann/"};
+//				EDDJInterface.main(args);
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+			
+			for (int i=0; i<vertices.size(); i++) {   
+				EDDQuestionsWizardQuestionPage dynamic = new EDDQuestionsWizardQuestionPage(selection, i);
+				addPage(dynamic);
+			}
+			addPage(finalPage);
+			return getPage("dynamicPage_0");
+		}
 	   
-	   return nextPage;
+		return nextPage;
 	}
 
 	/**
@@ -106,15 +119,13 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	 * or just replace its contents, and open the editor on the newly created
 	 * file.
 	 */
-	private void doFinish(String containerName, String fileName,
-			IProgressMonitor monitor) throws CoreException {
+	private void doFinish(String containerName, String fileName, IProgressMonitor monitor) throws CoreException {
 		// create a sample file
 		monitor.beginTask("Creating " + fileName, 2);
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
 		IResource resource = root.findMember(new Path(containerName));
 		if (!resource.exists() || !(resource instanceof IContainer)) {
-			throwCoreException("Container \"" + containerName
-					+ "\" does not exist.");
+			throwCoreException("Container \"" + containerName + "\" does not exist.");
 		}
 		IContainer container = (IContainer) resource;
 		final IFile file = container.getFile(new Path(fileName));
@@ -166,7 +177,9 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	public void init(IWorkbench workbench, IStructuredSelection selection) {
 		this.selection = selection;
 		this.document = readJson();
-		questions = document.getGuia().getTemas().getSubTemas().getBloquePreguntas().getPreguntas();
+		vertices = document.getVertices();
+		
+		buildDOT();
 	}
 
 	private JsonDocument readJson() {
@@ -180,7 +193,30 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 		return null;
 	}
 	
-	public LinkedList<Pregunta> getQuestions() {
-		return questions;
+	private void buildDOT() {
+		GraphViz gv = new GraphViz();
+		gv.addln(gv.start_graph());
+		gv.addln(" node [shape=circle]; ");
+		gv.addln(" node [style=filled]; ");
+		gv.addln(" node [fillcolor=\"#EEEEEE\"]; ");
+		gv.addln(" node [color=\"#EEEEEE\"]; ");
+		gv.addln(" edge [color=\"#31CEF0\"]; ");
+		LinkedList<Edges> edges = document.getEdges();
+		for (Edges edge : edges) {
+			int from = edge.getFrom();
+			gv.addln(from + " -> "+ edge.getTo() + " [label=\"" + vertices.get(from).getQuestion() + "\"];");
+		}
+//		gv.addln("rankdir=LR;");
+		gv.addln(gv.end_graph());
+		String dotSource = gv.getDotSource();
+		System.out.println(dotSource);
+		
+//		String type = "gif";
+//		File out = new File("files/output/images/sample1." + type);
+//		gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type), out);
+	}
+	
+	public LinkedList<Vertices> getVertices() {
+		return vertices;
 	}
 }

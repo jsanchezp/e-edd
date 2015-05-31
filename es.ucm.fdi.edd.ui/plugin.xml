@@ -210,5 +210,38 @@
          </action>
       </viewContribution>
    </extension>
+   <extension
+         point="org.eclipse.debug.ui.launchShortcuts">
+      <shortcut
+            class="es.ucm.fdi.edd.ui.launch.EDDLaunchShortcut"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.launch.EDDLaunchShortcut"
+            label="Erlang Declarative Debugger"
+            modes="run,debug">
+         <contextualLaunch>
+            <enablement>
+               <with
+                     variable="selection">
+                  <iterate>
+                     <adapt
+                           type="org.erlide.engine.model.root.IErlElement">
+                     </adapt>
+                  </iterate>
+               </with>
+            </enablement>
+         </contextualLaunch>
+         <configurationType
+               id="org.erlide.backend.erlangProcess">
+         </configurationType>
+         <description
+               description="Load this project in an Erlang node, starting it if needed."
+               mode="run">
+         </description>
+         <description
+               description="Load and debug this project in an Erlang node, starting it if needed."
+               mode="debug">
+         </description>
+      </shortcut>
+   </extension>
 
 </plugin>

@@ -18,7 +18,13 @@ Require-Bundle: com.abstratt.content,
  es.ucm.fdi.edd.core,
  org.erlide.ui,
  org.erlide.model.api,
- org.eclipse.text
+ org.eclipse.text,
+ org.eclipse.debug.ui,
+ org.erlide.libs,
+ org.erlide.backend,
+ org.erlide.util_eclipse,
+ org.erlide.runtime,
+ org.eclipse.ui.editors
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor

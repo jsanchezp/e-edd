@@ -1,4 +1,4 @@
-package es.ucm.fdi.edd.core.json.model;
+package es.ucm.fdi.edd.core.json.model2;
 
 public class TipoRespuesta {
 	
