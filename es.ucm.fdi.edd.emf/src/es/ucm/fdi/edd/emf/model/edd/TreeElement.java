@@ -11,11 +11,11 @@ import org.eclipse.emf.ecore.EObject;
  *
  * <p>
  * The following features are supported:
+ * </p>
  * <ul>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.TreeElement#getIndex <em>Index</em>}</li>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.TreeElement#getName <em>Name</em>}</li>
  * </ul>
- * </p>
  *
  * @see es.ucm.fdi.edd.emf.model.edd.EddPackage#getTreeElement()
  * @model

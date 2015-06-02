@@ -13,11 +13,11 @@ import org.eclipse.emf.ecore.EObject;
  *
  * <p>
  * The following features are supported:
+ * </p>
  * <ul>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.EDD#getElements <em>Elements</em>}</li>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.EDD#getName <em>Name</em>}</li>
  * </ul>
- * </p>
  *
  * @see es.ucm.fdi.edd.emf.model.edd.EddPackage#getEDD()
  * @model

@@ -11,10 +11,10 @@ import org.eclipse.emf.common.util.EList;
  *
  * <p>
  * The following features are supported:
+ * </p>
  * <ul>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.Node#getChildren <em>Children</em>}</li>
  * </ul>
- * </p>
  *
  * @see es.ucm.fdi.edd.emf.model.edd.EddPackage#getNode()
  * @model

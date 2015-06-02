@@ -28,11 +28,11 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * <!-- end-user-doc -->
  * <p>
  * The following features are implemented:
+ * </p>
  * <ul>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.impl.EDDImpl#getElements <em>Elements</em>}</li>
  *   <li>{@link es.ucm.fdi.edd.emf.model.edd.impl.EDDImpl#getName <em>Name</em>}</li>
  * </ul>
- * </p>
  *
  * @generated
  */
