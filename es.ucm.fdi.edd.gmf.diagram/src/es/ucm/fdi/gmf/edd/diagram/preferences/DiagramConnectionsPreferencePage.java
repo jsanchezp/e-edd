@@ -19,7 +19,7 @@ public class DiagramConnectionsPreferencePage extends ConnectionsPreferencePage 
 		setPreferenceStore(EddDiagramEditorPlugin.getInstance()
 				.getPreferenceStore());
 	}
-	
+
 	/**
 	 * @generated NOT
 	 */

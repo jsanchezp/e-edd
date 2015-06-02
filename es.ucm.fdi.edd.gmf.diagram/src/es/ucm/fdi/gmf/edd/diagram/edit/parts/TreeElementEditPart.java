@@ -252,10 +252,6 @@ public class TreeElementEditPart extends ShapeNodeEditPart {
 		/**
 		 * @generated
 		 */
-		private WrappingLabel fFigureTreeElementIndexFigure;
-		/**
-		 * @generated
-		 */
 		private WrappingLabel fFigureTreeElementNameFigure;
 
 		/**
@@ -282,25 +278,12 @@ public class TreeElementEditPart extends ShapeNodeEditPart {
 		 */
 		private void createContents() {
 
-			fFigureTreeElementIndexFigure = new WrappingLabel();
-
-			fFigureTreeElementIndexFigure.setText("<...>");
-
-			this.add(fFigureTreeElementIndexFigure);
-
 			fFigureTreeElementNameFigure = new WrappingLabel();
 
 			fFigureTreeElementNameFigure.setText("<...>");
 
 			this.add(fFigureTreeElementNameFigure);
 
-		}
-
-		/**
-		 * @generated
-		 */
-		public WrappingLabel getFigureTreeElementIndexFigure() {
-			return fFigureTreeElementIndexFigure;
 		}
 
 		/**

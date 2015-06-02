@@ -64,7 +64,7 @@ public class ModelModelBlocksCompartmentEditPart extends
 		ResizableCompartmentFigure result = (ResizableCompartmentFigure) super
 				.createFigure();
 		result.setTitleVisibility(false);
-		
+
 		// Fix the margins
 		Insets insets = result.getContentPane().getInsets();
 		insets.top = 5;
@@ -79,7 +79,7 @@ public class ModelModelBlocksCompartmentEditPart extends
 		layoutMgr.setStretchMinorAxis(true); // uses all the avalaible space
 		layoutMgr.setSpacing(5);
 
-//		FreeFormLayoutEx layoutMgr = (FreeFormLayoutEx) result.getContentPane().getLayoutManager();
+		//		FreeFormLayoutEx layoutMgr = (FreeFormLayoutEx) result.getContentPane().getLayoutManager();
 
 		return result;
 	}

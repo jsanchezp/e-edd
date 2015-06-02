@@ -30,7 +30,7 @@ public class BlockBlockTreeElementsCompartmentItemSemanticEditPolicy extends
 		}
 		return super.getCreateCommand(req);
 	}
-	
+
 	/**
 	 * @generated NOT
 	 */

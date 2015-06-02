@@ -8,7 +8,7 @@ import org.eclipse.gmf.runtime.emf.type.core.requests.DestroyElementRequest;
  * @generated
  */
 public class ModelEditHelper extends EddBaseEditHelper {
-	
+
 	/**
 	 * @generated NOT
 	 */

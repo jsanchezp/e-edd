@@ -75,7 +75,7 @@ public class ModelEditPart extends ShapeNodeEditPart {
 		installEditPolicy(EditPolicy.LAYOUT_ROLE, createLayoutEditPolicy());
 		// XXX need an SCR to runtime to have another abstract superclass that would let children add reasonable editpolicies
 		// removeEditPolicy(org.eclipse.gmf.runtime.diagram.ui.editpolicies.EditPolicyRoles.CONNECTION_HANDLES_ROLE);
-		
+
 		installEditPolicy(EditPolicy.COMPONENT_ROLE, new ComponentEditPolicy() {
 			public Command getCommand(Request request) {
 				// If the user presses the delete key, don't delete
@@ -197,7 +197,7 @@ public class ModelEditPart extends ShapeNodeEditPart {
 	 */
 	protected NodeFigure createNodePlate() {
 		// TODO
-//		DefaultSizeNodeFigure result = new DefaultSizeNodeFigure(40, 40);
+		//		DefaultSizeNodeFigure result = new DefaultSizeNodeFigure(40, 40);
 		DefaultSizeNodeFigure result = new DefaultSizeNodeFigure(600, 300);
 		return result;
 	}

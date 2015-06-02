@@ -30,11 +30,9 @@
     <descriptors name="TreeElementFigure">
       <actualFigure xsi:type="gmfgraph:Rectangle" name="TreeElementFigure">
         <layout xsi:type="gmfgraph:FlowLayout"/>
-        <children xsi:type="gmfgraph:Label" name="TreeElementIndexFigure" text="&lt;...>"/>
         <children xsi:type="gmfgraph:Label" name="TreeElementNameFigure" text="&lt;...>"/>
       </actualFigure>
       <accessors figure="//@figures.0/@descriptors.2/@actualFigure/@children.0"/>
-      <accessors figure="//@figures.0/@descriptors.2/@actualFigure/@children.1"/>
     </descriptors>
     <descriptors name="TreeElementLinksFigure">
       <actualFigure xsi:type="gmfgraph:PolylineConnection" name="TreeElementLinksFigure"/>
@@ -47,7 +45,7 @@
   <compartments name="BlockTreeElementsCompartment" figure="BlockFigure" accessor="//@figures.0/@descriptors.0/@accessors.1"/>
   <compartments name="ModelBlocksCompartment" figure="ModelFigure" accessor="//@figures.0/@descriptors.1/@accessors.1"/>
   <labels name="ModelName" figure="ModelFigure" accessor="//@figures.0/@descriptors.1/@accessors.0"/>
-  <labels name="TreeElementIndex" figure="TreeElementFigure" accessor="//@figures.0/@descriptors.2/@accessors.0"/>
-  <labels name="TreeElementName" figure="TreeElementFigure" accessor="//@figures.0/@descriptors.2/@accessors.1"/>
+  <labels name="TreeElementIndex" figure="TreeElementFigure"/>
+  <labels name="TreeElementName" figure="TreeElementFigure" accessor="//@figures.0/@descriptors.2/@accessors.0"/>
   <labels name="BlockName" figure="BlockFigure" accessor="//@figures.0/@descriptors.0/@accessors.0"/>
 </gmfgraph:Canvas>
