@@ -24,7 +24,11 @@ Require-Bundle: com.abstratt.content,
  org.erlide.backend,
  org.erlide.util_eclipse,
  org.erlide.runtime,
- org.eclipse.ui.editors
+ org.eclipse.ui.editors,
+ org.eclipse.ui.console,
+ org.eclipse.jdt.ui,
+ org.eclipse.ui.forms,
+ org.eclipse.jface
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor

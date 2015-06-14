@@ -9,6 +9,8 @@ import com.abstratt.content.IContentProviderRegistry.IProviderDescription;
 import es.ucm.fdi.edd.ui.views.utils.SWTImageCanvas;
 
 public class EDDViewer extends ViewPart {
+	
+	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDViewer";
 
 	public SWTImageCanvas imageCanvas;
 	

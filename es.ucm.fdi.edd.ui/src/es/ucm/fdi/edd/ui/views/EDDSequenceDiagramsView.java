@@ -29,6 +29,8 @@ import org.osgi.framework.Bundle;
 import es.ucm.fdi.edd.ui.Activator;
 
 public class EDDSequenceDiagramsView extends ViewPart implements IResourceChangeListener, IPartListener2, ISelectionListener {
+	
+	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDSequenceDiagramsView";
 
 	private String basePartName;
 	private IFile selectedFile;

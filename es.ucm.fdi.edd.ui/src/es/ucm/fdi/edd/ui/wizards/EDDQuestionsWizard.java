@@ -64,7 +64,7 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 		if (nextPage == null && getPageCount() == 1) {
 			
 			try {
-				// FIXME Ejemplo de uso...
+				// FIXME Ejemplo de uso servidor...
 				String[] args = new String[] {"ackermann:main([3,4])", "../examples/ackermann/"};
 //				EDDJInterface.main(args);
 			} catch (Exception e) {
@@ -178,7 +178,8 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 		this.selection = selection;
 		this.document = readJson();
 		vertices = document.getVertices();
-		
+
+		// FIXME Generate dot file...
 		buildDOT();
 	}
 
@@ -194,6 +195,7 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 	}
 	
 	private void buildDOT() {
+		// FIXME Ejemplo de uso DOT ...
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
 		gv.addln("\tgraph [dpi = 400]; ");
