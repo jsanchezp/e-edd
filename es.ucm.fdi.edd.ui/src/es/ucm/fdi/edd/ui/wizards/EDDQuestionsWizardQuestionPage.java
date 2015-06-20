@@ -86,7 +86,6 @@ public class EDDQuestionsWizardQuestionPage extends WizardPage {
 
 		questionText = new Text(container, SWT.BORDER | SWT.SINGLE);
 		questionText.addModifyListener(new ModifyListener() {
-			@SuppressWarnings("restriction")
 			@Override
 			public void modifyText(ModifyEvent event) {
 				selectAndReveal();

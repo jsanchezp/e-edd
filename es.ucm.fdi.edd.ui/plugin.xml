@@ -263,6 +263,10 @@
             name="Hello">
       </command>
       <command
+            id="es.ucm.fdi.edd.ui.commands.debugStart"
+            name="Start">
+      </command>
+      <command
             id="es.ucm.fdi.edd.ui.commands.debugBack"
             name="Back">
       </command>
@@ -304,6 +308,10 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
+            class="es.ucm.fdi.edd.ui.commands.StartCommand"
+            commandId="es.ucm.fdi.edd.ui.commands.debugStart">
+      </handler>
+      <handler
             class="es.ucm.fdi.edd.ui.commands.BackCommand"
             commandId="es.ucm.fdi.edd.ui.commands.debugBack">
       </handler>
@@ -338,6 +346,12 @@
             allPopups="false"
             locationURI="toolbar:es.ucm.fdi.edd.ui.views.EDDebugView">
          <command
+               commandId="es.ucm.fdi.edd.ui.commands.debugStart"
+               icon="icons/resume_co.gif"
+               label="Start"
+               style="push">
+         </command>
+         <command
                commandId="es.ucm.fdi.edd.ui.commands.debugBack"
                icon="icons/prev.gif"
                label="Back"
@@ -351,13 +365,13 @@
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugFinish"
-               icon="icons/stop.gif"
+               icon="icons/validate.gif"
                label="Finish"
                style="push">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugCancel"
-               icon="icons/delete_obj.gif"
+               icon="icons/stop.gif"
                label="Cancel"
                style="push">
          </command>

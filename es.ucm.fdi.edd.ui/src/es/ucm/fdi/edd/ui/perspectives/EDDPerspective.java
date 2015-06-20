@@ -1,7 +1,6 @@
 package es.ucm.fdi.edd.ui.perspectives;
 
 import org.eclipse.debug.ui.IDebugUIConstants;
-import org.eclipse.jdt.ui.JavaUI;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
@@ -50,7 +49,7 @@ public class EDDPerspective implements IPerspectiveFactory {
 		consoleFolder.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 		consoleFolder.addView(IPageLayout.ID_PROP_SHEET);
 		
-		IFolderLayout topLeftFolder= layout.createFolder("leftTop", IPageLayout.TOP, 0.45f, editorArea);
+		IFolderLayout topLeftFolder= layout.createFolder("leftTop", IPageLayout.TOP, 0.50f, editorArea);
 		topLeftFolder.addView(EDDebugView.VIEW_ID);
 		topLeftFolder.addView(IDebugUIConstants.ID_DEBUG_VIEW);
 		
