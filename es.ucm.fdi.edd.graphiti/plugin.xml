@@ -59,7 +59,7 @@
             name="EDD">
       </category>
       <view
-            category="es.ucm.fdi.edd.graphiti.category"
+            category="es.ucm.fdi.edd.ui.category"
             class="es.ucm.fdi.edd.graphiti.views.EDDView"
             icon="icons/sample.gif"
             id="es.ucm.fdi.edd.graphiti.views.EDDView"
