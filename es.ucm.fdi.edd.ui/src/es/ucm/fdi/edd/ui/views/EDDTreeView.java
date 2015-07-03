@@ -41,6 +41,11 @@ import org.eclipse.ui.views.contentoutline.IContentOutlinePage;
 import org.eclipse.ui.views.properties.IPropertySheetPage;
 import org.eclipse.ui.views.properties.PropertySheetPage;
 
+import es.ucm.fdi.edd.emf.model.edd.EDD;
+import es.ucm.fdi.edd.emf.model.edd.EddFactory;
+import es.ucm.fdi.edd.emf.model.edd.Leaf;
+import es.ucm.fdi.edd.emf.model.edd.Node;
+import es.ucm.fdi.edd.emf.model.edd.TreeElement;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.providers.MNComposedAdapterFactory;
 import es.ucm.fdi.edd.ui.views.providers.MNViewContentProvider;
@@ -48,10 +53,6 @@ import es.ucm.fdi.edd.ui.views.providers.MNViewLabelProvider;
 import es.ucm.fdi.edd.ui.views.providers.TreeObject;
 import es.ucm.fdi.edd.ui.views.providers.TreeParent;
 import es.ucm.fdi.edd.ui.views.sorter.NameSorter;
-import es.ucm.fdi.emf.model.ed2.ED2;
-import es.ucm.fdi.emf.model.ed2.Ed2Factory;
-import es.ucm.fdi.emf.model.ed2.Leaf;
-import es.ucm.fdi.emf.model.ed2.Node;
 
 public class EDDTreeView extends ViewPart implements IAdaptable {
 
@@ -147,13 +148,13 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 	/**
 	 * @param input
 	 */
-	public void updateContent(ED2 input) {
+	public void updateContent(EDD input) {
 		if (viewer != null) {
 			viewer.setInput(input);
 			viewer.expandAll();
 			
 			nodesContentList.clear();
-			walk(input.getTreeParents());
+			walk(input.getElements());
 		}
 	}
 	
@@ -168,7 +169,7 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 				Node node = (Node) item;
 				System.out.println("Node: " + node.getIndex() + " :: " + node.getName());
 				nodesContentList.put(node.getIndex(), node);
-				walk(node.getLinks());
+				walk(node.getChildren());
 			} else if (item instanceof Leaf) {
 				Leaf leaf = (Leaf) item;
 				System.out.println("Leaf: " + leaf.getIndex() + " :: " + leaf.getName());
@@ -177,70 +178,70 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 		}
 	}
 	
-	private ED2 getDataModel() {
-		Leaf leaf1 = Ed2Factory.eINSTANCE.createLeaf();
+	private EDD getDataModel() {
+		Leaf leaf1 = EddFactory.eINSTANCE.createLeaf();
 		leaf1.setIndex(1);
 		leaf1.setName("Leaf 1");
 		
-		Leaf leaf2 = Ed2Factory.eINSTANCE.createLeaf();
+		Leaf leaf2 = EddFactory.eINSTANCE.createLeaf();
 		leaf2.setIndex(2);
 		leaf2.setName("Leaf 2");
 		
-		Leaf leaf3 = Ed2Factory.eINSTANCE.createLeaf();
+		Leaf leaf3 = EddFactory.eINSTANCE.createLeaf();
 		leaf3.setIndex(3);
 		leaf3.setName("Leaf 3");
 		
-		Node node1 = Ed2Factory.eINSTANCE.createNode();
+		Node node1 = EddFactory.eINSTANCE.createNode();
 		node1.setIndex(4);
 		node1.setName("Parent 1");	
-		node1.getLeaves().add(leaf1);
-		node1.getLeaves().add(leaf2);
-		node1.getLeaves().add(leaf3);
+		node1.getChildren().add(leaf1);
+		node1.getChildren().add(leaf2);
+		node1.getChildren().add(leaf3);
 
-		Leaf leaf4 = Ed2Factory.eINSTANCE.createLeaf();
+		Leaf leaf4 = EddFactory.eINSTANCE.createLeaf();
 		leaf4.setIndex(1);
 		leaf4.setName("Leaf 4");
 		
-		Leaf _leaf = Ed2Factory.eINSTANCE.createLeaf();
+		Leaf _leaf = EddFactory.eINSTANCE.createLeaf();
 		_leaf.setIndex(1);
 		_leaf.setName("Leaf");
 		
-		Node nodeZ = Ed2Factory.eINSTANCE.createNode();
+		Node nodeZ = EddFactory.eINSTANCE.createNode();
 		nodeZ.setIndex(4);
 		nodeZ.setName("Node Z");
-		nodeZ.getLeaves().add(_leaf);
+		nodeZ.getChildren().add(_leaf);
 		
-		Node nodeY = Ed2Factory.eINSTANCE.createNode();
+		Node nodeY = EddFactory.eINSTANCE.createNode();
 		nodeY.setIndex(4);
 		nodeY.setName("Node Y");
-		nodeY.getNodes().add(nodeZ);
+		nodeY.getChildren().add(nodeZ);
 		
-		Node nodeX = Ed2Factory.eINSTANCE.createNode();
+		Node nodeX = EddFactory.eINSTANCE.createNode();
 		nodeX.setIndex(4);
 		nodeX.setName("Node X");	
-		nodeX.getNodes().add(nodeY);
+		nodeX.getChildren().add(nodeY);
 		
-		Node node2 = Ed2Factory.eINSTANCE.createNode();
+		Node node2 = EddFactory.eINSTANCE.createNode();
 		node2.setIndex(4);
 		node2.setName("Parent 2");	
-		node2.getLeaves().add(leaf4);
-		node2.getNodes().add(nodeX);
+		node2.getChildren().add(leaf4);
+		node2.getChildren().add(nodeX);
 		
-		Leaf leaf = Ed2Factory.eINSTANCE.createLeaf();
+		Leaf leaf = EddFactory.eINSTANCE.createLeaf();
 		leaf.setIndex(4);
 		leaf.setName("Leaf");
 		
-//		TreeElement te = Ed2Factory.eINSTANCE.createTreeElement();
-//		te.setIndex(1);
-//		te.setName("TreeElement");
+		TreeElement te = EddFactory.eINSTANCE.createTreeElement();
+		te.setIndex(1);
+		te.setName("TreeElement");
 
-		ED2 root = Ed2Factory.eINSTANCE.createED2();
+		EDD root = EddFactory.eINSTANCE.createEDD();
 		root.setName("Root");
-		EList<TreeElement> elements = root.getTreeParents();
+		EList<TreeElement> elements = root.getElements();
 		elements.add(node1);
 		elements.add(node2);
 		elements.add(leaf);
-//		elements.add(te);
+		elements.add(te);
 		
 		return root;
 	}

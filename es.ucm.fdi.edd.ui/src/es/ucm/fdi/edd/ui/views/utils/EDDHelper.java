@@ -14,10 +14,10 @@ import es.ucm.fdi.edd.core.json.model.JsonDocument;
 import es.ucm.fdi.edd.core.json.model.Vertices;
 import es.ucm.fdi.edd.core.json.utils.JsonHelper;
 import es.ucm.fdi.edd.core.util.FileManager;
-import es.ucm.fdi.emf.model.ed2.ED2;
-import es.ucm.fdi.emf.model.ed2.Ed2Factory;
-import es.ucm.fdi.emf.model.ed2.Node;
-import es.ucm.fdi.emf.model.ed2.TreeElement;
+import es.ucm.fdi.edd.emf.model.edd.EDD;
+import es.ucm.fdi.edd.emf.model.edd.EddFactory;
+import es.ucm.fdi.edd.emf.model.edd.Node;
+import es.ucm.fdi.edd.emf.model.edd.TreeElement;
 
 /**
  * EDD Helper 
@@ -120,14 +120,14 @@ public class EDDHelper {
 //		gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type), out);
 	}
 	
-	public ED2 buildEMF(String name) {
-		ED2 root = Ed2Factory.eINSTANCE.createED2();
+	public EDD buildEMF(String name) {
+		EDD root = EddFactory.eINSTANCE.createEDD();
 		root.setName(name);
 		
 		Map<Integer, Node> nodesMap = new HashMap<Integer, Node>();
 		LinkedList<Vertices> vertices = document.getVertices();
 		for (Vertices vertice : vertices) {
-			Node node = Ed2Factory.eINSTANCE.createNode();
+			Node node = EddFactory.eINSTANCE.createNode();
 			int index = Integer.parseInt(vertice.getNode());
 			node.setIndex(index);
 			node.setName(index + ": " +vertice.getQuestion());
@@ -142,10 +142,10 @@ public class EDDHelper {
 			
 			Node source = nodesMap.get(from);
 			Node target = nodesMap.get(to);
-			source.getNodes().add(target);
+			source.getChildren().add(target);
 		}
 		
-		EList<TreeElement> elements = root.getTreeElements();
+		EList<TreeElement> elements = root.getElements();
 		elements.add(nodesMap.get(90)); // Raíz
 		
 		return root;

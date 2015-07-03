@@ -7,7 +7,7 @@ import org.eclipse.jface.viewers.IDecoration;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.ui.plugin.AbstractUIPlugin;
 
-import es.ucm.fdi.emf.model.ed2.Node;
+import es.ucm.fdi.edd.emf.model.edd.Node;
 
 /**
  * A decorating label provider is a label provider which combines a nested label provider and an optional decorator.
@@ -35,7 +35,7 @@ public class MNViewLabelProvider extends AdapterFactoryLabelProvider {
 		Image image = super.getImage(element);
 		if (element instanceof Node) {
 			Node item = (Node) element;
-            if (item.getNodes().size() > 0) {
+            if (item.getChildren().size() > 0) {
                 if (decoratedImage == null) {
                     DecorationOverlayIcon icon = new DecorationOverlayIcon(image, WARNING_IMG, IDecoration.TOP_LEFT);
                     decoratedImage = icon.createImage();

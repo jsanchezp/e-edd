@@ -67,11 +67,11 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.ViewPart;
 
+import es.ucm.fdi.edd.emf.model.edd.EDD;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
-import es.ucm.fdi.emf.model.ed2.ED2;
 
 public class EDDebugView extends ViewPart {
 
@@ -723,7 +723,7 @@ public class EDDebugView extends ViewPart {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			ED2 edd = helper.buildEMF("EDDFile");
+			EDD edd = helper.buildEMF("EDDFile");
 			view.updateContent(edd);
 		}
 	}

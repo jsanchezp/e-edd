@@ -15,7 +15,7 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryContentProvider;
 
-import es.ucm.fdi.emf.model.ed2.Node;
+import es.ucm.fdi.edd.emf.model.edd.Node;
 
 /**
  *  Provides the possibility to display a <code>Node</code> including its child objects.
@@ -41,7 +41,7 @@ public class MNViewContentProvider extends AdapterFactoryContentProvider impleme
 			URI uri = URI.createPlatformResourceURI(path, true);
 			parentElement = resourceSet.getResource(uri, true);
 		} else if (parentElement instanceof Node) {
-			return ((Node) parentElement).getNodes().toArray();
+			return ((Node) parentElement).getChildren().toArray();
 		}
 		
 		return super.getChildren(parentElement);
@@ -68,7 +68,7 @@ public class MNViewContentProvider extends AdapterFactoryContentProvider impleme
 			return true;
 		} else if (element instanceof Node) {
 			Node node = (Node) element;
-			return node.getNodes().size() > 0;
+			return node.getChildren().size() > 0;
 		}
 		
 		return super.hasChildren(element);

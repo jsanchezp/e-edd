@@ -9,7 +9,7 @@ import org.eclipse.emf.edit.provider.ComposedAdapterFactory;
 import org.eclipse.emf.edit.provider.ReflectiveItemProviderAdapterFactory;
 import org.eclipse.emf.edit.provider.resource.ResourceItemProviderAdapterFactory;
 
-import es.ucm.fdi.emf.model.ed2.provider.Ed2ItemProviderAdapterFactory;
+import es.ucm.fdi.edd.emf.model.edd.provider.EddItemProviderAdapterFactory;
 
 /**
  * This provides support for composing a factory for the <code>EDD</code> model
@@ -44,7 +44,7 @@ public class MNComposedAdapterFactory {
 		factories.add(new GenModelItemProviderAdapterFactory());
 		factories.add(new ReflectiveItemProviderAdapterFactory());
 		// EDD Factory
-		factories.add(new Ed2ItemProviderAdapterFactory());
+		factories.add(new EddItemProviderAdapterFactory());
 		
 		return factories;
 	}
