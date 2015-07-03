@@ -11,6 +11,7 @@ public class ServidorUDP {
 	
 	public static void main(String[] args) throws SocketException {
 		// Creamos el socket UDP
+		@SuppressWarnings("resource")
 		DatagramSocket socket = new DatagramSocket(6667); 
 		System.out.println("Servidor iniciado correctamente");
 		int i = 0;

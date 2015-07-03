@@ -7,6 +7,7 @@ public class ClienteUDP {
 
 	public static void main(String[] args) throws SocketException, UnknownHostException, IOException, InterruptedException {
 		// Creamos el socket UDP.
+		@SuppressWarnings("resource")
 		DatagramSocket socket = new DatagramSocket(); 
 		int i = 0;
 		while (true) {

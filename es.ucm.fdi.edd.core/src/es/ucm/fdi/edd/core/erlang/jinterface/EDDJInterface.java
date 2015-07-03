@@ -1,159 +1,124 @@
 package es.ucm.fdi.edd.core.erlang.jinterface;
-import com.ericsson.otp.erlang.*;
 
-import java.io.*;
-import java.util.Arrays;
+import java.io.IOException;
 
-public class EDDJInterface
-{
+import com.ericsson.otp.erlang.OtpErlangAtom;
+import com.ericsson.otp.erlang.OtpErlangDecodeException;
+import com.ericsson.otp.erlang.OtpErlangExit;
+import com.ericsson.otp.erlang.OtpErlangLong;
+import com.ericsson.otp.erlang.OtpErlangObject;
+import com.ericsson.otp.erlang.OtpErlangPid;
+import com.ericsson.otp.erlang.OtpErlangRangeException;
+import com.ericsson.otp.erlang.OtpErlangString;
+import com.ericsson.otp.erlang.OtpErlangTuple;
+import com.ericsson.otp.erlang.OtpMbox;
+import com.ericsson.otp.erlang.OtpNode;
 
-    public static void main(String[] argv) throws Exception
-    {
+public class EDDJInterface {
+	
+	public static void main(String[] args) throws Exception {
+		int params = args.length;
+		switch (params) {
+			case 0:
+				System.out.println("The argument list can not be empty.");
+				break;
+				
+			case 2:
+				String buggyCall = args[0];
+				String location = args[1];
+				EDDJInterface edd = new EDDJInterface();
+				edd.execute(buggyCall, location);
+				break;
 
-        OtpErlangObject myObject;
-        OtpErlangTuple myMsg;
-        OtpErlangAtom command;
-        OtpErlangObject[] reply;
-        OtpErlangTuple myTuple;
+			default:
+				System.out.println("You must provide two argument: buggy call and its location");
+				break;
+		}
+	}
 
-        ErlangServer erlServer = new ErlangServer();
-        erlServer.start();
+	private void execute(String buggyCall, String location) throws IOException,
+			OtpErlangExit, OtpErlangDecodeException, OtpErlangRangeException {
+		ErlangServer erlServer = new ErlangServer(location);
+		erlServer.start();
+		System.out.println("Erlang EDD server running...");
+		
+		OtpNode myNode = new OtpNode("eddjava@localhost");
+		OtpMbox myMbox = myNode.createMbox("edd");
 
-        System.out.println("Erlang EDD server running...");
-        OtpNode myNode = new OtpNode("eddjava@localhost");
-        OtpMbox myMbox = myNode.createMbox("edd");
+		// Receive PID from erlang server
+		OtpErlangObject myObject = myMbox.receive();
+		OtpErlangTuple myMsg = (OtpErlangTuple) myObject;
+		OtpErlangAtom command = (OtpErlangAtom) myMsg.elementAt(0);
+		OtpErlangPid from = (OtpErlangPid) myMsg.elementAt(1);
+		// Should be 'ready'
+		System.out.println("Command received: " + command.toString());
 
-        // Receive PID from erlang server
-        myObject = myMbox.receive();
-        myMsg = (OtpErlangTuple) myObject;
-        command = (OtpErlangAtom) myMsg.elementAt(0);
-        OtpErlangPid from = (OtpErlangPid) myMsg.elementAt(1);
-        // Should be 'ready'
-        System.out.println("Command received: " + command.toString() );
+		// Send reply with buggy call and its location
+		OtpErlangObject[] reply = new OtpErlangObject[3];
+		reply[0] = new OtpErlangAtom("buggy_call");
+		reply[1] = new OtpErlangString(buggyCall);
+		reply[2] = new OtpErlangString(location);
+		OtpErlangTuple myTuple = new OtpErlangTuple(reply);
+		myMbox.send(from, myTuple);
 
-        // Send reply with buggy call and its location
-        reply = new OtpErlangObject[3];
-        reply[0] =  new OtpErlangAtom("buggy_call");
-        reply[1] = new OtpErlangString(argv[0]);
-        reply[2] = new OtpErlangString(argv[1]);
-        myTuple = new OtpErlangTuple(reply);
-        myMbox.send(from, myTuple);
+		// Receive debugging tree
+		myObject = myMbox.receive();
+		myMsg = (OtpErlangTuple) myObject;
+		command = (OtpErlangAtom) myMsg.elementAt(0);
+		OtpErlangString dbg_tree = (OtpErlangString) myMsg.elementAt(1);
+		// Should be 'debugging_tree'
+		System.out.println("Command received: " + command.toString());
+		System.out.println("Data received: " + dbg_tree.toString());
 
-        // Receive debugging tree
-        myObject = myMbox.receive();
-        myMsg = (OtpErlangTuple) myObject;
-        command = (OtpErlangAtom) myMsg.elementAt(0);
-        OtpErlangString dbg_tree = (OtpErlangString) myMsg.elementAt(1);
-        // Should be 'debugging_tree'
-        System.out.println("Command received: " + command.toString() );
-        System.out.println("Data received: " + dbg_tree.toString() );
+		getBuggyNode(myMbox, from);
+	}
 
-        getBuggyNode(myMbox, from);
+	/**
+	 * Recursive
+	 * 
+	 * @param myMbox
+	 * @param from
+	 * 
+	 * @return
+	 * 
+	 * @throws OtpErlangExit
+	 * @throws OtpErlangRangeException
+	 * @throws OtpErlangDecodeException
+	 */
+	private static int getBuggyNode(OtpMbox myMbox, OtpErlangPid from) throws OtpErlangExit, OtpErlangRangeException, OtpErlangDecodeException {
+		// Receive question
+		OtpErlangObject myObject = myMbox.receive();
+		OtpErlangTuple myMsg = (OtpErlangTuple) myObject;
+		OtpErlangAtom command = (OtpErlangAtom) myMsg.elementAt(0);
+		System.out.println("Command received: " + command.toString());
+		if (command.toString().equals("question")) {
+			OtpErlangLong question = (OtpErlangLong) myMsg.elementAt(1);
+			System.out.println("Question: " + question.longValue());
 
-    }
+			OtpErlangTuple state = (OtpErlangTuple) myMsg.elementAt(2);
+			System.out.println("State: " + state.toString() );
 
-    private static int getBuggyNode(OtpMbox myMbox, OtpErlangPid from) throws OtpErlangExit, OtpErlangRangeException, OtpErlangDecodeException
-    {
-        OtpErlangObject myObject;
-        OtpErlangTuple myMsg;
-        OtpErlangAtom command;
-        OtpErlangObject[] reply;
-        OtpErlangTuple myTuple;
+			// Send reply with answer
+			OtpErlangObject[] reply = new OtpErlangObject[2];
+			reply[0] = new OtpErlangAtom("answer");
+			reply[1] = new OtpErlangAtom("n");
+			OtpErlangTuple myTuple = new OtpErlangTuple(reply);
+			myMbox.send(from, myTuple);
 
-        // Receive question
-        myObject = myMbox.receive();
-        myMsg = (OtpErlangTuple) myObject;
-        command = (OtpErlangAtom) myMsg.elementAt(0);
-        System.out.println("Command received: " + command.toString() );
+			return getBuggyNode(myMbox, from);
+		}
 
-        if(command.toString().equals("question"))
-        {
-            OtpErlangLong question = (OtpErlangLong) myMsg.elementAt(1);
-            System.out.println("Question: " + question.longValue() );
+		if (command.toString().equals("buggy_node")) {
+			OtpErlangLong buggyNode = (OtpErlangLong) myMsg.elementAt(1);
+			System.out.println("Buggy node: " + buggyNode.intValue());
 
-            OtpErlangTuple state = (OtpErlangTuple) myMsg.elementAt(2);
-            // System.out.println("State: " + state.toString() );
+			return buggyNode.intValue();
+		}
 
-            // Send reply with answer
-            reply = new OtpErlangObject[2];
-            reply[0] =  new OtpErlangAtom("answer");
-            reply[1] = new OtpErlangAtom("n");
-            myTuple = new OtpErlangTuple(reply);
-            myMbox.send(from, myTuple);
+		if (command.toString().equals("aborted")) {
+			System.out.println("Aborted.");
+		}
 
-            return getBuggyNode(myMbox, from);
-        }
-
-        if(command.toString().equals("buggy_node"))
-        {
-            OtpErlangLong buggyNode = (OtpErlangLong) myMsg.elementAt(1);
-            System.out.println("Buggy node: " + buggyNode.intValue() );
-            
-            return buggyNode.intValue();
-        }
-
-        if(command.toString().equals("aborted"))
-        {   
-            System.out.println("Aborted.");
-        }
-
-        return -1;
-
-    }
-
-}
-
-class ErlangServer extends Thread {
-    
-	public void run() {
-        try {
-			//Process cmdProc = Runtime.getRuntime().exec("./load_erlang_server.sh");
-        	
-        	String path = "D:/workspace/runtime-tests/EDD/ebin/";
-        	String command = "erl -sname edderlang@localhost -run edd_jserver start -noshell -s erlang halt";
-        	String[] commands = { "CMD", "/C", command };
-    		
-    		ProcessBuilder probuilder = new ProcessBuilder(commands);
-    		probuilder.directory(new File(path));
-    		Process process = probuilder.start();
-
-    		// Read out dir output
-    		InputStream is = process.getInputStream();
-    		InputStreamReader isr = new InputStreamReader(is);
-    		BufferedReader br = new BufferedReader(isr);
-    		String line;
-    		System.out.printf("Output of running %s is:\n",	Arrays.toString(commands));
-    		while ((line = br.readLine()) != null) {
-    			System.out.println(line);
-    		}
-
-    		// Wait to get exit value
-    		try {
-    			int exitValue = process.waitFor();
-    			System.out.println("\n\nExit Value is " + exitValue);
-    		} catch (InterruptedException e) {
-    			e.printStackTrace();
-    		}
-        	
-//        	Runtime runtime = Runtime.getRuntime();
-//			Process cmdProc = runtime.exec(command);
-//
-//            BufferedReader stdoutReader = new BufferedReader(new InputStreamReader(cmdProc.getInputStream()));
-//            while ((line = stdoutReader.readLine()) != null) {
-//               System.out.println(line);
-//            }
-//
-//            BufferedReader stderrReader = new BufferedReader(new InputStreamReader(cmdProc.getErrorStream()));
-//            while ((line = stderrReader.readLine()) != null) {
-//               System.out.println(line);
-//            }
-//
-//            int retValue = cmdProc.exitValue();
-//            if(retValue != 0)
-//                new RuntimeException(new Exception("Can't load erlang module"));
-            
-        } catch(Exception e) {
-            System.out.println("Can't load erlang module");
-        }
-    }
+		return -1;
+	}
 }

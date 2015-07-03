@@ -4,7 +4,9 @@ import java.net.URL;
 import java.util.MissingResourceException;
 import java.util.ResourceBundle;
 
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IWorkspace;
+import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.FileLocator;
 import org.eclipse.core.runtime.IPath;
@@ -21,6 +23,10 @@ import es.ucm.fdi.edd.ui.utils.LogUtils;
 
 /**
  * The activator class controls the plug-in life cycle
+ */
+/**
+ * @author Joel
+ *
  */
 public class Activator extends AbstractUIPlugin {
 
@@ -75,7 +81,7 @@ public class Activator extends AbstractUIPlugin {
 			super.stop(context);
 		}
 	}
-
+	
 	/**
 	 * Returns the shared instance
 	 *
@@ -135,6 +141,25 @@ public class Activator extends AbstractUIPlugin {
 	 */
 	public static IWorkspace getWorkspace() {
 		return ResourcesPlugin.getWorkspace();
+	}
+	
+	/**
+	 * Get the root of the workspace.
+	 * 
+	 * @return
+	 */
+	public static IWorkspaceRoot getRoot() {
+		return getWorkspace().getRoot();
+	}
+	
+	/**
+	 * Get all projects in the workspace
+	 * 
+	 * @return
+	 */
+	public static IProject[] getProjects() {
+		IProject[] projects = getRoot().getProjects();
+		return projects;
 	}
 	
 	/**

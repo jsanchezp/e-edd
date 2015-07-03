@@ -16,12 +16,14 @@ public class NextCommand extends AbstractHandler {
 		IViewPart part = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().findView(EDDebugView.VIEW_ID);
 		if (part instanceof EDDebugView) {
 			EDDebugView view = (EDDebugView)part;
-			Integer index = view.getIndex();
-			Integer total = view.getTotal();
-			if (index >= 0 && index < total ) {
-				view.setIndex(index + 1);
-			} else {
-				view.setIndex(total);
+			if (view.isQuestionPanelVisible()) {
+				Integer index = view.getIndex();
+				Integer total = view.getTotal();
+				if (index >= 0 && index < total ) {
+					view.updateSelection(index + 1);
+				} else {
+					view.updateSelection(total);
+				}
 			}
 		}
 		

@@ -25,7 +25,11 @@ public class GenerateUMLGraph {
 
 	public static void main(String[] args) {
 		GenerateUMLGraph g = new GenerateUMLGraph();
-		g.execute("sequenceTest.pic", "png");
+//		g.execute("sequenceTest.pic", "png");
+		g.execute("LongSample.pic", "png");
+		g.execute("LongSample.pic", "gif");
+//		g.execute("LongSample.pic", "fig");
+//		g.execute("LongSample.pic", "svg");
 		
 		//buildGraph();
 	}
@@ -51,7 +55,10 @@ public class GenerateUMLGraph {
 		      
 			// Execute the pic2plot program to convert the PIC file to another format.
 //			String command = PIC2PLOT + " -T" + format + " --bitmap-size 1024x1024 " + filename + " >" + filenameWithoutExtension + format;
-			String command = PIC2PLOT + " -T" + format + " --bitmap-size 1024x1024 " + filename;
+//			String command = PIC2PLOT + " -T" + format + " --no-centering --bitmap-size 10240x10240+0+0 --font-size 0.00175 --page-size a4,xoffset=-5mm,yoffset=-5mm " + filename;
+//			String command = PIC2PLOT + " -T" + format + " -n --bitmap-size 10240x10240 --font-size 0.00175 " + filename;
+			String command = PIC2PLOT + " -T" + format + " --bitmap-size 16384x16384+0+0 -O --bg-color #c0c0c0 --font-size 0.00175 --page-size a4,xoffset=0cm,yoffset=0cm " + filename;
+						
 			System.out.println(command);
 			String[] envp = new String[0];
 			File dir = new File(PATH);

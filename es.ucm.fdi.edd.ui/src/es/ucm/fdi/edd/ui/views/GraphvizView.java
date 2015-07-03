@@ -53,6 +53,8 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	private String basePartName;
 	private IFile selectedFile;
 	private IProviderDescription providerDefinition;
+	
+	private boolean isLinkedActive = false;
 
 	/**
 	 * The constructor.
@@ -88,6 +90,7 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		    e.printStackTrace();
 		}
 		
+		file = new File("D:/workspace/runtime-tests/E-EDD/tmp/ackermann.dot");
 		IFile iFile = createIFile(file);
 		selectedFile = iFile;
 		requestUpdate();
@@ -155,14 +158,19 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	}
 
 	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
-		if (!(selection instanceof IStructuredSelection))
-			return;
-		IStructuredSelection structured = (IStructuredSelection) selection;
-		if (structured.size() != 1)
-			return;
-		Object selected = structured.getFirstElement();
-		IFile file = (IFile) Platform.getAdapterManager().getAdapter(selected, IFile.class);
-		reload(file);
+		if (isLinkedActive) {
+			if (!(selection instanceof IStructuredSelection))
+				return;
+			IStructuredSelection structured = (IStructuredSelection) selection;
+			if (structured.size() != 1)
+				return;
+			Object selected = structured.getFirstElement();
+			IFile file = (IFile) Platform.getAdapterManager().getAdapter(selected, IFile.class);
+			reload(file);
+		}
+		else {
+			// ignore
+		}
 	}
 
 	public void partActivated(IWorkbenchPartReference partRef) {
@@ -198,26 +206,31 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	}
 
 	private void reactToPartChange(IWorkbenchPartReference part) {
-		if (!(part.getPart(false) instanceof IEditorPart))
-			return;
-		IEditorPart editorPart = (IEditorPart) part.getPart(false);
-		if (!getViewSite().getPage().isPartVisible(editorPart))
-			return;
-		IGraphicalFileProvider graphicalSource =
-						(IGraphicalFileProvider) editorPart.getAdapter(IGraphicalFileProvider.class);
-		if (graphicalSource != null)
-			selectedFile = graphicalSource.getGraphicalFile();
-		else 
-			selectedFile = null;
-		if (selectedFile == null) {
-			IFile asFile = (IFile) editorPart.getAdapter(IFile.class);
-			if (asFile == null)
-				asFile = (IFile) editorPart.getEditorInput().getAdapter(IFile.class);
-			if (asFile == null)
+		if (isLinkedActive) {
+			if (!(part.getPart(false) instanceof IEditorPart))
 				return;
-			selectedFile = asFile;
+			IEditorPart editorPart = (IEditorPart) part.getPart(false);
+			if (!getViewSite().getPage().isPartVisible(editorPart))
+				return;
+			IGraphicalFileProvider graphicalSource =
+							(IGraphicalFileProvider) editorPart.getAdapter(IGraphicalFileProvider.class);
+			if (graphicalSource != null)
+				selectedFile = graphicalSource.getGraphicalFile();
+			else 
+				selectedFile = null;
+			if (selectedFile == null) {
+				IFile asFile = (IFile) editorPart.getAdapter(IFile.class);
+				if (asFile == null)
+					asFile = (IFile) editorPart.getEditorInput().getAdapter(IFile.class);
+				if (asFile == null)
+					return;
+				selectedFile = asFile;
+			}
+			requestUpdate();
 		}
-		requestUpdate();
+		else {
+			// ignore
+		}
 	}
 
 	private void reload(IFile file) {
@@ -253,7 +266,7 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		viewer.setInput(input);
 	}
 
-	private void requestUpdate() {
+	public void requestUpdate() {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
 				if (getSite() == null || !GraphvizView.this.getSite().getPage().isPartVisible(GraphvizView.this))
@@ -316,5 +329,9 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 
 	public void setImageData(ImageData dest) {
 		viewer.setImageData(dest);
+	}
+	
+	public void setLinkedActive(boolean isLinkedActive) {
+		this.isLinkedActive = isLinkedActive;
 	}
 }

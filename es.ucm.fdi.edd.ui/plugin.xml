@@ -182,6 +182,13 @@
             name="Erlang Declarative Debugger"
             restorable="true">
       </view>
+      <view
+            category="es.ucm.fdi.edd.ui.category"
+            class="es.ucm.fdi.edd.ui.views.EDDTreeView"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.views.EDDTreeView"
+            name="EDD Tree View">
+      </view>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
@@ -304,6 +311,15 @@
             id="es.ucm.fdi.edd.ui.commands.save"
             name="Save">
       </command>
+      <command
+            defaultHandler="es.ucm.fdi.edd.ui.commands.LinkSelectionHandler"
+            id="es.ucm.fdi.edd.ui.commands.link"
+            name="Link with Editor and Selection">
+         <state
+               class="org.eclipse.ui.handlers.RegistryToggleState:false"
+               id="org.eclipse.ui.commands.toggleState">
+         </state>
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
@@ -380,16 +396,11 @@
             allPopups="false"
             locationURI="toolbar:es.ucm.fdi.edd.ui.views.GraphvizView">
          <command
-               commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest"
-               icon="icons/ZoomIn16.gif"
-               id="toolbar.zoomin"
-               label="Zoom in"
-               style="push"
-               tooltip="Zoom in">
-            <parameter
-                  name="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest.commandParameterActionName"
-                  value="toolbar.zoomin">
-            </parameter>
+               commandId="es.ucm.fdi.edd.ui.commands.link"
+               icon="icons/synced.gif"
+               label="Link with Editor and Selection"
+               style="toggle"
+               tooltip="Link with Editor and Selection">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest"
@@ -401,6 +412,18 @@
             <parameter
                   name="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest.commandParameterActionName"
                   value="toolbar.zoomout">
+            </parameter>
+         </command>
+         <command
+               commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest"
+               icon="icons/ZoomIn16.gif"
+               id="toolbar.zoomin"
+               label="Zoom in"
+               style="push"
+               tooltip="Zoom in">
+            <parameter
+                  name="es.ucm.fdi.edd.ui.commands.pushActionDelegateTest.commandParameterActionName"
+                  value="toolbar.zoomin">
             </parameter>
          </command>
          <command
@@ -455,18 +478,6 @@
             locationURI="toolbar:es.ucm.fdi.edd.ui.views.EDDViewer">
          <command
                commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegate"
-               icon="icons/ZoomIn16.gif"
-               id="toolbar.zoomin"
-               label="Zoom  in"
-               style="push"
-               tooltip="Zoom in">
-            <parameter
-                  name="es.ucm.fdi.edd.ui.commands.pushActionDelegate.commandParameterActionName"
-                  value="toolbar.zoomin">
-            </parameter>
-         </command>
-         <command
-               commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegate"
                icon="icons/ZoomOut16.gif"
                id="toolbar.zoomout"
                label="Zoom out"
@@ -475,6 +486,18 @@
             <parameter
                   name="es.ucm.fdi.edd.ui.commands.pushActionDelegate.commandParameterActionName"
                   value="toolbar.zoomout">
+            </parameter>
+         </command>
+         <command
+               commandId="es.ucm.fdi.edd.ui.commands.pushActionDelegate"
+               icon="icons/ZoomIn16.gif"
+               id="toolbar.zoomin"
+               label="Zoom  in"
+               style="push"
+               tooltip="Zoom in">
+            <parameter
+                  name="es.ucm.fdi.edd.ui.commands.pushActionDelegate.commandParameterActionName"
+                  value="toolbar.zoomin">
             </parameter>
          </command>
          <command
@@ -545,6 +568,22 @@
                style="push">
          </command>
       </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.help.contexts">
+      <contexts
+            file="contexts.xml">
+      </contexts>
+   </extension>
+   <extension
+         point="org.eclipse.core.expressions.propertyTesters">
+      <propertyTester
+            class="es.ucm.fdi.edd.ui.propertyTester.EDDPropertyTester"
+            id="es.ucm.fdi.edd.ui.propertyTester.EDDPropertyTester"
+            namespace="es.ucm.fdi.edd.ui.propertyTester"
+            properties="isQuestionPanelVisible,hasContent"
+            type="java.lang.Object">
+      </propertyTester>
    </extension>
 
 </plugin>

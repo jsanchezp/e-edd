@@ -28,7 +28,15 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.ui.console,
  org.eclipse.jdt.ui,
  org.eclipse.ui.forms,
- org.eclipse.jface
+ org.eclipse.jface,
+ org.eclipse.emf.edit.ui,
+ org.eclipse.emf.codegen.ecore.ui,
+ es.ucm.fdi.edd.emf,
+ es.ucm.fdi.edd.emf.edit,
+ org.eclipse.search,
+ org.eclipse.jface.text,
+ org.eclipse.core.expressions
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor
+Import-Package: org.apache.commons.lang

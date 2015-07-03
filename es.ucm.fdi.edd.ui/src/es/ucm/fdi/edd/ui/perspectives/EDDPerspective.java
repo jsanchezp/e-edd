@@ -1,12 +1,18 @@
 package es.ucm.fdi.edd.ui.perspectives;
 
 import org.eclipse.debug.ui.IDebugUIConstants;
+import org.eclipse.search.ui.NewSearchUI;
 import org.eclipse.ui.IFolderLayout;
 import org.eclipse.ui.IPageLayout;
 import org.eclipse.ui.IPerspectiveFactory;
 import org.eclipse.ui.console.IConsoleConstants;
+import org.eclipse.ui.progress.IProgressConstants;
+import org.erlide.ui.ErlideUIConstants;
+import org.erlide.ui.views.eval.LiveExpressionsView;
+import org.erlide.ui.views.processlist.ProcessListView;
 
 import es.ucm.fdi.edd.ui.views.EDDSequenceDiagramsView;
+import es.ucm.fdi.edd.ui.views.EDDTreeView;
 import es.ucm.fdi.edd.ui.views.EDDViewer;
 import es.ucm.fdi.edd.ui.views.EDDebugView;
 import es.ucm.fdi.edd.ui.views.GraphvizView;
@@ -14,6 +20,7 @@ import es.ucm.fdi.edd.ui.views.GraphvizView;
 /**
  * Erlang Declarative Debugger Perspective definition.
  */
+@SuppressWarnings("restriction")
 public class EDDPerspective implements IPerspectiveFactory {
 
 	private IPageLayout layout;
@@ -48,12 +55,18 @@ public class EDDPerspective implements IPerspectiveFactory {
 		consoleFolder.addView(IPageLayout.ID_PROBLEM_VIEW);
 		consoleFolder.addView(IConsoleConstants.ID_CONSOLE_VIEW);
 		consoleFolder.addView(IPageLayout.ID_PROP_SHEET);
-		
+		consoleFolder.addView(ProcessListView.ID);
+		consoleFolder.addView(LiveExpressionsView.ID);
+		consoleFolder.addPlaceholder(NewSearchUI.SEARCH_VIEW_ID);
+		consoleFolder.addPlaceholder(IPageLayout.ID_BOOKMARKS);
+		consoleFolder.addPlaceholder(IProgressConstants.PROGRESS_VIEW_ID);
+        		
 		IFolderLayout topLeftFolder= layout.createFolder("leftTop", IPageLayout.TOP, 0.50f, editorArea);
 		topLeftFolder.addView(EDDebugView.VIEW_ID);
 		topLeftFolder.addView(IDebugUIConstants.ID_DEBUG_VIEW);
 		
 		IFolderLayout leftFolder= layout.createFolder("left", IPageLayout.LEFT, 0.20f, editorArea);
+		leftFolder.addView(ErlideUIConstants.NAVIGATOR_VIEW_ID);
 		leftFolder.addView(IPageLayout.ID_PROJECT_EXPLORER);
 		
 		IFolderLayout topRightFolder= layout.createFolder("rightTop", IPageLayout.RIGHT, 0.50f, "leftTop");
@@ -67,6 +80,7 @@ public class EDDPerspective implements IPerspectiveFactory {
 		
 		IFolderLayout rightFolder= layout.createFolder("right", IPageLayout.RIGHT, 0.75f, editorArea);
 		rightFolder.addView(IPageLayout.ID_OUTLINE);
+		rightFolder.addView(EDDTreeView.ID);
 	}
 
 	/**
@@ -84,6 +98,11 @@ public class EDDPerspective implements IPerspectiveFactory {
 //		layout.addActionSet(JavaUI.ID_ACTION_SET);
 //		layout.addActionSet(JavaUI.ID_ELEMENT_CREATION_ACTION_SET);
 //		layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET); 
+		
+		layout.addActionSet(IDebugUIConstants.LAUNCH_ACTION_SET);
+        layout.addActionSet(IDebugUIConstants.DEBUG_ACTION_SET);
+        layout.addActionSet(IPageLayout.ID_NAVIGATE_ACTION_SET);
+		layout.addActionSet("org.erlide.ui.actions.openActionSet");
 	}
 
 	/**
@@ -91,6 +110,7 @@ public class EDDPerspective implements IPerspectiveFactory {
 	 */
 	private void addPerspectiveShortcuts() {
 		layout.addPerspectiveShortcut("org.eclipse.ui.resourcePerspective");
+		layout.addPerspectiveShortcut("es.ucm.fdi.edd.ui.perspectives.EDDPerspective");
 		layout.addPerspectiveShortcut("org.erlide.ui.perspectives.ErlangPerspective");
 	}
 
@@ -99,8 +119,12 @@ public class EDDPerspective implements IPerspectiveFactory {
 	 */
 	private void addNewWizardShortcuts() {
 		layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.file");
+		layout.addNewWizardShortcut("org.eclipse.ui.editors.wizards.UntitledTextFileWizard");
 		layout.addNewWizardShortcut("org.eclipse.ui.wizards.new.folder");
 		layout.addNewWizardShortcut("es.ucm.fdi.edd.ui.wizards.EDDQuestionsWizard");
+		layout.addNewWizardShortcut("org.erlide.ui.wizards.ErlangSourceFile");
+        layout.addNewWizardShortcut("org.erlide.ui.wizards.newproject");
+        layout.addNewWizardShortcut("org.erlide.ui.wizards.ErlangScratchpad");
 	}
 
 	/** 
@@ -115,6 +139,7 @@ public class EDDPerspective implements IPerspectiveFactory {
 		layout.addShowViewShortcut(IPageLayout.ID_OUTLINE);
 		
 		layout.addShowViewShortcut(EDDViewer.VIEW_ID);
+		layout.addShowViewShortcut(EDDTreeView.ID);
 		layout.addShowViewShortcut(GraphvizView.VIEW_ID);
 		layout.addShowViewShortcut(EDDSequenceDiagramsView.VIEW_ID);
 	}

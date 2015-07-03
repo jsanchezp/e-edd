@@ -16,13 +16,15 @@ public class BackCommand extends AbstractHandler {
 		IViewPart part = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().findView(EDDebugView.VIEW_ID);
 		if (part instanceof EDDebugView) {
 			EDDebugView view = (EDDebugView)part;
-			Integer index = view.getIndex();
-			Integer total = view.getTotal();
-			if (index > 0 && index <= total ) {
-				view.setIndex(index - 1);
-			} else {
-				view.setIndex(0);
-			} 
+			if (view.isQuestionPanelVisible()) {
+				Integer index = view.getIndex();
+				Integer total = view.getTotal();
+				if (index > 0 && index <= total ) {
+					view.updateSelection(index - 1);
+				} else {
+					view.updateSelection(0);
+				}
+			}
 		}
 		
 		return null;
