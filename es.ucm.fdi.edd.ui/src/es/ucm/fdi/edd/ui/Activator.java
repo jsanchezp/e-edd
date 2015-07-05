@@ -20,6 +20,7 @@ import org.eclipse.ui.plugin.AbstractUIPlugin;
 import org.osgi.framework.BundleContext;
 
 import es.ucm.fdi.edd.ui.utils.LogUtils;
+import es.ucm.fdi.edd.ui.views.utils.RegisterPackage;
 
 /**
  * The activator class controls the plug-in life cycle
@@ -64,6 +65,8 @@ public class Activator extends AbstractUIPlugin {
 	public void start(BundleContext context) throws Exception {
 		super.start(context);
 		plugin = this;
+		
+		RegisterPackage.initializeMetamodel();
 	}
 
 	/*

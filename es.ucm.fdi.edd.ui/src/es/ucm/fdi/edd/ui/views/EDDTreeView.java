@@ -52,6 +52,7 @@ import es.ucm.fdi.edd.ui.views.sorter.NameSorter;
 import es.ucm.fdi.emf.model.ed2.ED2;
 import es.ucm.fdi.emf.model.ed2.Ed2Factory;
 import es.ucm.fdi.emf.model.ed2.Leaf;
+import es.ucm.fdi.emf.model.ed2.Model;
 import es.ucm.fdi.emf.model.ed2.Node;
 import es.ucm.fdi.emf.model.ed2.TreeElement;
 
@@ -147,15 +148,15 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 	}
 	
 	/**
-	 * @param input
+	 * @param model
 	 */
-	public void updateContent(ED2 input) {
+	public void updateContent(Model model) {
 		if (viewer != null) {
-			viewer.setInput(input);
+			viewer.setInput(model);
 			viewer.expandAll();
 			
 			nodesContentList.clear();
-			walk(input.getTreeElements());
+			walk(model.getEd2().getTreeElements());
 		}
 	}
 	

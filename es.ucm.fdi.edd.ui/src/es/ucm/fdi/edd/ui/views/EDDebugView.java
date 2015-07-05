@@ -73,6 +73,7 @@ import es.ucm.fdi.edd.ui.Messages;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
 import es.ucm.fdi.emf.model.ed2.ED2;
+import es.ucm.fdi.emf.model.ed2.Model;
 
 public class EDDebugView extends ViewPart {
 
@@ -737,9 +738,8 @@ public class EDDebugView extends ViewPart {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			ED2 edd = helper.buildEMF("EDDFile");
-			helper.buildGMF("ED2File");
-			view.updateContent(edd);
+			Model model = helper.buildEMF("EDDFile");
+			view.updateContent(model);
 		}
 	}
 

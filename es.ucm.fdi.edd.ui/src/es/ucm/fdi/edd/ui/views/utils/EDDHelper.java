@@ -1,7 +1,11 @@
 package es.ucm.fdi.edd.ui.views.utils;
 
+import java.io.ByteArrayInputStream;
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -11,18 +15,26 @@ import java.util.Map;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
+import org.eclipse.core.resources.IFile;
+import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
+import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.IProgressMonitor;
 import org.eclipse.core.runtime.NullProgressMonitor;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.resource.ResourceSet;
+import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
+import org.eclipse.emf.ecore.util.EcoreUtil;
+import org.eclipse.emf.ecore.xmi.XMIResource;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.emf.ecore.xmi.impl.XMIResourceImpl;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
-import org.eclipse.emf.workspace.util.WorkspaceSynchronizer;
 import org.eclipse.gmf.runtime.common.core.command.CommandResult;
 import org.eclipse.gmf.runtime.diagram.core.services.ViewService;
 import org.eclipse.gmf.runtime.emf.commands.core.command.AbstractTransactionalCommand;
@@ -34,8 +46,10 @@ import org.eclipse.gmf.runtime.notation.NotationFactory;
 import org.eclipse.gmf.runtime.notation.NotationPackage;
 import org.eclipse.gmf.runtime.notation.RelativeBendpoints;
 import org.eclipse.gmf.runtime.notation.datatype.RelativeBendpoint;
-import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PartInitException;
+import org.eclipse.ui.ide.undo.CreateFileOperation;
+import org.eclipse.ui.ide.undo.WorkspaceUndoUtil;
 
 import es.ucm.fdi.edd.core.graphviz.GraphViz;
 import es.ucm.fdi.edd.core.json.model.Edges;
@@ -43,6 +57,7 @@ import es.ucm.fdi.edd.core.json.model.JsonDocument;
 import es.ucm.fdi.edd.core.json.model.Vertices;
 import es.ucm.fdi.edd.core.json.utils.JsonHelper;
 import es.ucm.fdi.edd.core.util.FileManager;
+import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.emf.model.ed2.ED2;
 import es.ucm.fdi.emf.model.ed2.Ed2Factory;
 import es.ucm.fdi.emf.model.ed2.Leaf;
@@ -52,12 +67,14 @@ import es.ucm.fdi.emf.model.ed2.TreeElement;
 import es.ucm.fdi.emf.model.ed2.diagram.edit.parts.ModelEditPart;
 import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorPlugin;
 import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorUtil;
-import es.ucm.fdi.emf.model.ed2.diagram.part.Messages;
+import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2VisualIDRegistry;
 
 /**
  * EDD Helper 
  */
 public class EDDHelper {
+	
+	protected static final String ENCODING_UTF_8 = "UTF-8";
 	
 	private File file;
 	private JsonDocument document;
@@ -155,9 +172,11 @@ public class EDDHelper {
 //		gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type), out);
 	}
 	
-	public ED2 buildEMF(String name) {
-		ED2 root = Ed2Factory.eINSTANCE.createED2();
-		root.setName(name);
+	public Model buildEMF(String name) {
+		Model model = Ed2Factory.eINSTANCE.createModel();
+		ED2 ed2 = Ed2Factory.eINSTANCE.createED2();
+		ed2.setName(name);
+		model.setEd2(ed2);
 		
 		Map<Integer, Node> nodesMap = new HashMap<Integer, Node>();
 		LinkedList<Vertices> vertices = document.getVertices();
@@ -180,13 +199,72 @@ public class EDDHelper {
 			source.getNodes().add(target);
 		}
 		
-		EList<TreeElement> elements = root.getTreeElements();
-		elements.add(nodesMap.get(90)); // Raíz
 		
-		return root;
+		EList<TreeElement> elements = ed2.getTreeElements();
+//		elements.addAll(nodesMap.values());
+		elements.add(nodesMap.get(90)); //FIXME Obtener nodos raíz...
+		
+		try {
+//			saveData("/E-EDD/ed2/ackGenerated.ed2", root);
+			saveModel("/E-EDD/ed2/testAutoGMF.ed2", model);
+			
+//			generateDiagram(model, "/E-EDD/ed2/testAutoGMF.ed2_diagram");
+			performFinish(model, "/E-EDD/ed2/testAutoGMF.ed2_diagram");
+			
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return model;
 	}
 	
-	public Resource buildGMF(String name) {
+	private List<EObject> loadModel(String fileName) throws IOException {
+		File source = new File(fileName);
+		FileInputStream fis = new FileInputStream(source);
+		
+		URI uri = URI.createFileURI(fileName);
+		Resource resource = RegisterPackage.resourceSet.createResource(uri);
+		assert resource != null : "No se ha creado un resource para la ruta: " + fileName;
+		resource.load(null);
+		return resource.getContents();
+	}
+	
+	public EObject loadData(String fileName) throws FileNotFoundException, IOException {
+		XMIResourceImpl resource = new XMIResourceImpl();
+		File source = new File(fileName);
+		System.out.println(source.getAbsolutePath());
+		resource.load(new FileInputStream(source), new HashMap<Object, Object>());
+		EObject data = resource.getContents().get(0);
+		
+		return data;
+	}
+
+	public void saveModel(String fileName, Model model) throws IOException {
+		List<EObject> contents = new ArrayList<EObject>();
+		contents.add(model);
+		
+		URI uri = URI.createFileURI(fileName);
+		XMIResource resource = (XMIResource) RegisterPackage.resourceSet.createResource(uri);
+		assert resource != null : "No se ha creado un resource para la ruta: " + fileName;
+		List<EObject> contentsCopy = (List<EObject>) EcoreUtil.copyAll(contents);
+		//generateIds(contentsCopy, (XMIResource) resource);
+		resource.setEncoding(ENCODING_UTF_8);
+		resource.getContents().addAll(contentsCopy);
+		resource.save(Collections.EMPTY_MAP);
+	}
+	
+	public void saveData(String fileName, EObject data) throws IOException {
+		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
+		Map<String, Object> m = reg.getExtensionToFactoryMap();
+		m.put("key", new XMIResourceFactoryImpl());
+
+		ResourceSet resSet = new ResourceSetImpl();
+		Resource resource = resSet.createResource(URI.createFileURI(fileName));
+		resource.getContents().add(data);
+		resource.save(Collections.EMPTY_MAP);
+	}
+	
+	private Resource buildGMF(String name) {
 //		URI diagramURI = URI.createPlatformResourceURI("platform:/resource/E-EDD/ed2/test.ed2_diagram", false);
 //		URI modelURI = URI.createPlatformResourceURI("platform:/resource/E-EDD/ed2/test.ed2", false);
 		URI diagramURI = URI.createPlatformResourceURI("/E-EDD/ed2/testGMF.ed2_diagram", false);
@@ -310,5 +388,146 @@ public class EDDHelper {
 		}
 		
 		return null;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * @param model
+	 * @param diagramPath
+	 * @throws CoreException
+	 */
+	private void generateDiagram(Model model, String diagramPath) throws CoreException {
+//		URI modelURI = URI.createPlatformResourceURI("/E-EDD/ed2/testAutoGMF.ed2", false);
+//		URI diagramURI = URI.createPlatformResourceURI("/E-EDD/ed2/testAutoGMF.ed2_diagram", false);
+//		Resource diagramResource = Ed2DiagramEditorUtil.createDiagram(diagramURI, modelURI, new NullProgressMonitor());
+		
+		LinkedList<IFile> affectedFiles = new LinkedList<IFile>();
+		IFile diagramFile = createNewFile(diagramPath);
+		System.out.println("Existe: " + diagramFile.exists());
+		Ed2DiagramEditorUtil.setCharset(diagramFile);
+		affectedFiles.add(diagramFile);
+		
+		TransactionalEditingDomain editingDomain = GMFEditingDomainFactory.INSTANCE.createEditingDomain();
+		URI diagramModelURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toString(), true);
+		ResourceSet resourceSet = editingDomain.getResourceSet();
+		final Resource diagramResource = resourceSet.createResource(diagramModelURI);
+		AbstractTransactionalCommand command = new AbstractTransactionalCommand(editingDomain, "Initializing diagram contents", affectedFiles) {
+			protected CommandResult doExecuteWithResult(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
+				int diagramVID = Ed2VisualIDRegistry.getDiagramVisualID(model);
+				if (diagramVID != ModelEditPart.VISUAL_ID) {
+					return CommandResult.newErrorCommandResult("Incorrect model object stored as a root resource object");
+				}
+				Diagram diagram = ViewService.createDiagram(model, ModelEditPart.MODEL_ID, Ed2DiagramEditorPlugin.DIAGRAM_PREFERENCES_HINT);
+				diagramResource.getContents().add(diagram);
+				return CommandResult.newOKCommandResult();
+			}
+		};
+		try {
+			OperationHistoryFactory.getOperationHistory().execute(command, new NullProgressMonitor(), null);
+			diagramResource.save(Ed2DiagramEditorUtil.getSaveOptions());
+			Ed2DiagramEditorUtil.openDiagram(diagramResource);
+		} catch (ExecutionException e) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to create model and diagram", e);
+		} catch (IOException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Save operation failed for: " + diagramModelURI, ex);
+		} catch (PartInitException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
+		}
+	}
+	
+	/**
+	 * @param path
+	 * @return
+	 */
+	public IFile createNewFile(String path) {
+		final IPath filePath = new Path(path);
+		final IFile newFile = Activator.getRoot().getFile(filePath);
+		final InputStream initialContents = new ByteArrayInputStream(new byte[0]);
+		
+		try {
+			CreateFileOperation op = new CreateFileOperation(newFile, null, initialContents, "New File");
+			op.execute(new NullProgressMonitor(), WorkspaceUndoUtil.getUIInfoAdapter(new Shell()));
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		
+		return newFile;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/**
+	 * 
+	 */
+	public boolean performFinish(Model pModel, String path) {
+		
+		List<EObject> root = null;
+		try {
+			root = loadModel("D:/workspace/runtime-tests/E-EDD/ed2/testAutoGMF.ed2");
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return false;
+		}
+		
+		final Model model = (Model) root.get(0);
+		System.out.println(pModel);
+		
+		LinkedList<IFile> affectedFiles = new LinkedList<IFile>();
+		IFile diagramFile = createNewFile(path);
+		Ed2DiagramEditorUtil.setCharset(diagramFile);
+		affectedFiles.add(diagramFile);
+		URI diagramModelURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toString(), true);
+		TransactionalEditingDomain editingDomain = GMFEditingDomainFactory.INSTANCE.createEditingDomain();
+		ResourceSet resourceSet = editingDomain.getResourceSet();
+		final Resource diagramResource = resourceSet.createResource(diagramModelURI);
+		AbstractTransactionalCommand command = new AbstractTransactionalCommand(editingDomain, "Initializing diagram contents", affectedFiles) {
+			@Override
+			protected CommandResult doExecuteWithResult(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
+				int diagramVID = Ed2VisualIDRegistry.getDiagramVisualID(model);
+				if (diagramVID != ModelEditPart.VISUAL_ID) {
+					return CommandResult.newErrorCommandResult("Incorrect model object stored as a root resource object");
+				}
+				Diagram diagram = ViewService.createDiagram(model, ModelEditPart.MODEL_ID, Ed2DiagramEditorPlugin.DIAGRAM_PREFERENCES_HINT);
+				diagramResource.getContents().add(diagram);
+				return CommandResult.newOKCommandResult();
+			}
+		};
+		
+		try {
+			OperationHistoryFactory.getOperationHistory().execute(command, new NullProgressMonitor(), null);
+			diagramResource.save(Ed2DiagramEditorUtil.getSaveOptions());
+			Ed2DiagramEditorUtil.openDiagram(diagramResource);
+		} catch (ExecutionException e) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to create model and diagram", e);
+		} catch (IOException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Save operation failed for: " + diagramModelURI, ex);
+		} catch (PartInitException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
+		}
+		
+		return true;
 	}
 }

@@ -105,12 +105,14 @@ public class EDDViewSelectionListener implements ISelectionListener {
 	/**
 	 * @param index
 	 */
-	private void updateEDDebugView(int index) {
+	private void updateEDDebugView(Integer index) {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDebugView.VIEW_ID);
 		if (part instanceof EDDebugView) {
 			EDDebugView view = (EDDebugView) part;
 			if (view.isQuestionPanelVisible()) {
-				view.updateSelection(index);
+				if (index != null) {
+					view.updateSelection(index);
+				}
 			}
 		}
 	}
@@ -118,11 +120,13 @@ public class EDDViewSelectionListener implements ISelectionListener {
 	/**
 	 * @param index
 	 */
-	private void updateEDDTreeView(int index) {
+	private void updateEDDTreeView(Integer index) {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			view.updateSelectionByIndex(index);
+			if (index != null) {
+				view.updateSelectionByIndex(index);
+			}
 		}
 	}
 }
