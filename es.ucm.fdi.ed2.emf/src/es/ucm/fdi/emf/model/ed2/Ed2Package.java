@@ -205,7 +205,7 @@ public interface Ed2Package extends EPackage {
 	int NODE__TYPE = TREE_ELEMENT__TYPE;
 
 	/**
-	 * The feature id for the '<em><b>Leaves</b></em>' reference list.
+	 * The feature id for the '<em><b>Leaves</b></em>' containment reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -214,7 +214,7 @@ public interface Ed2Package extends EPackage {
 	int NODE__LEAVES = TREE_ELEMENT_FEATURE_COUNT + 0;
 
 	/**
-	 * The feature id for the '<em><b>Nodes</b></em>' reference list.
+	 * The feature id for the '<em><b>Nodes</b></em>' containment reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -614,10 +614,10 @@ public interface Ed2Package extends EPackage {
 	EClass getNode();
 
 	/**
-	 * Returns the meta object for the reference list '{@link es.ucm.fdi.emf.model.ed2.Node#getLeaves <em>Leaves</em>}'.
+	 * Returns the meta object for the containment reference list '{@link es.ucm.fdi.emf.model.ed2.Node#getLeaves <em>Leaves</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference list '<em>Leaves</em>'.
+	 * @return the meta object for the containment reference list '<em>Leaves</em>'.
 	 * @see es.ucm.fdi.emf.model.ed2.Node#getLeaves()
 	 * @see #getNode()
 	 * @generated
@@ -625,10 +625,10 @@ public interface Ed2Package extends EPackage {
 	EReference getNode_Leaves();
 
 	/**
-	 * Returns the meta object for the reference list '{@link es.ucm.fdi.emf.model.ed2.Node#getNodes <em>Nodes</em>}'.
+	 * Returns the meta object for the containment reference list '{@link es.ucm.fdi.emf.model.ed2.Node#getNodes <em>Nodes</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference list '<em>Nodes</em>'.
+	 * @return the meta object for the containment reference list '<em>Nodes</em>'.
 	 * @see es.ucm.fdi.emf.model.ed2.Node#getNodes()
 	 * @see #getNode()
 	 * @generated
@@ -918,7 +918,7 @@ public interface Ed2Package extends EPackage {
 		EClass NODE = eINSTANCE.getNode();
 
 		/**
-		 * The meta object literal for the '<em><b>Leaves</b></em>' reference list feature.
+		 * The meta object literal for the '<em><b>Leaves</b></em>' containment reference list feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
@@ -926,7 +926,7 @@ public interface Ed2Package extends EPackage {
 		EReference NODE__LEAVES = eINSTANCE.getNode_Leaves();
 
 		/**
-		 * The meta object literal for the '<em><b>Nodes</b></em>' reference list feature.
+		 * The meta object literal for the '<em><b>Nodes</b></em>' containment reference list feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated

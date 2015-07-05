@@ -5,14 +5,13 @@ package es.ucm.fdi.emf.model.ed2.impl;
 import es.ucm.fdi.emf.model.ed2.Ed2Package;
 import es.ucm.fdi.emf.model.ed2.Leaf;
 import es.ucm.fdi.emf.model.ed2.Node;
-
 import java.util.Collection;
-
+import org.eclipse.emf.common.notify.NotificationChain;
 import org.eclipse.emf.common.util.EList;
-
 import org.eclipse.emf.ecore.EClass;
-
-import org.eclipse.emf.ecore.util.EObjectResolvingEList;
+import org.eclipse.emf.ecore.InternalEObject;
+import org.eclipse.emf.ecore.util.EObjectContainmentEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
@@ -30,7 +29,7 @@ import org.eclipse.emf.ecore.util.EObjectResolvingEList;
  */
 public class NodeImpl extends TreeElementImpl implements Node {
 	/**
-	 * The cached value of the '{@link #getLeaves() <em>Leaves</em>}' reference list.
+	 * The cached value of the '{@link #getLeaves() <em>Leaves</em>}' containment reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #getLeaves()
@@ -40,7 +39,7 @@ public class NodeImpl extends TreeElementImpl implements Node {
 	protected EList<Leaf> leaves;
 
 	/**
-	 * The cached value of the '{@link #getNodes() <em>Nodes</em>}' reference list.
+	 * The cached value of the '{@link #getNodes() <em>Nodes</em>}' containment reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #getNodes()
@@ -75,7 +74,7 @@ public class NodeImpl extends TreeElementImpl implements Node {
 	 */
 	public EList<Leaf> getLeaves() {
 		if (leaves == null) {
-			leaves = new EObjectResolvingEList<Leaf>(Leaf.class, this, Ed2Package.NODE__LEAVES);
+			leaves = new EObjectContainmentEList.Resolving<Leaf>(Leaf.class, this, Ed2Package.NODE__LEAVES);
 		}
 		return leaves;
 	}
@@ -87,9 +86,25 @@ public class NodeImpl extends TreeElementImpl implements Node {
 	 */
 	public EList<Node> getNodes() {
 		if (nodes == null) {
-			nodes = new EObjectResolvingEList<Node>(Node.class, this, Ed2Package.NODE__NODES);
+			nodes = new EObjectContainmentEList.Resolving<Node>(Node.class, this, Ed2Package.NODE__NODES);
 		}
 		return nodes;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	@Override
+	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
+		switch (featureID) {
+			case Ed2Package.NODE__LEAVES:
+				return ((InternalEList<?>)getLeaves()).basicRemove(otherEnd, msgs);
+			case Ed2Package.NODE__NODES:
+				return ((InternalEList<?>)getNodes()).basicRemove(otherEnd, msgs);
+		}
+		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
 
 	/**

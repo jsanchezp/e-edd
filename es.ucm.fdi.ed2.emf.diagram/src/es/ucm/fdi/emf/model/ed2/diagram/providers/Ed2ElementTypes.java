@@ -60,7 +60,6 @@ public class Ed2ElementTypes {
 	 * @generated
 	 */
 	public static final IElementType ED2_2008 = getElementType("es.ucm.fdi.ed2.emf.diagram.ED2_2008"); //$NON-NLS-1$
-
 	/**
 	 * @generated
 	 */

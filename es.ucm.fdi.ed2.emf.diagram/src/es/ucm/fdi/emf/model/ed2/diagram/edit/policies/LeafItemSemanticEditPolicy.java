@@ -77,7 +77,20 @@ public class LeafItemSemanticEditPolicy extends Ed2BaseItemSemanticEditPolicy {
 				DestroyReferenceRequest r = new DestroyReferenceRequest(
 						incomingLink.getSource().getElement(), null,
 						incomingLink.getTarget().getElement(), false);
-				cmd.add(new DestroyReferenceCommand(r));
+				cmd.add(new DestroyReferenceCommand(r) {
+					protected CommandResult doExecuteWithResult(
+							IProgressMonitor progressMonitor, IAdaptable info)
+							throws ExecutionException {
+						EObject referencedObject = getReferencedObject();
+						Resource resource = referencedObject.eResource();
+						CommandResult result = super.doExecuteWithResult(
+								progressMonitor, info);
+						if (resource != null) {
+							resource.getContents().add(referencedObject);
+						}
+						return result;
+					}
+				});
 				cmd.add(new DeleteCommand(getEditingDomain(), incomingLink));
 				continue;
 			}

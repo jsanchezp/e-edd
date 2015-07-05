@@ -347,6 +347,9 @@ public class Ed2BaseItemSemanticEditPolicy extends SemanticEditPolicy {
 				if (source.getNodes().contains(target)) {
 					return false;
 				}
+				if (source == target) {
+					return false;
+				}
 			}
 
 			return canExistNodeNodes_4002(source, target);
@@ -358,6 +361,9 @@ public class Ed2BaseItemSemanticEditPolicy extends SemanticEditPolicy {
 		public boolean canCreateNodeLeaves_4003(Node source, Leaf target) {
 			if (source != null) {
 				if (source.getLeaves().contains(target)) {
+					return false;
+				}
+				if (source == target) {
 					return false;
 				}
 			}
