@@ -45,7 +45,7 @@ public class ED2CreateCommand extends EditElementCommand {
 	 */
 	public boolean canExecute() {
 		Model container = (Model) getElementToEdit();
-		if (container.getModel() != null) {
+		if (container.getEd2() != null) {
 			return false;
 		}
 		return true;
@@ -61,7 +61,7 @@ public class ED2CreateCommand extends EditElementCommand {
 				.createED2();
 
 		Model owner = (Model) getElementToEdit();
-		owner.setModel(newElement);
+		owner.setEd2(newElement);
 
 		doConfigure(newElement, monitor, info);
 

@@ -133,7 +133,7 @@ public class Ed2ModelingAssistantProviderOfNodeEditPart extends
 			IElementType relationshipType) {
 		List<IElementType> types = new ArrayList<IElementType>();
 		if (relationshipType == Ed2ElementTypes.ED2TreeElements_4001) {
-			types.add(Ed2ElementTypes.ED2_2003);
+			types.add(Ed2ElementTypes.ED2_2008);
 		} else if (relationshipType == Ed2ElementTypes.NodeNodes_4002) {
 			types.add(Ed2ElementTypes.Node_2006);
 		}

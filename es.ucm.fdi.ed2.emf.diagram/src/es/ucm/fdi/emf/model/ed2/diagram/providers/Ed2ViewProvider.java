@@ -214,7 +214,7 @@ public class Ed2ViewProvider extends AbstractProvider implements IViewProvider {
 		}
 		switch (visualID) {
 		case ED2EditPart.VISUAL_ID:
-			return createED2_2003(domainElement, containerView, index,
+			return createED2_2008(domainElement, containerView, index,
 					persisted, preferencesHint);
 		case NodeEditPart.VISUAL_ID:
 			return createNode_2006(domainElement, containerView, index,
@@ -253,7 +253,7 @@ public class Ed2ViewProvider extends AbstractProvider implements IViewProvider {
 	/**
 	 * @generated
 	 */
-	public Node createED2_2003(EObject domainElement, View containerView,
+	public Node createED2_2008(EObject domainElement, View containerView,
 			int index, boolean persisted, PreferencesHint preferencesHint) {
 		Node node = NotationFactory.eINSTANCE.createNode();
 		node.getStyles()
@@ -288,7 +288,7 @@ public class Ed2ViewProvider extends AbstractProvider implements IViewProvider {
 			nodeFontStyle.setFontColor(FigureUtilities.RGBToInteger(fontRGB)
 					.intValue());
 		}
-		Node label5003 = createLabel(node,
+		Node label5010 = createLabel(node,
 				Ed2VisualIDRegistry.getType(ED2NameEditPart.VISUAL_ID));
 		return node;
 	}

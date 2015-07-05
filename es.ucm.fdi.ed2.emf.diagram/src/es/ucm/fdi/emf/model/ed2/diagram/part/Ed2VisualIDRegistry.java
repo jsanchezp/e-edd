@@ -240,9 +240,9 @@ public class Ed2VisualIDRegistry {
 		switch (visualID) {
 		case ModelEditPart.VISUAL_ID:
 			return false;
-		case ED2EditPart.VISUAL_ID:
 		case NodeEditPart.VISUAL_ID:
 		case LeafEditPart.VISUAL_ID:
+		case ED2EditPart.VISUAL_ID:
 			return true;
 		default:
 			break;

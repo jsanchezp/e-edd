@@ -93,15 +93,15 @@ public class Ed2NavigatorLabelProvider extends LabelProvider implements
 		case ModelEditPart.VISUAL_ID:
 			return getImage(
 					"Navigator?Diagram?http://ed2/1.0?Model", Ed2ElementTypes.Model_1000); //$NON-NLS-1$
-		case ED2EditPart.VISUAL_ID:
-			return getImage(
-					"Navigator?TopLevelNode?http://ed2/1.0?ED2", Ed2ElementTypes.ED2_2003); //$NON-NLS-1$
 		case NodeEditPart.VISUAL_ID:
 			return getImage(
 					"Navigator?TopLevelNode?http://ed2/1.0?Node", Ed2ElementTypes.Node_2006); //$NON-NLS-1$
 		case LeafEditPart.VISUAL_ID:
 			return getImage(
 					"Navigator?TopLevelNode?http://ed2/1.0?Leaf", Ed2ElementTypes.Leaf_2007); //$NON-NLS-1$
+		case ED2EditPart.VISUAL_ID:
+			return getImage(
+					"Navigator?TopLevelNode?http://ed2/1.0?ED2", Ed2ElementTypes.ED2_2008); //$NON-NLS-1$
 		case ED2TreeElementsEditPart.VISUAL_ID:
 			return getImage(
 					"Navigator?Link?http://ed2/1.0?ED2?treeElements", Ed2ElementTypes.ED2TreeElements_4001); //$NON-NLS-1$
@@ -165,12 +165,12 @@ public class Ed2NavigatorLabelProvider extends LabelProvider implements
 		switch (Ed2VisualIDRegistry.getVisualID(view)) {
 		case ModelEditPart.VISUAL_ID:
 			return getModel_1000Text(view);
-		case ED2EditPart.VISUAL_ID:
-			return getED2_2003Text(view);
 		case NodeEditPart.VISUAL_ID:
 			return getNode_2006Text(view);
 		case LeafEditPart.VISUAL_ID:
 			return getLeaf_2007Text(view);
+		case ED2EditPart.VISUAL_ID:
+			return getED2_2008Text(view);
 		case ED2TreeElementsEditPart.VISUAL_ID:
 			return getED2TreeElements_4001Text(view);
 		case NodeNodesEditPart.VISUAL_ID:
@@ -186,24 +186,6 @@ public class Ed2NavigatorLabelProvider extends LabelProvider implements
 	 */
 	private String getModel_1000Text(View view) {
 		return ""; //$NON-NLS-1$
-	}
-
-	/**
-	 * @generated
-	 */
-	private String getED2_2003Text(View view) {
-		IParser parser = Ed2ParserProvider.getParser(Ed2ElementTypes.ED2_2003,
-				view.getElement() != null ? view.getElement() : view,
-				Ed2VisualIDRegistry.getType(ED2NameEditPart.VISUAL_ID));
-		if (parser != null) {
-			return parser.getPrintString(new EObjectAdapter(
-					view.getElement() != null ? view.getElement() : view),
-					ParserOptions.NONE.intValue());
-		} else {
-			Ed2DiagramEditorPlugin.getInstance().logError(
-					"Parser was not found for label " + 5003); //$NON-NLS-1$
-			return ""; //$NON-NLS-1$
-		}
 	}
 
 	/**
@@ -238,6 +220,24 @@ public class Ed2NavigatorLabelProvider extends LabelProvider implements
 		} else {
 			Ed2DiagramEditorPlugin.getInstance().logError(
 					"Parser was not found for label " + 5009); //$NON-NLS-1$
+			return ""; //$NON-NLS-1$
+		}
+	}
+
+	/**
+	 * @generated
+	 */
+	private String getED2_2008Text(View view) {
+		IParser parser = Ed2ParserProvider.getParser(Ed2ElementTypes.ED2_2008,
+				view.getElement() != null ? view.getElement() : view,
+				Ed2VisualIDRegistry.getType(ED2NameEditPart.VISUAL_ID));
+		if (parser != null) {
+			return parser.getPrintString(new EObjectAdapter(
+					view.getElement() != null ? view.getElement() : view),
+					ParserOptions.NONE.intValue());
+		} else {
+			Ed2DiagramEditorPlugin.getInstance().logError(
+					"Parser was not found for label " + 5010); //$NON-NLS-1$
 			return ""; //$NON-NLS-1$
 		}
 	}

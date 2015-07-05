@@ -258,24 +258,6 @@ public class Ed2NavigatorContentProvider implements ICommonContentProvider {
 			return result.toArray();
 		}
 
-		case ED2EditPart.VISUAL_ID: {
-			LinkedList<Ed2AbstractNavigatorItem> result = new LinkedList<Ed2AbstractNavigatorItem>();
-			Node sv = (Node) view;
-			Ed2NavigatorGroup outgoinglinks = new Ed2NavigatorGroup(
-					Messages.NavigatorGroupName_ED2_2003_outgoinglinks,
-					"icons/outgoingLinksNavigatorGroup.gif", parentElement); //$NON-NLS-1$
-			Collection<View> connectedViews;
-			connectedViews = getOutgoingLinksByType(Collections.singleton(sv),
-					Ed2VisualIDRegistry
-							.getType(ED2TreeElementsEditPart.VISUAL_ID));
-			outgoinglinks.addChildren(createNavigatorItems(connectedViews,
-					outgoinglinks, true));
-			if (!outgoinglinks.isEmpty()) {
-				result.add(outgoinglinks);
-			}
-			return result.toArray();
-		}
-
 		case NodeEditPart.VISUAL_ID: {
 			LinkedList<Ed2AbstractNavigatorItem> result = new LinkedList<Ed2AbstractNavigatorItem>();
 			Node sv = (Node) view;
@@ -330,6 +312,24 @@ public class Ed2NavigatorContentProvider implements ICommonContentProvider {
 					incominglinks, true));
 			if (!incominglinks.isEmpty()) {
 				result.add(incominglinks);
+			}
+			return result.toArray();
+		}
+
+		case ED2EditPart.VISUAL_ID: {
+			LinkedList<Ed2AbstractNavigatorItem> result = new LinkedList<Ed2AbstractNavigatorItem>();
+			Node sv = (Node) view;
+			Ed2NavigatorGroup outgoinglinks = new Ed2NavigatorGroup(
+					Messages.NavigatorGroupName_ED2_2008_outgoinglinks,
+					"icons/outgoingLinksNavigatorGroup.gif", parentElement); //$NON-NLS-1$
+			Collection<View> connectedViews;
+			connectedViews = getOutgoingLinksByType(Collections.singleton(sv),
+					Ed2VisualIDRegistry
+							.getType(ED2TreeElementsEditPart.VISUAL_ID));
+			outgoinglinks.addChildren(createNavigatorItems(connectedViews,
+					outgoinglinks, true));
+			if (!outgoinglinks.isEmpty()) {
+				result.add(outgoinglinks);
 			}
 			return result.toArray();
 		}

@@ -59,7 +59,8 @@ public class Ed2ElementTypes {
 	/**
 	 * @generated
 	 */
-	public static final IElementType ED2_2003 = getElementType("es.ucm.fdi.ed2.emf.diagram.ED2_2003"); //$NON-NLS-1$
+	public static final IElementType ED2_2008 = getElementType("es.ucm.fdi.ed2.emf.diagram.ED2_2008"); //$NON-NLS-1$
+
 	/**
 	 * @generated
 	 */
@@ -121,7 +122,7 @@ public class Ed2ElementTypes {
 
 			elements.put(Model_1000, Ed2Package.eINSTANCE.getModel());
 
-			elements.put(ED2_2003, Ed2Package.eINSTANCE.getED2());
+			elements.put(ED2_2008, Ed2Package.eINSTANCE.getED2());
 
 			elements.put(Node_2006, Ed2Package.eINSTANCE.getNode());
 
@@ -151,7 +152,7 @@ public class Ed2ElementTypes {
 		if (KNOWN_ELEMENT_TYPES == null) {
 			KNOWN_ELEMENT_TYPES = new HashSet<IElementType>();
 			KNOWN_ELEMENT_TYPES.add(Model_1000);
-			KNOWN_ELEMENT_TYPES.add(ED2_2003);
+			KNOWN_ELEMENT_TYPES.add(ED2_2008);
 			KNOWN_ELEMENT_TYPES.add(Node_2006);
 			KNOWN_ELEMENT_TYPES.add(Leaf_2007);
 			KNOWN_ELEMENT_TYPES.add(ED2TreeElements_4001);
@@ -169,7 +170,7 @@ public class Ed2ElementTypes {
 		case ModelEditPart.VISUAL_ID:
 			return Model_1000;
 		case ED2EditPart.VISUAL_ID:
-			return ED2_2003;
+			return ED2_2008;
 		case NodeEditPart.VISUAL_ID:
 			return Node_2006;
 		case LeafEditPart.VISUAL_ID:

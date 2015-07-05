@@ -22,9 +22,10 @@
     <domainDiagramElement
         href="ed2.genmodel#//ed2/Model"/>
     <topLevelNodes
-        visualID="2003"
+        visualID="2008"
         editPartClassName="ED2EditPart"
         itemSemanticEditPolicyClassName="ED2ItemSemanticEditPolicy"
+        notationViewFactoryClassName="ED2ViewFactory"
         canonicalEditPolicyClassName="ED2CanonicalEditPolicy"
         graphicalNodeEditPolicyClassName="ED2GraphicalNodeEditPolicy"
         createCommandClassName="ED2CreateCommand">
@@ -46,14 +47,15 @@
         <metaClass
             href="ed2.genmodel#//ed2/ED2"/>
         <containmentMetaFeature
-            href="ed2.genmodel#//ed2/Model/model"/>
+            href="ed2.genmodel#//ed2/Model/ed2"/>
         <childMetaFeature
-            href="ed2.genmodel#//ed2/Model/model"/>
+            href="ed2.genmodel#//ed2/Model/ed2"/>
       </modelFacet>
       <labels
-          visualID="5003"
+          visualID="5010"
           editPartClassName="ED2NameEditPart"
           itemSemanticEditPolicyClassName="ED2NameItemSemanticEditPolicy"
+          notationViewFactoryClassName="ED2NameViewFactory"
           elementIcon="true">
         <diagramRunTimeClass
             href="../../../plugin/org.eclipse.gmf.runtime.notation/model/notation.genmodel#//notation/Node"/>
@@ -73,6 +75,7 @@
         visualID="2006"
         editPartClassName="NodeEditPart"
         itemSemanticEditPolicyClassName="NodeItemSemanticEditPolicy"
+        notationViewFactoryClassName="NodeViewFactory"
         canonicalEditPolicyClassName="NodeCanonicalEditPolicy"
         graphicalNodeEditPolicyClassName="NodeGraphicalNodeEditPolicy"
         createCommandClassName="NodeCreateCommand">
@@ -98,6 +101,7 @@
           visualID="5008"
           editPartClassName="NodeNameEditPart"
           itemSemanticEditPolicyClassName="NodeNameItemSemanticEditPolicy"
+          notationViewFactoryClassName="NodeNameViewFactory"
           elementIcon="true">
         <diagramRunTimeClass
             href="../../../plugin/org.eclipse.gmf.runtime.notation/model/notation.genmodel#//notation/Node"/>
@@ -117,6 +121,7 @@
         visualID="2007"
         editPartClassName="LeafEditPart"
         itemSemanticEditPolicyClassName="LeafItemSemanticEditPolicy"
+        notationViewFactoryClassName="LeafViewFactory"
         canonicalEditPolicyClassName="LeafCanonicalEditPolicy"
         graphicalNodeEditPolicyClassName="LeafGraphicalNodeEditPolicy"
         createCommandClassName="LeafCreateCommand">
@@ -142,6 +147,7 @@
           visualID="5009"
           editPartClassName="LeafNameEditPart"
           itemSemanticEditPolicyClassName="LeafNameItemSemanticEditPolicy"
+          notationViewFactoryClassName="LeafNameViewFactory"
           elementIcon="true">
         <diagramRunTimeClass
             href="../../../plugin/org.eclipse.gmf.runtime.notation/model/notation.genmodel#//notation/Node"/>
@@ -161,6 +167,7 @@
         visualID="4001"
         editPartClassName="ED2TreeElementsEditPart"
         itemSemanticEditPolicyClassName="ED2TreeElementsItemSemanticEditPolicy"
+        notationViewFactoryClassName="ED2TreeElementsViewFactory"
         createCommandClassName="ED2TreeElementsCreateCommand"
         reorientCommandClassName="ED2TreeElementsReorientCommand">
       <diagramRunTimeClass
@@ -185,6 +192,7 @@
         visualID="4002"
         editPartClassName="NodeNodesEditPart"
         itemSemanticEditPolicyClassName="NodeNodesItemSemanticEditPolicy"
+        notationViewFactoryClassName="NodeNodesViewFactory"
         createCommandClassName="NodeNodesCreateCommand"
         reorientCommandClassName="NodeNodesReorientCommand">
       <diagramRunTimeClass
@@ -209,6 +217,7 @@
         visualID="4003"
         editPartClassName="NodeLeavesEditPart"
         itemSemanticEditPolicyClassName="NodeLeavesItemSemanticEditPolicy"
+        notationViewFactoryClassName="NodeLeavesViewFactory"
         createCommandClassName="NodeLeavesCreateCommand"
         reorientCommandClassName="NodeLeavesReorientCommand">
       <diagramRunTimeClass

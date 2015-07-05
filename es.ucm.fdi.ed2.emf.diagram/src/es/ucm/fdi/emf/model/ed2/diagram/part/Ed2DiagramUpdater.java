@@ -55,7 +55,7 @@ public class Ed2DiagramUpdater {
 		Model modelElement = (Model) view.getElement();
 		LinkedList<Ed2NodeDescriptor> result = new LinkedList<Ed2NodeDescriptor>();
 		{
-			es.ucm.fdi.emf.model.ed2.ED2 childElement = modelElement.getModel();
+			es.ucm.fdi.emf.model.ed2.ED2 childElement = modelElement.getEd2();
 			int visualID = Ed2VisualIDRegistry.getNodeVisualID(view,
 					childElement);
 			if (visualID == ED2EditPart.VISUAL_ID) {
@@ -98,7 +98,7 @@ public class Ed2DiagramUpdater {
 		case ModelEditPart.VISUAL_ID:
 			return getModel_1000ContainedLinks(view);
 		case ED2EditPart.VISUAL_ID:
-			return getED2_2003ContainedLinks(view);
+			return getED2_2008ContainedLinks(view);
 		case NodeEditPart.VISUAL_ID:
 			return getNode_2006ContainedLinks(view);
 		case LeafEditPart.VISUAL_ID:
@@ -113,7 +113,7 @@ public class Ed2DiagramUpdater {
 	public static List<Ed2LinkDescriptor> getIncomingLinks(View view) {
 		switch (Ed2VisualIDRegistry.getVisualID(view)) {
 		case ED2EditPart.VISUAL_ID:
-			return getED2_2003IncomingLinks(view);
+			return getED2_2008IncomingLinks(view);
 		case NodeEditPart.VISUAL_ID:
 			return getNode_2006IncomingLinks(view);
 		case LeafEditPart.VISUAL_ID:
@@ -128,7 +128,7 @@ public class Ed2DiagramUpdater {
 	public static List<Ed2LinkDescriptor> getOutgoingLinks(View view) {
 		switch (Ed2VisualIDRegistry.getVisualID(view)) {
 		case ED2EditPart.VISUAL_ID:
-			return getED2_2003OutgoingLinks(view);
+			return getED2_2008OutgoingLinks(view);
 		case NodeEditPart.VISUAL_ID:
 			return getNode_2006OutgoingLinks(view);
 		case LeafEditPart.VISUAL_ID:
@@ -147,7 +147,7 @@ public class Ed2DiagramUpdater {
 	/**
 	 * @generated
 	 */
-	public static List<Ed2LinkDescriptor> getED2_2003ContainedLinks(View view) {
+	public static List<Ed2LinkDescriptor> getED2_2008ContainedLinks(View view) {
 		es.ucm.fdi.emf.model.ed2.ED2 modelElement = (es.ucm.fdi.emf.model.ed2.ED2) view
 				.getElement();
 		LinkedList<Ed2LinkDescriptor> result = new LinkedList<Ed2LinkDescriptor>();
@@ -176,7 +176,7 @@ public class Ed2DiagramUpdater {
 	/**
 	 * @generated
 	 */
-	public static List<Ed2LinkDescriptor> getED2_2003IncomingLinks(View view) {
+	public static List<Ed2LinkDescriptor> getED2_2008IncomingLinks(View view) {
 		return Collections.emptyList();
 	}
 
@@ -213,7 +213,7 @@ public class Ed2DiagramUpdater {
 	/**
 	 * @generated
 	 */
-	public static List<Ed2LinkDescriptor> getED2_2003OutgoingLinks(View view) {
+	public static List<Ed2LinkDescriptor> getED2_2008OutgoingLinks(View view) {
 		es.ucm.fdi.emf.model.ed2.ED2 modelElement = (es.ucm.fdi.emf.model.ed2.ED2) view
 				.getElement();
 		LinkedList<Ed2LinkDescriptor> result = new LinkedList<Ed2LinkDescriptor>();

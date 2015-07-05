@@ -28,7 +28,7 @@ public class ModelItemSemanticEditPolicy extends Ed2BaseItemSemanticEditPolicy {
 	 * @generated
 	 */
 	protected Command getCreateCommand(CreateElementRequest req) {
-		if (Ed2ElementTypes.ED2_2003 == req.getElementType()) {
+		if (Ed2ElementTypes.ED2_2008 == req.getElementType()) {
 			return getGEFWrapper(new ED2CreateCommand(req));
 		}
 		if (Ed2ElementTypes.Node_2006 == req.getElementType()) {

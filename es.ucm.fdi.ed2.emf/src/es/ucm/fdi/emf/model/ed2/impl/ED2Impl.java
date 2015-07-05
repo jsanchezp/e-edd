@@ -114,7 +114,7 @@ public class ED2Impl extends MinimalEObjectImpl.Container implements ED2 {
 	 */
 	public EList<TreeElement> getTreeElements() {
 		if (treeElements == null) {
-			treeElements = new EObjectContainmentEList<TreeElement>(TreeElement.class, this, Ed2Package.ED2__TREE_ELEMENTS);
+			treeElements = new EObjectContainmentEList.Resolving<TreeElement>(TreeElement.class, this, Ed2Package.ED2__TREE_ELEMENTS);
 		}
 		return treeElements;
 	}

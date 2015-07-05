@@ -390,7 +390,7 @@ public class Ed2PackageImpl extends EPackageImpl implements Ed2Package {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public EReference getModel_Model() {
+	public EReference getModel_Ed2() {
 		return (EReference)modelEClass.getEStructuralFeatures().get(0);
 	}
 
@@ -464,7 +464,7 @@ public class Ed2PackageImpl extends EPackageImpl implements Ed2Package {
 		createEReference(ed2EClass, ED2__TREE_ELEMENTS);
 
 		modelEClass = createEClass(MODEL);
-		createEReference(modelEClass, MODEL__MODEL);
+		createEReference(modelEClass, MODEL__ED2);
 
 		// Create enums
 		treeElementTypeEEnum = createEEnum(TREE_ELEMENT_TYPE);
@@ -504,8 +504,8 @@ public class Ed2PackageImpl extends EPackageImpl implements Ed2Package {
 		// Initialize classes, features, and operations; add parameters
 		initEClass(eddEClass, es.ucm.fdi.emf.model.ed2.EDD.class, "EDD", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getEDD_Name(), ecorePackage.getEString(), "name", null, 0, 1, es.ucm.fdi.emf.model.ed2.EDD.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getEDD_TreeObjects(), this.getTreeObject(), null, "treeObjects", null, 0, -1, es.ucm.fdi.emf.model.ed2.EDD.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getEDD_TreeParents(), this.getTreeParent(), null, "treeParents", null, 0, -1, es.ucm.fdi.emf.model.ed2.EDD.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getEDD_TreeObjects(), this.getTreeObject(), null, "treeObjects", null, 0, -1, es.ucm.fdi.emf.model.ed2.EDD.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getEDD_TreeParents(), this.getTreeParent(), null, "treeParents", null, 0, -1, es.ucm.fdi.emf.model.ed2.EDD.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(treeElementEClass, TreeElement.class, "TreeElement", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getTreeElement_Index(), ecorePackage.getEIntegerObject(), "index", null, 0, 1, TreeElement.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
@@ -532,10 +532,10 @@ public class Ed2PackageImpl extends EPackageImpl implements Ed2Package {
 
 		initEClass(ed2EClass, es.ucm.fdi.emf.model.ed2.ED2.class, "ED2", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		initEAttribute(getED2_Name(), ecorePackage.getEString(), "name", null, 0, 1, es.ucm.fdi.emf.model.ed2.ED2.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_UNSETTABLE, !IS_ID, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
-		initEReference(getED2_TreeElements(), this.getTreeElement(), null, "treeElements", null, 0, -1, es.ucm.fdi.emf.model.ed2.ED2.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getED2_TreeElements(), this.getTreeElement(), null, "treeElements", null, 0, -1, es.ucm.fdi.emf.model.ed2.ED2.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(modelEClass, Model.class, "Model", !IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
-		initEReference(getModel_Model(), this.getED2(), null, "model", null, 0, 1, Model.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, !IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getModel_Ed2(), this.getED2(), null, "ed2", null, 0, 1, Model.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		// Initialize enums and add enum literals
 		initEEnum(treeElementTypeEEnum, TreeElementType.class, "TreeElementType");

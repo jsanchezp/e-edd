@@ -23,22 +23,21 @@ import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
  * The following features are implemented:
  * </p>
  * <ul>
- *   <li>{@link es.ucm.fdi.emf.model.ed2.impl.ModelImpl#getModel <em>Model</em>}</li>
+ *   <li>{@link es.ucm.fdi.emf.model.ed2.impl.ModelImpl#getEd2 <em>Ed2</em>}</li>
  * </ul>
  *
  * @generated
  */
 public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	/**
-	 * The cached value of the '{@link #getModel() <em>Model</em>}' containment reference.
+	 * The cached value of the '{@link #getEd2() <em>Ed2</em>}' containment reference.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @see #getModel()
+	 * @see #getEd2()
 	 * @generated
 	 * @ordered
 	 */
-	protected ED2 model;
-
+	protected ED2 ed2;
 	/**
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -63,8 +62,22 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public ED2 getModel() {
-		return model;
+	public ED2 getEd2() {
+		if (ed2 != null && ed2.eIsProxy()) {
+			InternalEObject oldEd2 = (InternalEObject)ed2;
+			ed2 = (ED2)eResolveProxy(oldEd2);
+			if (ed2 != oldEd2) {
+				InternalEObject newEd2 = (InternalEObject)ed2;
+				NotificationChain msgs = oldEd2.eInverseRemove(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__ED2, null, null);
+				if (newEd2.eInternalContainer() == null) {
+					msgs = newEd2.eInverseAdd(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__ED2, null, msgs);
+				}
+				if (msgs != null) msgs.dispatch();
+				if (eNotificationRequired())
+					eNotify(new ENotificationImpl(this, Notification.RESOLVE, Ed2Package.MODEL__ED2, oldEd2, ed2));
+			}
+		}
+		return ed2;
 	}
 
 	/**
@@ -72,11 +85,20 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public NotificationChain basicSetModel(ED2 newModel, NotificationChain msgs) {
-		ED2 oldModel = model;
-		model = newModel;
+	public ED2 basicGetEd2() {
+		return ed2;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public NotificationChain basicSetEd2(ED2 newEd2, NotificationChain msgs) {
+		ED2 oldEd2 = ed2;
+		ed2 = newEd2;
 		if (eNotificationRequired()) {
-			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, Ed2Package.MODEL__MODEL, oldModel, newModel);
+			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, Ed2Package.MODEL__ED2, oldEd2, newEd2);
 			if (msgs == null) msgs = notification; else msgs.add(notification);
 		}
 		return msgs;
@@ -87,18 +109,18 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
-	public void setModel(ED2 newModel) {
-		if (newModel != model) {
+	public void setEd2(ED2 newEd2) {
+		if (newEd2 != ed2) {
 			NotificationChain msgs = null;
-			if (model != null)
-				msgs = ((InternalEObject)model).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__MODEL, null, msgs);
-			if (newModel != null)
-				msgs = ((InternalEObject)newModel).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__MODEL, null, msgs);
-			msgs = basicSetModel(newModel, msgs);
+			if (ed2 != null)
+				msgs = ((InternalEObject)ed2).eInverseRemove(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__ED2, null, msgs);
+			if (newEd2 != null)
+				msgs = ((InternalEObject)newEd2).eInverseAdd(this, EOPPOSITE_FEATURE_BASE - Ed2Package.MODEL__ED2, null, msgs);
+			msgs = basicSetEd2(newEd2, msgs);
 			if (msgs != null) msgs.dispatch();
 		}
 		else if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, Ed2Package.MODEL__MODEL, newModel, newModel));
+			eNotify(new ENotificationImpl(this, Notification.SET, Ed2Package.MODEL__ED2, newEd2, newEd2));
 	}
 
 	/**
@@ -109,8 +131,8 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	@Override
 	public NotificationChain eInverseRemove(InternalEObject otherEnd, int featureID, NotificationChain msgs) {
 		switch (featureID) {
-			case Ed2Package.MODEL__MODEL:
-				return basicSetModel(null, msgs);
+			case Ed2Package.MODEL__ED2:
+				return basicSetEd2(null, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
@@ -123,8 +145,9 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	@Override
 	public Object eGet(int featureID, boolean resolve, boolean coreType) {
 		switch (featureID) {
-			case Ed2Package.MODEL__MODEL:
-				return getModel();
+			case Ed2Package.MODEL__ED2:
+				if (resolve) return getEd2();
+				return basicGetEd2();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -137,8 +160,8 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	@Override
 	public void eSet(int featureID, Object newValue) {
 		switch (featureID) {
-			case Ed2Package.MODEL__MODEL:
-				setModel((ED2)newValue);
+			case Ed2Package.MODEL__ED2:
+				setEd2((ED2)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -152,8 +175,8 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	@Override
 	public void eUnset(int featureID) {
 		switch (featureID) {
-			case Ed2Package.MODEL__MODEL:
-				setModel((ED2)null);
+			case Ed2Package.MODEL__ED2:
+				setEd2((ED2)null);
 				return;
 		}
 		super.eUnset(featureID);
@@ -167,8 +190,8 @@ public class ModelImpl extends MinimalEObjectImpl.Container implements Model {
 	@Override
 	public boolean eIsSet(int featureID) {
 		switch (featureID) {
-			case Ed2Package.MODEL__MODEL:
-				return model != null;
+			case Ed2Package.MODEL__ED2:
+				return ed2 != null;
 		}
 		return super.eIsSet(featureID);
 	}

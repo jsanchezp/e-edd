@@ -8,7 +8,7 @@
     xmlns:gmftool="http://www.eclipse.org/gmf/2005/ToolDefinition">
   <nodes>
     <containmentFeature
-        href="ed2.ecore#//Model/model"/>
+        href="ed2.ecore#//Model/ed2"/>
     <ownedChild>
       <domainMetaElement
           href="ed2.ecore#//ED2"/>

@@ -60,7 +60,7 @@ public class ModelCanonicalEditPolicy extends CanonicalEditPolicy {
 	 * @generated
 	 */
 	protected EStructuralFeature getFeatureToSynchronize() {
-		return Ed2Package.eINSTANCE.getModel_Model();
+		return Ed2Package.eINSTANCE.getModel_Ed2();
 	}
 
 	/**
@@ -252,7 +252,7 @@ public class ModelCanonicalEditPolicy extends CanonicalEditPolicy {
 		}
 		case ED2EditPart.VISUAL_ID: {
 			if (!domain2NotationMap.containsKey(view.getElement())) {
-				result.addAll(Ed2DiagramUpdater.getED2_2003ContainedLinks(view));
+				result.addAll(Ed2DiagramUpdater.getED2_2008ContainedLinks(view));
 			}
 			domain2NotationMap.putView(view.getElement(), view);
 			break;

@@ -126,7 +126,7 @@ public class EDDImpl extends MinimalEObjectImpl.Container implements EDD {
 	 */
 	public EList<TreeObject> getTreeObjects() {
 		if (treeObjects == null) {
-			treeObjects = new EObjectContainmentEList<TreeObject>(TreeObject.class, this, Ed2Package.EDD__TREE_OBJECTS);
+			treeObjects = new EObjectContainmentEList.Resolving<TreeObject>(TreeObject.class, this, Ed2Package.EDD__TREE_OBJECTS);
 		}
 		return treeObjects;
 	}
@@ -138,7 +138,7 @@ public class EDDImpl extends MinimalEObjectImpl.Container implements EDD {
 	 */
 	public EList<TreeParent> getTreeParents() {
 		if (treeParents == null) {
-			treeParents = new EObjectContainmentEList<TreeParent>(TreeParent.class, this, Ed2Package.EDD__TREE_PARENTS);
+			treeParents = new EObjectContainmentEList.Resolving<TreeParent>(TreeParent.class, this, Ed2Package.EDD__TREE_PARENTS);
 		}
 		return treeParents;
 	}

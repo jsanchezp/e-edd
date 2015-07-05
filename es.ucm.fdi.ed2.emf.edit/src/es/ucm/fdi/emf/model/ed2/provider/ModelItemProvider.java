@@ -77,7 +77,7 @@ public class ModelItemProvider
 	public Collection<? extends EStructuralFeature> getChildrenFeatures(Object object) {
 		if (childrenFeatures == null) {
 			super.getChildrenFeatures(object);
-			childrenFeatures.add(Ed2Package.Literals.MODEL__MODEL);
+			childrenFeatures.add(Ed2Package.Literals.MODEL__ED2);
 		}
 		return childrenFeatures;
 	}
@@ -130,7 +130,7 @@ public class ModelItemProvider
 		updateChildren(notification);
 
 		switch (notification.getFeatureID(Model.class)) {
-			case Ed2Package.MODEL__MODEL:
+			case Ed2Package.MODEL__ED2:
 				fireNotifyChanged(new ViewerNotification(notification, notification.getNotifier(), true, false));
 				return;
 		}
@@ -150,7 +150,7 @@ public class ModelItemProvider
 
 		newChildDescriptors.add
 			(createChildParameter
-				(Ed2Package.Literals.MODEL__MODEL,
+				(Ed2Package.Literals.MODEL__ED2,
 				 Ed2Factory.eINSTANCE.createED2()));
 	}
 

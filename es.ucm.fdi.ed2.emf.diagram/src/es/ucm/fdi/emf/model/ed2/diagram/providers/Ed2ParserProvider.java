@@ -29,19 +29,19 @@ public class Ed2ParserProvider extends AbstractProvider implements
 	/**
 	 * @generated
 	 */
-	private IParser eD2Name_5003Parser;
+	private IParser eD2Name_5010Parser;
 
 	/**
 	 * @generated
 	 */
-	private IParser getED2Name_5003Parser() {
-		if (eD2Name_5003Parser == null) {
+	private IParser getED2Name_5010Parser() {
+		if (eD2Name_5010Parser == null) {
 			EAttribute[] features = new EAttribute[] { Ed2Package.eINSTANCE
 					.getED2_Name() };
 			MessageFormatParser parser = new MessageFormatParser(features);
-			eD2Name_5003Parser = parser;
+			eD2Name_5010Parser = parser;
 		}
-		return eD2Name_5003Parser;
+		return eD2Name_5010Parser;
 	}
 
 	/**
@@ -86,7 +86,7 @@ public class Ed2ParserProvider extends AbstractProvider implements
 	protected IParser getParser(int visualID) {
 		switch (visualID) {
 		case ED2NameEditPart.VISUAL_ID:
-			return getED2Name_5003Parser();
+			return getED2Name_5010Parser();
 		case NodeNameEditPart.VISUAL_ID:
 			return getNodeName_5008Parser();
 		case LeafNameEditPart.VISUAL_ID:

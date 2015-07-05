@@ -62,7 +62,7 @@ public interface EDD extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Tree Objects</em>' containment reference list.
 	 * @see es.ucm.fdi.emf.model.ed2.Ed2Package#getEDD_TreeObjects()
-	 * @model containment="true"
+	 * @model containment="true" resolveProxies="true"
 	 * @generated
 	 */
 	EList<TreeObject> getTreeObjects();
@@ -78,7 +78,7 @@ public interface EDD extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Tree Parents</em>' containment reference list.
 	 * @see es.ucm.fdi.emf.model.ed2.Ed2Package#getEDD_TreeParents()
-	 * @model containment="true"
+	 * @model containment="true" resolveProxies="true"
 	 * @generated
 	 */
 	EList<TreeParent> getTreeParents();

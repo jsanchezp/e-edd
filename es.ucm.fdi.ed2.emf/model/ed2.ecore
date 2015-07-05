@@ -51,6 +51,6 @@
   </eClassifiers>
   <eClassifiers xsi:type="ecore:EClass" name="Model">
     <eAnnotations source="root"/>
-    <eStructuralFeatures xsi:type="ecore:EReference" name="model" eType="#//ED2" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ed2" eType="#//ED2" containment="true"/>
   </eClassifiers>
 </ecore:EPackage>

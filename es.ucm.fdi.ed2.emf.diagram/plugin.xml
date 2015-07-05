@@ -217,7 +217,7 @@
       <viewProvider class="es.ucm.fdi.emf.model.ed2.diagram.providers.Ed2ViewProvider">
          <Priority name="Lowest"/>
          <context viewClass="org.eclipse.gmf.runtime.notation.Diagram" semanticHints="Ed2"/>
-         <context viewClass="org.eclipse.gmf.runtime.notation.Node" semanticHints="2003,2006,2007"/>
+         <context viewClass="org.eclipse.gmf.runtime.notation.Node" semanticHints="2008,2006,2007"/>
          <context viewClass="org.eclipse.gmf.runtime.notation.Edge" semanticHints="4001,4002,4003"/>
       </viewProvider>
    </extension>
@@ -230,13 +230,13 @@
             <method name="getType()" value="Ed2"/>
          </object>
          <object class="org.eclipse.gmf.runtime.notation.Node" id="generated-nodes">
-            <method name="getType()" value="2003,2006,2007"/>
+            <method name="getType()" value="2008,2006,2007"/>
          </object>
          <object class="org.eclipse.gmf.runtime.notation.Edge" id="generated-links">
             <method name="getType()" value="4001,4002,4003"/>
          </object>
          <object class="org.eclipse.gmf.runtime.notation.Node" id="generated-labels">
-            <method name="getType()" value="5003,5008,5009"/>
+            <method name="getType()" value="5010,5008,5009"/>
          </object>
          <object class="org.eclipse.gmf.runtime.notation.Node" id="generated-compartments">
             <method name="getType()" value=""/>
@@ -255,8 +255,8 @@
       </modelingAssistantProvider>
             <modelingAssistantProvider class="es.ucm.fdi.emf.model.ed2.diagram.providers.assistants.Ed2ModelingAssistantProviderOfED2EditPart">
          <Priority name="Lowest"/>
-         <object class="es.ucm.fdi.emf.model.ed2.diagram.edit.parts.ED2EditPart" id="ED2_2003"/>
-         <context elements="ED2_2003"/>
+         <object class="es.ucm.fdi.emf.model.ed2.diagram.edit.parts.ED2EditPart" id="ED2_2008"/>
+         <context elements="ED2_2008"/>
       </modelingAssistantProvider>
             <modelingAssistantProvider class="es.ucm.fdi.emf.model.ed2.diagram.providers.assistants.Ed2ModelingAssistantProviderOfNodeEditPart">
          <Priority name="Lowest"/>
@@ -300,12 +300,12 @@
       </metamodel>
       <metamodel nsURI="http://ed2/1.0">
          <metamodelType
-               id="es.ucm.fdi.ed2.emf.diagram.ED2_2003"
-               name="%metatype.name.ED2_2003"
+               id="es.ucm.fdi.ed2.emf.diagram.ED2_2008"
+               name="%metatype.name.ED2_2008"
                kind="org.eclipse.gmf.runtime.emf.type.core.IHintedType"
                eclass="ED2"
                edithelper="es.ucm.fdi.emf.model.ed2.diagram.edit.helpers.ED2EditHelper">
-            <param name="semanticHint" value="2003"/>
+            <param name="semanticHint" value="2008"/>
          </metamodelType>
       </metamodel>
       <metamodel nsURI="http://ed2/1.0">
@@ -368,7 +368,7 @@
       </clientContext> 
       <binding context="es.ucm.fdi.ed2.emf.diagram.TypeContext">
          <elementType ref="es.ucm.fdi.ed2.emf.diagram.Model_1000"/>
-         <elementType ref="es.ucm.fdi.ed2.emf.diagram.ED2_2003"/>
+         <elementType ref="es.ucm.fdi.ed2.emf.diagram.ED2_2008"/>
          <elementType ref="es.ucm.fdi.ed2.emf.diagram.Node_2006"/>
          <elementType ref="es.ucm.fdi.ed2.emf.diagram.Leaf_2007"/>
          <elementType ref="es.ucm.fdi.ed2.emf.diagram.ED2TreeElements_4001"/>

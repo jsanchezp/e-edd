@@ -36,7 +36,7 @@ public class ED2ItemSemanticEditPolicy extends Ed2BaseItemSemanticEditPolicy {
 	 * @generated
 	 */
 	public ED2ItemSemanticEditPolicy() {
-		super(Ed2ElementTypes.ED2_2003);
+		super(Ed2ElementTypes.ED2_2008);
 	}
 
 	/**

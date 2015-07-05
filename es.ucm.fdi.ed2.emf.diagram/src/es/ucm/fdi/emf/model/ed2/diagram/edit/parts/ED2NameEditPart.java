@@ -58,7 +58,7 @@ public class ED2NameEditPart extends CompartmentEditPart implements
 	/**
 	 * @generated
 	 */
-	public static final int VISUAL_ID = 5003;
+	public static final int VISUAL_ID = 5010;
 
 	/**
 	 * @generated
@@ -308,7 +308,7 @@ public class ED2NameEditPart extends CompartmentEditPart implements
 		if (parser == null) {
 			parser = Ed2ParserProvider
 					.getParser(
-							Ed2ElementTypes.ED2_2003,
+							Ed2ElementTypes.ED2_2008,
 							getParserElement(),
 							Ed2VisualIDRegistry
 									.getType(es.ucm.fdi.emf.model.ed2.diagram.edit.parts.ED2NameEditPart.VISUAL_ID));

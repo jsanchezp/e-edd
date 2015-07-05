@@ -319,7 +319,7 @@
       <layoutConstraint xmi:type="notation:Location" xmi:id="_wvsutiGlEeWlHerab7O9ug" x="1" y="19"/>
     </children>
     <styles xmi:type="notation:FontStyle" xmi:id="_wvsusSGlEeWlHerab7O9ug" fontName="Segoe UI"/>
-    <element xmi:type="ecore:EReference" href="ed2.ecore#//Model/model"/>
+    <element xmi:type="ecore:EReference" href="ed2.ecore#//Model/ed2"/>
     <bendpoints xmi:type="notation:RelativeBendpoints" xmi:id="_wvsusiGlEeWlHerab7O9ug" points="[-6, 28, 17, -80]$[-24, 97, -1, -11]"/>
     <targetAnchor xmi:type="notation:IdentityAnchor" xmi:id="_wv2fsCGlEeWlHerab7O9ug" id="(0.47297297297297297,0.07462686567164178)"/>
   </edges>

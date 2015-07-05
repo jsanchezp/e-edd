@@ -61,7 +61,7 @@ public interface ED2 extends EObject {
 	 * <!-- end-user-doc -->
 	 * @return the value of the '<em>Tree Elements</em>' containment reference list.
 	 * @see es.ucm.fdi.emf.model.ed2.Ed2Package#getED2_TreeElements()
-	 * @model containment="true"
+	 * @model containment="true" resolveProxies="true"
 	 * @generated
 	 */
 	EList<TreeElement> getTreeElements();

@@ -61,10 +61,10 @@ public class Ed2PaletteFactory {
 		DefaultNodeToolEntry entry = new DefaultNodeToolEntry(
 				Messages.ED21CreationTool_title,
 				Messages.ED21CreationTool_desc,
-				Collections.singletonList(Ed2ElementTypes.ED2_2003));
+				Collections.singletonList(Ed2ElementTypes.ED2_2008));
 		entry.setId("createED21CreationTool"); //$NON-NLS-1$
 		entry.setSmallIcon(Ed2ElementTypes
-				.getImageDescriptor(Ed2ElementTypes.ED2_2003));
+				.getImageDescriptor(Ed2ElementTypes.ED2_2008));
 		entry.setLargeIcon(entry.getSmallIcon());
 		return entry;
 	}

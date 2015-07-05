@@ -21,7 +21,7 @@ public class Ed2ModelingAssistantProviderOfModelEditPart extends
 	@Override
 	public List<IElementType> getTypesForPopupBar(IAdaptable host) {
 		List<IElementType> types = new ArrayList<IElementType>(3);
-		types.add(Ed2ElementTypes.ED2_2003);
+		types.add(Ed2ElementTypes.ED2_2008);
 		types.add(Ed2ElementTypes.Node_2006);
 		types.add(Ed2ElementTypes.Leaf_2007);
 		return types;

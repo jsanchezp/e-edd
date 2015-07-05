@@ -480,13 +480,13 @@ public interface Ed2Package extends EPackage {
 	int MODEL = 7;
 
 	/**
-	 * The feature id for the '<em><b>Model</b></em>' containment reference.
+	 * The feature id for the '<em><b>Ed2</b></em>' containment reference.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int MODEL__MODEL = 0;
+	int MODEL__ED2 = 0;
 
 	/**
 	 * The number of structural features of the '<em>Model</em>' class.
@@ -796,15 +796,15 @@ public interface Ed2Package extends EPackage {
 	EClass getModel();
 
 	/**
-	 * Returns the meta object for the containment reference '{@link es.ucm.fdi.emf.model.ed2.Model#getModel <em>Model</em>}'.
+	 * Returns the meta object for the containment reference '{@link es.ucm.fdi.emf.model.ed2.Model#getEd2 <em>Ed2</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the containment reference '<em>Model</em>'.
-	 * @see es.ucm.fdi.emf.model.ed2.Model#getModel()
+	 * @return the meta object for the containment reference '<em>Ed2</em>'.
+	 * @see es.ucm.fdi.emf.model.ed2.Model#getEd2()
 	 * @see #getModel()
 	 * @generated
 	 */
-	EReference getModel_Model();
+	EReference getModel_Ed2();
 
 	/**
 	 * Returns the meta object for enum '{@link es.ucm.fdi.emf.model.ed2.TreeElementType <em>Tree Element Type</em>}'.
@@ -1064,12 +1064,12 @@ public interface Ed2Package extends EPackage {
 		EClass MODEL = eINSTANCE.getModel();
 
 		/**
-		 * The meta object literal for the '<em><b>Model</b></em>' containment reference feature.
+		 * The meta object literal for the '<em><b>Ed2</b></em>' containment reference feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
 		 */
-		EReference MODEL__MODEL = eINSTANCE.getModel_Model();
+		EReference MODEL__ED2 = eINSTANCE.getModel_Ed2();
 
 		/**
 		 * The meta object literal for the '{@link es.ucm.fdi.emf.model.ed2.TreeElementType <em>Tree Element Type</em>}' enum.
