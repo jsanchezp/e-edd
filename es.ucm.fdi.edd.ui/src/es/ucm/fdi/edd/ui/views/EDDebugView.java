@@ -7,6 +7,7 @@ import java.io.StringWriter;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
+import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -67,15 +68,17 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.ViewPart;
 
-import es.ucm.fdi.edd.emf.model.edd.EDD;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
+import es.ucm.fdi.emf.model.ed2.ED2;
 
 public class EDDebugView extends ViewPart {
 
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDebugView";
+	
+	private static final String JSON_FILE = "C:\\Test2.json";
 	
 	private Section sectionDebugger;
 	private Section sectionQuestion;
@@ -91,6 +94,7 @@ public class EDDebugView extends ViewPart {
 	private Integer index = 0;
 	private Integer total = 0;
 	
+	private IFile debugFile;
 	private EDDHelper helper;
 	
 	// the listener we register with the selection service 
@@ -103,7 +107,7 @@ public class EDDebugView extends ViewPart {
 	public EDDebugView() {
 		super();
 		listener = new EDDViewSelectionListener(this);
-		helper = new EDDHelper(new File("C:\\Test2.json"));
+		helper = new EDDHelper(new File(JSON_FILE));
 	}
 	
 	@Override
@@ -325,7 +329,7 @@ public class EDDebugView extends ViewPart {
 		
 		toolkit.createLabel(fileSelector, "File: ");
 		locationText = toolkit.createText(fileSelector, "", SWT.BORDER | SWT.SINGLE);
-		locationText.setText("/EDDSample/ebin");
+		locationText.setText("/EDDSample/ebin"); //FIXME Buscar el binario...
 		locationText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		locationText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
@@ -340,7 +344,7 @@ public class EDDebugView extends ViewPart {
 		});
 		
 		buggyCallText = createDecoratedTextField(Messages.getString("EDDebugView.textLabel"), contentDebugger, mmng);
-		buggyCallText.setText("ackermann:main([3,4])");
+		buggyCallText.setText("ackermann:main([3,4])"); //FIXME Ejemplo de instrucción
 		buggyCallText.addKeyListener(new KeyListener() {			
 			@Override
 			public void keyPressed(KeyEvent event) {
@@ -646,6 +650,16 @@ public class EDDebugView extends ViewPart {
 		return content;
 	}
 	
+	/**
+	 * Sets the debug file.
+	 * 
+	 * @param iFile
+	 * 			The debug file
+	 */
+	public void setDebugFile(IFile iFile) {
+		debugFile = iFile;
+	}
+	
 	public Integer getIndex() {
 		return index;
 	}
@@ -723,7 +737,8 @@ public class EDDebugView extends ViewPart {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			EDD edd = helper.buildEMF("EDDFile");
+			ED2 edd = helper.buildEMF("EDDFile");
+			helper.buildGMF("ED2File");
 			view.updateContent(edd);
 		}
 	}

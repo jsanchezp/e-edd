@@ -31,12 +31,16 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.jface,
  org.eclipse.emf.edit.ui,
  org.eclipse.emf.codegen.ecore.ui,
- es.ucm.fdi.edd.emf,
- es.ucm.fdi.edd.emf.edit,
  org.eclipse.search,
  org.eclipse.jface.text,
- org.eclipse.core.expressions
+ org.eclipse.core.expressions,
+ org.apache.commons.lang,
+ es.ucm.fdi.ed2.emf,
+ es.ucm.fdi.ed2.emf.edit,
+ es.ucm.fdi.ed2.emf.diagram,
+ org.eclipse.gmf.runtime.emf.core,
+ org.eclipse.gmf.runtime.emf.commands.core,
+ org.eclipse.gmf.runtime.diagram.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor
-Import-Package: org.apache.commons.lang

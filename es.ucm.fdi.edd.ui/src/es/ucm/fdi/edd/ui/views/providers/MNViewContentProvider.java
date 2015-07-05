@@ -10,12 +10,16 @@ import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.IResourceDeltaVisitor;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryContentProvider;
 
-import es.ucm.fdi.edd.emf.model.edd.Node;
+import es.ucm.fdi.emf.model.ed2.Leaf;
+import es.ucm.fdi.emf.model.ed2.Node;
+import es.ucm.fdi.emf.model.ed2.TreeElement;
 
 /**
  *  Provides the possibility to display a <code>Node</code> including its child objects.
@@ -41,7 +45,13 @@ public class MNViewContentProvider extends AdapterFactoryContentProvider impleme
 			URI uri = URI.createPlatformResourceURI(path, true);
 			parentElement = resourceSet.getResource(uri, true);
 		} else if (parentElement instanceof Node) {
-			return ((Node) parentElement).getChildren().toArray();
+			Node node = (Node) parentElement;
+			EList<Node> nodes = node.getNodes();
+			EList<Leaf> leaves = node.getLeaves();
+			EList<TreeElement> list = new BasicEList<TreeElement>();
+			list.addAll(nodes);
+			list.addAll(leaves);
+			return list.toArray();
 		}
 		
 		return super.getChildren(parentElement);
@@ -55,6 +65,8 @@ public class MNViewContentProvider extends AdapterFactoryContentProvider impleme
 			return ((IResource) element).getParent();
 		} else if (element instanceof Node) {
 			//return ((Node) element).
+		} else if (element instanceof Leaf) {
+			//return ((Leaf) element).
 		}
 		
 		return super.getParent(element);
@@ -68,7 +80,15 @@ public class MNViewContentProvider extends AdapterFactoryContentProvider impleme
 			return true;
 		} else if (element instanceof Node) {
 			Node node = (Node) element;
-			return node.getChildren().size() > 0;
+			EList<Node> nodes = node.getNodes();
+			EList<Leaf> leaves = node.getLeaves();
+			EList<TreeElement> result = new BasicEList<TreeElement>();
+			result.addAll(nodes);
+			result.addAll(leaves);
+			return result.size() > 0;
+		} else if (element instanceof Leaf) {
+//			Leaf leaf = (Leaf) element;
+			return false;
 		}
 		
 		return super.hasChildren(element);

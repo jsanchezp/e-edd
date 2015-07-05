@@ -1,7 +1,5 @@
 package es.ucm.fdi.edd.ui.views.listeners;
 
-import java.util.Arrays;
-
 import org.eclipse.jface.text.BadLocationException;
 import org.eclipse.jface.text.IMarkSelection;
 import org.eclipse.jface.text.ITextSelection;
@@ -13,9 +11,9 @@ import org.eclipse.ui.IWorkbenchPart;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.part.ViewPart;
 
-import es.ucm.fdi.edd.emf.model.edd.Node;
 import es.ucm.fdi.edd.ui.views.EDDTreeView;
 import es.ucm.fdi.edd.ui.views.EDDebugView;
+import es.ucm.fdi.emf.model.ed2.Node;
 
 /**
  * Listener that updates the {@link ViewPart} with the currently selected element of the workbench.
@@ -94,7 +92,7 @@ public class EDDViewSelectionListener implements ISelectionListener {
 			}
 		}
 		
-		System.out.println(Arrays.asList(items));
+//		System.out.println(Arrays.asList(items));
 	}
 	
 	/**

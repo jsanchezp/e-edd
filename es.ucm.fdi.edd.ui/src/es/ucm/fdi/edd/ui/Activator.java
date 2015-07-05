@@ -153,6 +153,17 @@ public class Activator extends AbstractUIPlugin {
 	}
 	
 	/**
+	 * Gets the project given its name.
+	 * 
+	 * @param name
+	 *			The name of project
+	 * @return
+	 */
+	public static IProject getProject(String name) {
+		return getRoot().getProject(name);
+	}
+	
+	/**
 	 * Get all projects in the workspace
 	 * 
 	 * @return

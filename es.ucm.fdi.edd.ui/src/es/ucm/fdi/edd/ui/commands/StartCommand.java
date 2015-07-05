@@ -27,6 +27,7 @@ public class StartCommand extends AbstractHandler {
 			if (dialog.open() == Window.OK) {
 		    	IFile iFile = (IFile) dialog.getFirstResult();
 		    	System.out.println(iFile.getLocation());
+		    	view.setDebugFile(iFile);
 //		    	view.setLocationText(iFile.getLocation());
 		    	view.setLocationText(iFile.getParent().getFullPath());
 		    	view.startDebugger();
