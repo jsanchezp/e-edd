@@ -189,6 +189,13 @@
             id="es.ucm.fdi.edd.ui.views.EDDTreeView"
             name="EDD Tree View">
       </view>
+      <view
+            category="es.ucm.fdi.edd.ui.category"
+            class="es.ucm.fdi.edd.ui.views.DiagramView"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.views.DiagramView"
+            name="Diagram View">
+      </view>
    </extension>
    <extension
          point="org.eclipse.debug.ui.launchShortcuts">
@@ -324,7 +331,7 @@
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="es.ucm.fdi.edd.ui.commands.StartCommand"
+            class="es.ucm.fdi.edd.ui.commands.StartDebugCommand"
             commandId="es.ucm.fdi.edd.ui.commands.debugStart">
       </handler>
       <handler
@@ -340,7 +347,7 @@
             commandId="es.ucm.fdi.edd.ui.commands.debugFinish">
       </handler>
       <handler
-            class="es.ucm.fdi.edd.ui.commands.CancelCommand"
+            class="es.ucm.fdi.edd.ui.commands.FinishDebugCommand"
             commandId="es.ucm.fdi.edd.ui.commands.debugCancel">
       </handler>
       <handler

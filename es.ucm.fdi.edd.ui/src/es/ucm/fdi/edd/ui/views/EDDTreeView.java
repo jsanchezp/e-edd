@@ -1,5 +1,7 @@
 package es.ucm.fdi.edd.ui.views;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
@@ -10,10 +12,18 @@ import org.eclipse.emf.common.command.CommandStack;
 import org.eclipse.emf.common.notify.AdapterFactory;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.resource.Resource;
+import org.eclipse.emf.ecore.util.EcoreUtil;
 import org.eclipse.emf.edit.domain.AdapterFactoryEditingDomain;
 import org.eclipse.emf.edit.ui.provider.AdapterFactoryContentProvider;
 import org.eclipse.emf.edit.ui.view.ExtendedPropertySheetPage;
+import org.eclipse.gef.EditPart;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.DiagramEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.parts.DiagramEditor;
+import org.eclipse.gmf.runtime.diagram.ui.parts.IDiagramWorkbenchPart;
+import org.eclipse.gmf.runtime.diagram.ui.resources.editor.parts.DiagramDocumentEditor;
+import org.eclipse.gmf.runtime.notation.impl.DiagramImpl;
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IMenuListener;
 import org.eclipse.jface.action.IMenuManager;
@@ -31,9 +41,16 @@ import org.eclipse.swt.SWT;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Menu;
 import org.eclipse.ui.IActionBars;
+import org.eclipse.ui.IEditorInput;
+import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISharedImages;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.IWorkbenchWindow;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.ide.IGotoMarker;
 import org.eclipse.ui.part.DrillDownAdapter;
@@ -55,6 +72,8 @@ import es.ucm.fdi.emf.model.ed2.Leaf;
 import es.ucm.fdi.emf.model.ed2.Model;
 import es.ucm.fdi.emf.model.ed2.Node;
 import es.ucm.fdi.emf.model.ed2.TreeElement;
+import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditor;
+import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorUtil;
 
 public class EDDTreeView extends ViewPart implements IAdaptable {
 
@@ -410,10 +429,73 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 			TreeElement selectedNode = nodesContentList.get(index);
 			if (selectedNode != null) {
 				viewer.setSelection(new StructuredSelection(selectedNode));
+				
+				/*
+				System.out.println(EcoreUtil.getIdentification(selectedNode));
+				try {
+					DiagramEditor editor = (DiagramEditor) getEditor();
+					Map editPartRegistry = editor.getDiagramGraphicalViewer().getEditPartRegistry();
+					EObject targetView = editor.getDiagram().eResource().getContents().get(index);
+					if (targetView == null) {
+						return;
+					}
+					EditPart targetEditPart = (EditPart) editPartRegistry.get(targetView);
+					if (targetEditPart != null) {
+						Ed2DiagramEditorUtil.selectElementsInDiagram(editor, Arrays.asList(new EditPart[] { targetEditPart }));
+					}
+				} catch (PartInitException e) {
+					e.printStackTrace();
+				}
+				*/
 			}
 		}
 	}
 	
+	private DiagramEditor getEditor() throws PartInitException {
+		List<IEditorReference> editors = new ArrayList<IEditorReference>();
+		for (IWorkbenchWindow window : PlatformUI.getWorkbench().getWorkbenchWindows()) {
+			for (IWorkbenchPage page : window.getPages()) {
+				for (IEditorReference editor : page.getEditorReferences()) {
+					editors.add(editor);
+					if (editor.getId().equals("es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID")) {
+						IEditorInput input = editor.getEditorInput();
+						IEditorPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findEditor(input);
+						if (part instanceof Ed2DiagramEditor) {
+							Ed2DiagramEditor dEditor = (Ed2DiagramEditor) part;
+							dEditor.getDiagramEditPart();
+							return dEditor;
+							
+						}
+					}
+				}
+			}
+		}
+		
+		return null;
+	}
+	
+	private Object getDiagramElement(DiagramDocumentEditor editorPart) {
+		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		if (page == null)
+			return null;
+
+		IEditorPart editor = page.getActiveEditor();
+		if (editor == null)
+			return null;
+
+		if (!(editor instanceof DiagramDocumentEditor))
+			return null;
+
+		DiagramDocumentEditor diagramEditor = (DiagramDocumentEditor) editorPart;
+		DiagramEditPart diagramEditPart = diagramEditor.getDiagramEditPart();
+		Object diagramObject = diagramEditPart.getModel();
+		if (!(diagramObject instanceof DiagramImpl))
+			return null;
+		DiagramImpl diagramImpl = (DiagramImpl) diagramObject;
+		EObject myGmfDiagramElements = diagramImpl.getElement();
+		return myGmfDiagramElements;
+	}
+
 	/**
 	 * Passing the focus request to the viewer's control.
 	 */

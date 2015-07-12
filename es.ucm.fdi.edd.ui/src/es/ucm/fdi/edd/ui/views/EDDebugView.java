@@ -8,6 +8,8 @@ import java.util.LinkedHashSet;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IFolder;
+import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
@@ -19,6 +21,7 @@ import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
 import org.eclipse.jface.dialogs.IMessageProvider;
+import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
 import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
@@ -29,6 +32,7 @@ import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.SelectionChangedEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
+import org.eclipse.jface.window.Window;
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.events.KeyEvent;
 import org.eclipse.swt.events.KeyListener;
@@ -44,6 +48,8 @@ import org.eclipse.swt.layout.GridLayout;
 import org.eclipse.swt.widgets.Button;
 import org.eclipse.swt.widgets.Composite;
 import org.eclipse.swt.widgets.Control;
+import org.eclipse.swt.widgets.Event;
+import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
 import org.eclipse.ui.ISelectionListener;
@@ -68,24 +74,24 @@ import org.eclipse.ui.forms.widgets.Section;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.ViewPart;
 
+import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
+import es.ucm.fdi.edd.ui.dialogs.ErlangFileDialog;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
-import es.ucm.fdi.emf.model.ed2.ED2;
 import es.ucm.fdi.emf.model.ed2.Model;
 
 public class EDDebugView extends ViewPart {
 
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDebugView";
 	
-	private static final String JSON_FILE = "C:\\Test2.json";
-	
 	private Section sectionDebugger;
 	private Section sectionQuestion;
 	private Composite contentQuestion;
 
 	private FormToolkit toolkit;
+	private IMessageManager mmng;
 	private ScrolledForm scrolledForm;
 	private ScrolledPageBook pageBook;
 	private Text buggyCallText;
@@ -108,9 +114,12 @@ public class EDDebugView extends ViewPart {
 	public EDDebugView() {
 		super();
 		listener = new EDDViewSelectionListener(this);
-		helper = new EDDHelper(new File(JSON_FILE));
+		helper = new EDDHelper();
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.WorkbenchPart#createPartControl(org.eclipse.swt.widgets.Composite)
+	 */
 	@Override
 	public void createPartControl(Composite parent) {
 		toolkit = new FormToolkit(parent.getDisplay());
@@ -171,6 +180,9 @@ public class EDDebugView extends ViewPart {
 		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(listener);
 	}
 	
+	/* (non-Javadoc)
+	 * @see org.eclipse.ui.part.ViewPart#setContentDescription(java.lang.String)
+	 */
 	@Override
 	public void setContentDescription(String description) {
 		super.setContentDescription(description);
@@ -321,20 +333,25 @@ public class EDDebugView extends ViewPart {
 		sectionDebugger = createSection(body, Messages.getString("EDDebugView.sectionDebugger.title"), Messages.getString("EDDebugView.sectionDebugger.desc"), true);
 		Composite contentDebugger = createSectionClient(sectionDebugger);
 		
-		final IMessageManager mmng = scrolledForm.getMessageManager();
+		mmng = scrolledForm.getMessageManager();
 		mmng.setAutoUpdate(true);
 		
+		GridLayout fileSelectorLayout = new GridLayout(3, false);
+		fileSelectorLayout.marginHeight = 0;
+		fileSelectorLayout.marginWidth = 0;
+	    
 		Composite fileSelector = toolkit.createComposite(contentDebugger);
-		fileSelector.setLayout(new GridLayout(3, false));
+		fileSelector.setLayout(fileSelectorLayout);
 		fileSelector.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		
 		toolkit.createLabel(fileSelector, "File: ");
 		locationText = toolkit.createText(fileSelector, "", SWT.BORDER | SWT.SINGLE);
-		locationText.setText("/EDDSample/ebin"); //FIXME Buscar el binario...
+//		locationText.setText("/EDDAckermann/src/ackermann.erl");
+		locationText.setEditable(false);
 		locationText.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
 		locationText.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				dialogChanged(mmng);
+//				dialogChanged();
 			}
 		});
 		Button button = toolkit.createButton(fileSelector, "Browse...", SWT.PUSH);
@@ -344,8 +361,8 @@ public class EDDebugView extends ViewPart {
 			}
 		});
 		
-		buggyCallText = createDecoratedTextField(Messages.getString("EDDebugView.textLabel"), contentDebugger, mmng);
-		buggyCallText.setText("ackermann:main([3,4])"); //FIXME Ejemplo de instrucción
+		buggyCallText = createDecoratedTextField(Messages.getString("EDDebugView.textLabel"), contentDebugger, true);
+//		buggyCallText.setText("ackermann:main([3,4])");
 		buggyCallText.addKeyListener(new KeyListener() {			
 			@Override
 			public void keyPressed(KeyEvent event) {
@@ -357,7 +374,7 @@ public class EDDebugView extends ViewPart {
                 }
 				// Enter
 				else if (event.keyCode == SWT.CR) {
-					startDebugger();
+//					startDebugger();
 				}
 			}
 
@@ -392,7 +409,7 @@ public class EDDebugView extends ViewPart {
 			@SuppressWarnings("unused")
 			ContentProposalAdapter adapter = new ContentProposalAdapter(buggyCallText, 
 				  new TextContentAdapter(), 
-				  new SimpleContentProposalProvider(new String[] {"ProposalOne", "ProposalTwo", "ProposalThree"}),
+				  new SimpleContentProposalProvider(new String[] {"ackermann:main([3,4])", "ProposalOne", "ProposalTwo", "ProposalThree"}),
 				  keyStroke, autoActivationCharacters);
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -405,9 +422,8 @@ public class EDDebugView extends ViewPart {
 	
 	/**
 	 * Ensures that both text fields are set.
-	 * @param mmng 
 	 */
-	private void dialogChanged(IMessageManager mmng) {
+	private void dialogChanged() {
 		String fileName = locationText.getText();
 		String containerName = fileName.substring(0, fileName.lastIndexOf("/"));
 		
@@ -416,21 +432,21 @@ public class EDDebugView extends ViewPart {
 		IResource container = root.findMember(new Path(containerName));
 		if (container != null) {
 			if (container.getName().length() == 0) {
-				updateStatus(mmng, "File container must be specified");
+				updateStatus("File container must be specified");
 				return;
 			}
 			if (container == null || (container.getType() & (IResource.PROJECT | IResource.FOLDER)) == 0) {
-				updateStatus(mmng, "File container must exist");
+				updateStatus("File container must exist");
 				return;
 			}
 			if (!container.isAccessible()) {
-				updateStatus(mmng, "Project must be writable");
+				updateStatus("Project must be writable");
 				return;
 			}
 		}
 
 		if (fileName.length() == 0) {
-			updateStatus(mmng, "File name must be specified");
+			updateStatus("File name must be specified");
 			return;
 		}
 		/*if (fileName.replace('\\', '/').indexOf('/', 1) > 0) {
@@ -441,15 +457,15 @@ public class EDDebugView extends ViewPart {
 		if (dotLoc != -1) {
 			String ext = fileName.substring(dotLoc + 1);
 			if (ext.equalsIgnoreCase("erl") == false) {
-				updateStatus(mmng, "File extension must be \"erl\"");
+				updateStatus("File extension must be \"erl\"");
 				return;
 			}
 		}
 		
-		updateStatus(mmng, null);
+		updateStatus(null);
 	}
 	
-	private void updateStatus(IMessageManager mmng, String message) {
+	private void updateStatus(String message) {
 		if (message != null) {
 			mmng.addMessage("textFileType",	message, null, IMessageProvider.ERROR, locationText);
 		} else {
@@ -458,17 +474,28 @@ public class EDDebugView extends ViewPart {
 	}
 
 	/**
-	 * Uses the standard container selection dialog to choose the new value for the container field.
+	 * Uses the Erlang file dialog to choose the new value for the erlang file field.
 	 */
 	private void handleBrowse() {
-		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		ContainerSelectionDialog   dialog = new ContainerSelectionDialog(scrolledForm.getShell(), root, false, "Select new file container");
+		ErlangFileDialog dialog = new ErlangFileDialog(getSite().getShell());
+		if (dialog.open() == Window.OK) {
+			IFile iFile = (IFile) dialog.getFirstResult();
+			setDebugFile(iFile);
+		}
+	}
+	
+	/**
+	 * Uses the standard container selection dialog to choose the new value for the container field.
+	 */
+	protected void handleContainerBrowse() {
+		IWorkspaceRoot root = Activator.getRoot();
+		ContainerSelectionDialog dialog = new ContainerSelectionDialog(scrolledForm.getShell(), root, false, "Select new file container");
 		if (dialog.open() == ContainerSelectionDialog.OK) {
 			Object[] result = dialog.getResult();
 			if (result.length == 1) {
 				Path path = (Path) result[0];
-				IResource container = root.findMember(path);
-				File file = container.getFullPath().toFile();
+//				IResource container = root.findMember(path);
+//				File file = container.getFullPath().toFile();
 				locationText.setText(path.toPortableString());
 			}
 		}
@@ -521,13 +548,22 @@ public class EDDebugView extends ViewPart {
 	 * @param label
 	 * @param parent
 	 * @param mmng
+	 * @param b 
 	 */
-	private Text createDecoratedTextField(String label, Composite parent, final IMessageManager mmng) {
+	private Text createDecoratedTextField(String label, Composite parent, boolean multi) {
 		toolkit.createLabel(parent, label);
-		final Text text = toolkit.createText(parent, "");
-		GridData gd = new GridData(GridData.FILL_HORIZONTAL);
-		gd.widthHint = 150;
-		text.setLayoutData(gd);
+		final Text text;
+		if (multi) {
+			GridData gdTextArea = new GridData(GridData.FILL_HORIZONTAL);
+			gdTextArea.heightHint = 50;
+			
+			text = toolkit.createText(parent, "", SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+			text.setLayoutData(gdTextArea);
+		}
+		else {
+			text = toolkit.createText(parent, "");
+			text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+		}
 		text.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
 				String s = text.getText();
@@ -566,8 +602,9 @@ public class EDDebugView extends ViewPart {
 	/**
 	 * @param parent
 	 * @param tabs
+	 * @throws EDDException 
 	 */
-	public void createPlainTabs(Composite parent, int tabs) {
+	public void createPlainTabs(Composite parent, int tabs) throws EDDException {
 	    GridLayout layout = new GridLayout(tabs, true);
 	    layout.marginHeight = 0;
 	    
@@ -606,7 +643,7 @@ public class EDDebugView extends ViewPart {
 	 
 	    // Force to display the first tab
 //	    pageBook.showPage(0);
-	    updateSelection(0);
+//	    updateSelection(0);
 	}
 	
 	/**
@@ -623,48 +660,130 @@ public class EDDebugView extends ViewPart {
 		content.setLayoutData(new GridData(GridData.FILL_BOTH));
 //		content.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_MAGENTA));
 		
+		GridData gdTextArea = new GridData(GridData.FILL_HORIZONTAL);
+		gdTextArea.heightHint = 50;
+		
 		toolkit.createLabel(content, "Please answer the next questions.", SWT.NONE);
-		Text text = toolkit.createText(content, "", SWT.SINGLE | SWT.BORDER);
-		text.setLayoutData(new GridData(GridData.FILL_HORIZONTAL));
+//		Text text = createDecoratedTextField("", content, true);
+		Text text = toolkit.createText(content, "", SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		text.setLayoutData(gdTextArea);
 		text.setText(message);
+		text.setEditable(false);
 
-	    Composite radioContainer = toolkit.createComposite(content);
-	    radioContainer.setLayout(new GridLayout(5, false));
-	    radioContainer.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
+	    Composite buttonsComposite = toolkit.createComposite(content);
+	    buttonsComposite.setLayout(new GridLayout(5, false));
+	    buttonsComposite.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
 //	    radioContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));
 	    
-		toolkit.createButton(radioContainer, Messages.getString("EDDebugView.radio1"), SWT.RADIO);
-		toolkit.createButton(radioContainer, Messages.getString("EDDebugView.radio2"), SWT.RADIO);
-		toolkit.createButton(radioContainer, Messages.getString("EDDebugView.radio3"), SWT.RADIO);
-		toolkit.createButton(radioContainer, Messages.getString("EDDebugView.radio4"), SWT.RADIO);
-		toolkit.createButton(radioContainer, Messages.getString("EDDebugView.radio5"), SWT.RADIO);
-		
-//		Composite buttonsComposite = toolkit.createComposite(content);
-////	    buttonsComposite.setLayout(new FillLayout(SWT.HORIZONTAL));
-//		buttonsComposite.setLayout(new GridLayout(4, false));
-//	    buttonsComposite.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
-//		toolkit.createButton(buttonsComposite, Messages.getString("FormView.button1"), SWT.PUSH);
-//		toolkit.createButton(buttonsComposite, Messages.getString("FormView.button2"), SWT.PUSH);
-//		toolkit.createButton(buttonsComposite, Messages.getString("FormView.button3"), SWT.PUSH);
-//		toolkit.createButton(buttonsComposite, Messages.getString("FormView.button4"), SWT.PUSH);
+//		toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonYes"), SWT.RADIO);		
+		Button btnY = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonYes"), SWT.PUSH);
+		btnY.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					helper.setAnswer("y"); // Yes
+					waitForNextQuestionAndUpdate();
+					break;
+				}
+			}
+		});
+		Button btnN = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonNo"), SWT.PUSH);
+		btnN.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					helper.setAnswer("n"); // No
+					waitForNextQuestionAndUpdate();
+					break;
+				}
+			}
+		});
+		Button btnT = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonTrusted"), SWT.PUSH);
+		btnT.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					helper.setAnswer("t"); // Trusted
+					waitForNextQuestionAndUpdate();
+					break;
+				}
+			}
+		});
+		Button btnD = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonDontKnow"), SWT.PUSH);
+		btnD.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					helper.setAnswer("d"); // Don't know
+					waitForNextQuestionAndUpdate();
+					break;
+				}
+			}
+		});
+		Button btnI = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonInadmissible"), SWT.PUSH);
+		btnI.addListener(SWT.Selection, new Listener() {
+			public void handleEvent(Event e) {
+				switch (e.type) {
+				case SWT.Selection:
+					helper.setAnswer("i"); // Inadmissible
+					waitForNextQuestionAndUpdate();
+					break;
+				}
+			}
+		});
 		
 		return content;
 	}
 	
+	private void waitForNextQuestionAndUpdate() {
+		try {
+			if (helper.isBuggyNode()) {
+				int buggyNodeIndex = helper.getBuggyNode();
+				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
+			}
+			else {
+				//FIXME next...
+				Thread.sleep(1000); // 1s.
+				int goToIndex = helper.getCurrentQuestion();
+				updateSelection(goToIndex);
+			}
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+		
 	/**
 	 * Sets the debug file.
 	 * 
 	 * @param iFile
 	 * 			The debug file
 	 */
-	public void setDebugFile(IFile iFile) {
+	private void setDebugFile(IFile iFile) {
 		debugFile = iFile;
+		String path = iFile != null ? iFile.getFullPath().toPortableString() : ""; 
+		locationText.setText(path);
+	}
+	
+	/**
+	 * Gets the debug file.
+	 * 
+	 * @return the debug file.
+	 */
+	public IFile getDebugFile() {
+		return debugFile;
+	}
+	
+	public String getBuggyCall() {
+		return buggyCallText.getText();
 	}
 	
 	public Integer getIndex() {
 		return index;
 	}
 
+	/**
+	 * @param index
+	 */
 	public void updateSelection(Integer index) {
 		if (pageBook != null) {
 			try {
@@ -675,12 +794,8 @@ public class EDDebugView extends ViewPart {
 				// Forzar un changeListener()...
 				getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
 				
-				//FIXME location and refresh...
-				helper.buildDOT(new File("D:/workspace/runtime-tests/E-EDD/tmp/ackermann.dot"), index, false);
-				IResource iFile = Activator.getRoot().findMember(new Path("/E-EDD/tmp/ackermann.dot"));
-				if (iFile != null) {
-					iFile.refreshLocal(IResource.DEPTH_ZERO, null);
-				}
+				String dotContent = helper.buildDOT(index, false);
+				writeDotFile(dotContent);
 				
 				IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
 				if (part instanceof GraphvizView) {
@@ -690,6 +805,8 @@ public class EDDebugView extends ViewPart {
 			} catch (IOException e) {
 				e.printStackTrace();
 			} catch (CoreException e) {
+				e.printStackTrace();
+			} catch (EDDException e) {
 				e.printStackTrace();
 			}
 		}
@@ -703,43 +820,108 @@ public class EDDebugView extends ViewPart {
 		return sectionQuestion.isVisible();
 	}
 	
-	public void setLocationText(IPath location) {
-//		locationText.setText(location.toPortableString());
-		locationText.setText(location.toString());
-	}
-	
-	public void startDebugger() {
-		// FIXME Revisar... 
-		// Clean previous content
-		Control[] children = contentQuestion.getChildren();
-		for (Control control : children) {
-			control.dispose();
-		}
+	/**
+	 * Starts the debugging. 
+	 */
+	public boolean startDebugger() {
+		cleanQuestionSection();
 		
-		// Erlang Server
 		try {
+			// FIXME Erlang Server
+			String folder = debugFile.getParent().getLocation().toPortableString();
+			StringBuilder sb = new StringBuilder();
+			sb.append(folder);
+			if (!folder.endsWith("/")) {
+				sb.append("/");
+			}
 			String buggyCall = buggyCallText.getText();
-			String location = locationText.getText();
-			helper.startEDDebugger(buggyCall, location);
-		} catch (Exception e) {
+			String location = sb.toString();
+			assert (buggyCall != null && location != null) : "Los parámetros de entrada no pueden ser nulos";
+			boolean wasOK = helper.startEDDebugger(buggyCall, location);
+			if (wasOK) {
+				index = 0;
+				total = helper.getQuestionsSize();
+				createPlainTabs(contentQuestion, total);
+				sectionDebugger.setExpanded(false);
+				sectionQuestion.setVisible(true);
+				sectionQuestion.setExpanded(true);
+				
+				int goToIndex = helper.getCurrentQuestion();
+				updateSelection(goToIndex);
+				
+				writeJsonFile();
+				writeDiagramFiles();
+				
+				return true;
+			}
+			else {
+				MessageDialog.openError(getSite().getShell(), "EDD - Error", "Ha ocurrido un error interno al intentar cargar el servidor de depuración...");
+				Activator.logUnexpected(helper.getOutput(), new EDDException());
+			}
+		} catch (EDDException e) {
+			e.printStackTrace();
+		} catch (CoreException e) {
 			e.printStackTrace();
 		}
 		
-		// Json
-		helper.readJson();
-		index = 0;
-		total = helper.getQuestionsSize();
-		
-		createPlainTabs(contentQuestion, total);
-		sectionDebugger.setExpanded(false);
-		sectionQuestion.setVisible(true);
-		sectionQuestion.setExpanded(true);
+		return false;
+	}
+
+	private void writeJsonFile() throws EDDException, CoreException {
+		IProject iProject = debugFile.getProject();
+		IFolder eddFolder = iProject.getFolder("edd");
+		String jsonFile = debugFile.getName().replace(".erl", ".json");
+		IPath jsonPath = new Path(eddFolder.getFullPath() + File.separator + jsonFile);
+		helper.writeJsonDocument(jsonPath);
+	}
+	
+	private void writeDotFile(String dotContent) throws EDDException, CoreException {
+		IProject iProject = debugFile.getProject();
+		IFolder eddFolder = iProject.getFolder("edd");
+		String dotFile = debugFile.getName().replace(".erl", ".dot");
+		IPath dotPath = new Path(eddFolder.getFullPath() + File.separator + dotFile);
+		helper.writeFile(dotContent , dotPath);
+	}
+	
+	private void writeDiagramFiles() throws EDDException {
+		IProject iProject = debugFile.getProject();
+		IFolder eddFolder = iProject.getFolder("edd");
+		String name = debugFile.getName();
+		String modelName = name.replace(".erl", "");
+		String ed2File = name.replace(".erl", ".ed2");
+		IPath ed2Path = new Path(eddFolder.getFullPath() + File.separator + ed2File);
+		String ed2DiagramFile = name.replace(".erl", ".ed2_diagram");
+		IPath ed2DiagramPath = new Path(eddFolder.getFullPath() + File.separator + ed2DiagramFile);
 		
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			Model model = helper.buildEMF("EDDFile");
+			System.out.println(modelName);
+			Model model = helper.buildEMF(modelName, ed2Path, ed2DiagramPath);
 			view.updateContent(model);
+		}
+	}
+
+	public boolean stopDebugger() {
+		cleanQuestionSection();
+		index = 0;
+		total = 0;
+		sectionDebugger.setExpanded(true);
+		sectionQuestion.setVisible(false);
+		sectionQuestion.setExpanded(false);
+		setDebugFile(null);
+		buggyCallText.setText("");
+		
+		//FIXME helper.setAnswer("a");
+		
+		return true;
+	}
+	
+	private void cleanQuestionSection() {
+		// Clean previous content
+		Control[] children = contentQuestion.getChildren();
+		for (Control control : children) {
+			control.dispose();
 		}
 	}
 
@@ -749,6 +931,10 @@ public class EDDebugView extends ViewPart {
 	@Override
 	public void setFocus() {
 		scrolledForm.setFocus();
+	}
+	
+	public void refresh() {
+		scrolledForm.redraw();
 	}
 
 	/**

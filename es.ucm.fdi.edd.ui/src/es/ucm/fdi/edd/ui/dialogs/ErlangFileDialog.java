@@ -19,7 +19,10 @@ import org.eclipse.ui.model.WorkbenchLabelProvider;
 
 import es.ucm.fdi.edd.ui.Activator;
 
-public class ErlangFileDialog extends ElementTreeSelectionDialog{
+/**
+ *	Erlang file selection dialog.
+ */
+public class ErlangFileDialog extends ElementTreeSelectionDialog {
 	
 	private static final String TITLE = "Open File";
 	private static final String MESSAGE = "Choose an Erlang file for debug";
@@ -45,26 +48,15 @@ public class ErlangFileDialog extends ElementTreeSelectionDialog{
 		Object selected = super.getFirstResult();
 		if (selected instanceof IFile) {
 			IFile iFile = (IFile) selected;
-			String srcName = iFile.getName();
-			String binName = srcName.replace(".erl", ".beam");
-			
-			String srcPath = iFile.getLocation().toPortableString();
-			String binPath1 = srcPath.replace("/src/", "/ebin/");
-			String binPath2 = binPath1.replace(".erl", ".beam");
-			
-			IProject iProject = iFile.getProject();
-//			IResource beamFile1 = iProject.getFile(binName);
-//			System.out.println(beamFile1);
-			
-			IResource beamFile = iProject.findMember(binPath2);
-			//D:\workspace\runtime-tests\EDDAckermann\ebin\ackermann.beam
-			System.out.println(beamFile);
 		}
 		
 		return selected;
 	}
 }
 
+/**
+ * Erlang status validator.
+ */
 final class ErlangStatusValidator implements ISelectionStatusValidator {
 	@Override
 	public IStatus validate(Object[] selection) {
@@ -77,13 +69,23 @@ final class ErlangStatusValidator implements ISelectionStatusValidator {
 	}
 }
 
+/**
+ * Erlang viewer filter.
+ */
 final class ErlangViewerFilter extends ViewerFilter {
+	
+	private static final String ERLIDE_NATURE = "org.erlide.core.erlnature";
+	private static final String ERL = "erl";
+
+	/* (non-Javadoc)
+	 * @see org.eclipse.jface.viewers.ViewerFilter#select(org.eclipse.jface.viewers.Viewer, java.lang.Object, java.lang.Object)
+	 */
 	@Override
 	public boolean select(Viewer viewer, Object parentElement, Object element) {
 		try {
 			if (element instanceof IProject) {
 				IProject iProject = (IProject)element;
-				return iProject.hasNature("org.erlide.core.erlnature");
+				return iProject.hasNature(ERLIDE_NATURE);
 			}
 			if (element instanceof IFolder) {
 				IFolder iFolder = (IFolder)element;
@@ -92,7 +94,7 @@ final class ErlangViewerFilter extends ViewerFilter {
 //				return members.length > 0;
 				for (IResource iResource : members) {
 					String extension = iResource.getFileExtension();
-					return extension == null ? false : extension.equals("erl");
+					return extension == null ? false : extension.equals(ERL);
 				}
 				return false;
 			}
@@ -100,7 +102,7 @@ final class ErlangViewerFilter extends ViewerFilter {
 			if (element instanceof IFile) {
 				IFile iFile = (IFile)element;
 				String extension = iFile.getFileExtension();
-				return extension == null ? false : extension.equals("erl");	
+				return extension == null ? false : extension.equals(ERL);	
 			}
 		} catch (CoreException e) {
 			return false;

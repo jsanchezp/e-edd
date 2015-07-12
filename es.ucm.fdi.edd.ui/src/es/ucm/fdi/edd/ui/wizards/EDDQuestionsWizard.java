@@ -193,7 +193,7 @@ public class EDDQuestionsWizard extends Wizard implements INewWizard {
 
 	private JsonDocument readJson() {
 		try {
-			JsonDocument document = (JsonDocument) JsonHelper.readJson(JSON_PATH, JsonDocument.class);
+			JsonDocument document = (JsonDocument) JsonHelper.readJsonFromFile(JSON_PATH, JsonDocument.class);
 			return document;
 		} catch (IOException e) {
 			e.printStackTrace();

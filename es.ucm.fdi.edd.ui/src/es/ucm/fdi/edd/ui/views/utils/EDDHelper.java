@@ -6,16 +6,19 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
 import java.io.InputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -51,11 +54,15 @@ import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.ide.undo.CreateFileOperation;
 import org.eclipse.ui.ide.undo.WorkspaceUndoUtil;
 
+import es.ucm.fdi.edd.core.erlang.Erlang2Java;
+import es.ucm.fdi.edd.core.erlang.ErlangDeclarativeDebugger;
+import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.core.graphviz.GraphViz;
 import es.ucm.fdi.edd.core.json.model.Edges;
 import es.ucm.fdi.edd.core.json.model.JsonDocument;
 import es.ucm.fdi.edd.core.json.model.Vertices;
 import es.ucm.fdi.edd.core.json.utils.JsonHelper;
+import es.ucm.fdi.edd.core.json.utils.JsonUtils;
 import es.ucm.fdi.edd.core.util.FileManager;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.emf.model.ed2.ED2;
@@ -74,54 +81,146 @@ import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2VisualIDRegistry;
  */
 public class EDDHelper {
 	
-	protected static final String ENCODING_UTF_8 = "UTF-8";
+	private static final int TMAX = 10; // 10 seconds.
 	
-	private File file;
+	private Erlang2Java e2j;
 	private JsonDocument document;
+	
+	/**
+	 * 
+	 */
+	public EDDHelper() {
+		e2j = new Erlang2Java(); 
+	}
 
 	/**
-	 * @param file
-	 */
-	public EDDHelper(File file) {
-		this.file = file;
-	}
-	
-	/**
 	 * @throws Exception 
-	 * 
 	 */
-	public void startEDDebugger(String buggyCall, String location) throws Exception {
-//		String[] args = new String[] {"ackermann:main([3,4])", "../examples/ackermann/"};
-		String[] args = new String[] {buggyCall, location};
-//		EDDJInterface.main(args);
+	public boolean startEDDebugger(String buggyCall, String location) {
+		e2j.initialize(buggyCall, location);
+//		if (e2j.isLoaded()) {
+		{
+			// FIXME Revisar éste algoritmo, espera 5s. 
+			boolean finished = false;
+			int wait = 0;
+			while(!finished && wait<TMAX) {
+				String debugTree = e2j.getDebugTree();
+				if (debugTree != null) {
+					document = getJsonDocument(debugTree);
+					finished = true;
+						
+					return true;
+				}
+				try {
+					Thread.sleep(1000);
+				} catch (InterruptedException e) {
+					e.printStackTrace();
+				}
+				wait++;
+			}
+		}
+		
+		return false;
 	}
 	
-	/**
-	 * 
-	 */
-	public void readJson() {
-		this.document = readJsonFromFile();
-	}
-	
-	/**
-	 * @return
-	 */
-	private JsonDocument readJsonFromFile() {
-		JsonDocument document = null;
+	private JsonDocument getJsonDocument(String debugTree) {
 		try {
-			document = (JsonDocument) JsonHelper.readJson(file.getAbsolutePath(), JsonDocument.class);
+			JsonDocument document = (JsonDocument) JsonHelper.readJsonFromString(debugTree, JsonDocument.class);	
 			return document;
 		} catch (IOException e) {
 			e.printStackTrace();
 		}
 		
-		return document;
+		return null;
+	}
+	
+	public void writeJsonDocument(IPath path) throws EDDException {
+		if (document == null) {
+			throw new EDDException("The json document must not be null");
+		}
+		
+		JsonUtils jsu = new JsonUtils();
+		String content = jsu.toString(document);
+		writeFile(content, path);
+	}
+	
+	public void writeFile(String content, IPath path) {
+		try {
+			IFile iFile = Activator.getRoot().getFile(path);
+			if (iFile.exists()) {
+				iFile.delete(IResource.NONE, new NullProgressMonitor());
+			}
+			
+			InputStream source = new ByteArrayInputStream(content.getBytes(StandardCharsets.UTF_8));
+			iFile.create(source, IResource.NONE, new NullProgressMonitor());
+			iFile.refreshLocal(IResource.DEPTH_INFINITE, null);			
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
+	
+	/**
+	 * @return
+	 */
+	public Integer getQuestionsSize() {
+		if (document != null) {
+			return document.getVertices().size();
+		}
+		
+		return 0;
+	}
+
+	/**
+	 * @param i
+	 * @return
+	 * 
+	 * @throws EDDException 
+	 */
+	public String getQuestion(int index) throws EDDException {
+		if (document == null) {
+			throw new EDDException("The json document must not be null");
+		}
+		
+		LinkedList<Vertices> vertices = document.getVertices();
+		for (Vertices vertice : vertices) {
+			int node = Integer.parseInt(vertice.getNode());
+			if (node == index) {
+				return vertice.getQuestion();
+			}
+		}
+		
+		return null;
+	}
+	
+	public Integer getCurrentQuestion() {
+		return e2j.getQuestionIndex();
+	}
+	
+	public void setAnswer(String reply) {
+		e2j.setAnswer(reply);
+	}
+	
+	public boolean isBuggyNode() {
+		return e2j.isBuggyNode();
+	}
+	
+	public Integer getBuggyNode() {
+		return e2j.getBuggyNodeIndex();
+	}
+	
+	public String getOutput() {
+		return e2j.getOutput();
 	}
 	
 	/**
 	 * @throws IOException 
+	 * @throws EDDException 
 	 */
-	public void buildDOT(File file, int highlightNode, boolean cw) throws IOException {
+	public String buildDOT(Integer highlightNode, boolean cw) throws IOException, EDDException {
+		if (document == null) {
+			throw new EDDException("The json document must not be null");
+		}
+		
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
 		gv.addln("\tgraph [dpi = 600]; ");
@@ -138,7 +237,7 @@ public class EDDHelper {
 		for (int i=0; i<vertices.size(); i++) {
 			Vertices vertice = vertices.get(i);
 			String node = vertice.getNode();
-			if (Integer.parseInt(node) == highlightNode) {
+			if (highlightNode !=null && Integer.parseInt(node) == highlightNode) {
 				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#ED1C3A\"];");
 			}
 			else {
@@ -150,7 +249,7 @@ public class EDDHelper {
 		for (Edges edge : edges) {
 			int from = edge.getFrom();
 			int to = edge.getTo();
-			if (from == highlightNode) {
+			if (highlightNode !=null && from == highlightNode) {
 				gv.addln(from + " -> "+ to + " [style=filled, color=\"#ED1C3A\", fillcolor=\"#ED1C3A\"];");
 			}
 			else {
@@ -165,17 +264,23 @@ public class EDDHelper {
 		gv.addln(gv.end_graph());
 		
 		String dotSource = gv.getDotSource();
-		FileManager.writeToFile(file.getAbsolutePath(), dotSource);
+//		FileManager.writeToFile(file.getAbsolutePath(), dotSource);
 		
 //		String type = "gif";
 //		File out = new File("files/output/images/sample1." + type);
 //		gv.writeGraphToFile(gv.getGraph(gv.getDotSource(), type), out);
+		
+		return dotSource;
 	}
 	
-	public Model buildEMF(String name) {
+	public Model buildEMF(String modelName, IPath ed2Path, IPath ed2DiagramPath) throws EDDException {
+		if (document == null) {
+			throw new EDDException("The json document must not be null");
+		}
+		
 		Model model = Ed2Factory.eINSTANCE.createModel();
 		ED2 ed2 = Ed2Factory.eINSTANCE.createED2();
-		ed2.setName(name);
+		ed2.setName(modelName);
 		model.setEd2(ed2);
 		
 		Map<Integer, Node> nodesMap = new HashMap<Integer, Node>();
@@ -205,11 +310,8 @@ public class EDDHelper {
 		elements.add(nodesMap.get(90)); //FIXME Obtener nodos raíz...
 		
 		try {
-//			saveData("/E-EDD/ed2/ackGenerated.ed2", root);
-			saveModel("/E-EDD/ed2/testAutoGMF.ed2", model);
-			
-//			generateDiagram(model, "/E-EDD/ed2/testAutoGMF.ed2_diagram");
-			performFinish(model, "/E-EDD/ed2/testAutoGMF.ed2_diagram");
+			saveModel(ed2Path.toPortableString(), model);
+			performFinish(ed2Path, ed2DiagramPath);
 			
 		} catch (IOException e) {
 			e.printStackTrace();
@@ -218,7 +320,57 @@ public class EDDHelper {
 		return model;
 	}
 	
-	private List<EObject> loadModel(String fileName) throws IOException {
+	/**
+	 * 
+	 */
+	public boolean performFinish(IPath ed2Path, IPath ed2DiagramPath) {
+		List<EObject> root = null;
+		try {
+			IFile ed2File = Activator.getRoot().getFile(ed2Path);  
+			root = loadModel(ed2File.getLocation().toPortableString());
+		} catch (IOException e1) {
+			e1.printStackTrace();
+			return false;
+		}
+		
+		final Model model = (Model) root.get(0);
+		LinkedList<IFile> affectedFiles = new LinkedList<IFile>();
+		IFile diagramFile = createNewFile(ed2DiagramPath.toPortableString());
+		Ed2DiagramEditorUtil.setCharset(diagramFile);
+		affectedFiles.add(diagramFile);
+		URI diagramModelURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toString(), true);
+		TransactionalEditingDomain editingDomain = GMFEditingDomainFactory.INSTANCE.createEditingDomain();
+		ResourceSet resourceSet = editingDomain.getResourceSet();
+		final Resource diagramResource = resourceSet.createResource(diagramModelURI);
+		AbstractTransactionalCommand command = new AbstractTransactionalCommand(editingDomain, "Initializing diagram contents", affectedFiles) {
+			@Override
+			protected CommandResult doExecuteWithResult(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
+				int diagramVID = Ed2VisualIDRegistry.getDiagramVisualID(model);
+				if (diagramVID != ModelEditPart.VISUAL_ID) {
+					return CommandResult.newErrorCommandResult("Incorrect model object stored as a root resource object");
+				}
+				Diagram diagram = ViewService.createDiagram(model, ModelEditPart.MODEL_ID, Ed2DiagramEditorPlugin.DIAGRAM_PREFERENCES_HINT);
+				diagramResource.getContents().add(diagram);
+				return CommandResult.newOKCommandResult();
+			}
+		};
+		
+		try {
+			OperationHistoryFactory.getOperationHistory().execute(command, new NullProgressMonitor(), null);
+			diagramResource.save(Ed2DiagramEditorUtil.getSaveOptions());
+			Ed2DiagramEditorUtil.openDiagram(diagramResource);
+		} catch (ExecutionException e) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to create model and diagram", e);
+		} catch (IOException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Save operation failed for: " + diagramModelURI, ex);
+		} catch (PartInitException ex) {
+			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
+		}
+		
+		return true;
+	}
+	
+	public static List<EObject> loadModel(String fileName) throws IOException {
 		File source = new File(fileName);
 		FileInputStream fis = new FileInputStream(source);
 		
@@ -229,17 +381,7 @@ public class EDDHelper {
 		return resource.getContents();
 	}
 	
-	public EObject loadData(String fileName) throws FileNotFoundException, IOException {
-		XMIResourceImpl resource = new XMIResourceImpl();
-		File source = new File(fileName);
-		System.out.println(source.getAbsolutePath());
-		resource.load(new FileInputStream(source), new HashMap<Object, Object>());
-		EObject data = resource.getContents().get(0);
-		
-		return data;
-	}
-
-	public void saveModel(String fileName, Model model) throws IOException {
+	public static void saveModel(String fileName, Model model) throws IOException {
 		List<EObject> contents = new ArrayList<EObject>();
 		contents.add(model);
 		
@@ -248,12 +390,22 @@ public class EDDHelper {
 		assert resource != null : "No se ha creado un resource para la ruta: " + fileName;
 		List<EObject> contentsCopy = (List<EObject>) EcoreUtil.copyAll(contents);
 		//generateIds(contentsCopy, (XMIResource) resource);
-		resource.setEncoding(ENCODING_UTF_8);
+		resource.setEncoding(StandardCharsets.UTF_8.toString());
 		resource.getContents().addAll(contentsCopy);
 		resource.save(Collections.EMPTY_MAP);
 	}
 	
-	public void saveData(String fileName, EObject data) throws IOException {
+	protected EObject loadData(String fileName) throws FileNotFoundException, IOException {
+		XMIResourceImpl resource = new XMIResourceImpl();
+		File source = new File(fileName);
+		System.out.println(source.getAbsolutePath());
+		resource.load(new FileInputStream(source), new HashMap<Object, Object>());
+		EObject data = resource.getContents().get(0);
+		
+		return data;
+	}
+	
+	protected void saveData(String fileName, EObject data) throws IOException {
 		Resource.Factory.Registry reg = Resource.Factory.Registry.INSTANCE;
 		Map<String, Object> m = reg.getExtensionToFactoryMap();
 		m.put("key", new XMIResourceFactoryImpl());
@@ -366,43 +518,6 @@ public class EDDHelper {
 	    return edge;
 	}
 
-	
-	/**
-	 * @return
-	 */
-	public Integer getQuestionsSize() {
-		return document.getVertices().size();
-	}
-
-	/**
-	 * @param i
-	 * @return
-	 */
-	public String getQuestion(int index) {
-		LinkedList<Vertices> vertices = document.getVertices();
-		for (Vertices vertice : vertices) {
-			int node = Integer.parseInt(vertice.getNode());
-			if (node == index) {
-				return vertice.getQuestion();
-			}
-		}
-		
-		return null;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	/**
 	 * @param model
 	 * @param diagramPath
@@ -464,70 +579,5 @@ public class EDDHelper {
 		}
 		
 		return newFile;
-	}
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	/**
-	 * 
-	 */
-	public boolean performFinish(Model pModel, String path) {
-		
-		List<EObject> root = null;
-		try {
-			root = loadModel("D:/workspace/runtime-tests/E-EDD/ed2/testAutoGMF.ed2");
-		} catch (IOException e1) {
-			e1.printStackTrace();
-			return false;
-		}
-		
-		final Model model = (Model) root.get(0);
-		System.out.println(pModel);
-		
-		LinkedList<IFile> affectedFiles = new LinkedList<IFile>();
-		IFile diagramFile = createNewFile(path);
-		Ed2DiagramEditorUtil.setCharset(diagramFile);
-		affectedFiles.add(diagramFile);
-		URI diagramModelURI = URI.createPlatformResourceURI(diagramFile.getFullPath().toString(), true);
-		TransactionalEditingDomain editingDomain = GMFEditingDomainFactory.INSTANCE.createEditingDomain();
-		ResourceSet resourceSet = editingDomain.getResourceSet();
-		final Resource diagramResource = resourceSet.createResource(diagramModelURI);
-		AbstractTransactionalCommand command = new AbstractTransactionalCommand(editingDomain, "Initializing diagram contents", affectedFiles) {
-			@Override
-			protected CommandResult doExecuteWithResult(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
-				int diagramVID = Ed2VisualIDRegistry.getDiagramVisualID(model);
-				if (diagramVID != ModelEditPart.VISUAL_ID) {
-					return CommandResult.newErrorCommandResult("Incorrect model object stored as a root resource object");
-				}
-				Diagram diagram = ViewService.createDiagram(model, ModelEditPart.MODEL_ID, Ed2DiagramEditorPlugin.DIAGRAM_PREFERENCES_HINT);
-				diagramResource.getContents().add(diagram);
-				return CommandResult.newOKCommandResult();
-			}
-		};
-		
-		try {
-			OperationHistoryFactory.getOperationHistory().execute(command, new NullProgressMonitor(), null);
-			diagramResource.save(Ed2DiagramEditorUtil.getSaveOptions());
-			Ed2DiagramEditorUtil.openDiagram(diagramResource);
-		} catch (ExecutionException e) {
-			Ed2DiagramEditorPlugin.getInstance().logError("Unable to create model and diagram", e);
-		} catch (IOException ex) {
-			Ed2DiagramEditorPlugin.getInstance().logError("Save operation failed for: " + diagramModelURI, ex);
-		} catch (PartInitException ex) {
-			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
-		}
-		
-		return true;
-	}
+	}	
 }
