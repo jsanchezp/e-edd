@@ -9,12 +9,18 @@ import com.ericsson.otp.erlang.OtpNode;
  */
 public class Erlang2Java {
 
-	private static final String NODE = "eddjava@localhost";
-	private static final String COOKIE = "erlide";
-	private static final String THREAD_NAME = "erlServer";
+	public static final String NODE = "eddjava@localhost";
+	public static final String COOKIE = "erlide";
 	
+	private static final String THREAD_CLIENT_NAME = "EDD-Client";
+	private static final String THREAD_SERVER_NAME = "EDD-Server";
+	
+	/** The Erlang/OTP node. */
 	private OtpNode node;
-
+	
+	private ErlangClient erlangClient;
+	private ErlangServer erlangServer;
+	
 	/**
 	 * @param args
 	 */
@@ -33,7 +39,7 @@ public class Erlang2Java {
 				break;
 
 			default:
-				System.out.println("You must provide two argument: buggy call and its location");
+				System.out.println("You must provide two argument: a buggy call and the location of the erlang source file to debug.");
 				break;
 		}
 	}
@@ -42,27 +48,60 @@ public class Erlang2Java {
 	 * Initialize the communication.
 	 * 
 	 * @param buggyCall
-	 * @param location 
+	 * 			a buggy call to debug.
+	 * @param location
+	 * 			the location of the erlang source file to debug.
 	 */
 	public void initialize(String buggyCall, String location) {
 		try {
 			node = new OtpNode(NODE);
 			node.setCookie(COOKIE);
-			Thread erlServer = new Thread(new ErlangServer(buggyCall, location, node), THREAD_NAME);
+			erlangClient = new ErlangClient(buggyCall, location, node);
+			Thread erlClient = new Thread(erlangClient, THREAD_CLIENT_NAME);
+			erlClient.start();
+			erlangServer = new ErlangServer();
+			Thread erlServer = new Thread(erlangServer, THREAD_SERVER_NAME);
 			erlServer.start();
 		} catch (IOException e) {
-			System.out.println("Can't load erlang module");
 			System.out.println("No se puede iniciar nodo. Has arrancado epmd?");
 			e.printStackTrace();
-		}
+		} 
 	}
 	
 	/**
-	 * Returns the node.
+	 * Returns the Erlang/OTP node.
 	 * 
-	 * @return node
+	 * @return node the java node.
 	 */
 	public OtpNode getNode() {
 		return node;
+	}
+	
+	public boolean isLoaded() {
+		return erlangServer.isLoaded();
+	}
+	
+	public String getOutput() {
+		return erlangServer.getOutput();
+	}
+
+	public String getDebugTree() {
+		return erlangClient.getDebugTree();
+	}
+	
+	public Integer getQuestionIndex() {
+		return erlangClient.getQuestionIndex();
+	}
+	
+	public void setAnswer(String reply) {
+		erlangClient.setAnswer(reply);
+	}
+	
+	public boolean isBuggyNode() {
+		return erlangClient.isBuggyNode();
+	}
+	
+	public Integer getBuggyNodeIndex() {
+		return erlangClient.getBuggyNodeIndex();
 	}
 }

@@ -1,203 +1,169 @@
 package es.ucm.fdi.edd.core.erlang;
 
-import com.ericsson.otp.erlang.OtpErlangAtom;
-import com.ericsson.otp.erlang.OtpErlangLong;
-import com.ericsson.otp.erlang.OtpErlangObject;
-import com.ericsson.otp.erlang.OtpErlangPid;
-import com.ericsson.otp.erlang.OtpErlangString;
-import com.ericsson.otp.erlang.OtpErlangTuple;
-import com.ericsson.otp.erlang.OtpException;
-import com.ericsson.otp.erlang.OtpMbox;
-import com.ericsson.otp.erlang.OtpNode;
+import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.io.OutputStreamWriter;
+import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
+
+import es.ucm.fdi.edd.core.exception.EDDException;
 
 /**
- * Para probar la comunicación erlang<->java, debes ejecutar la aplicación java y luego abrir una consola erlang para el paso de mensajes.  
- * 
- * Ejemplo:
- * 		cmd> erl -sname console -setcookie erlide
- * 
- * (console@localhost)1> {java, cliente@localhost} ! {buggy_call, self()}.
+ * EDD server.
  */
 public class ErlangServer implements Runnable {
 	
-	private static final String MAILBOX = "edd";
+	/** The working directory (Must contain the 'edd_jserver.beam' file). */
+	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd/ebin";
+	/** The 'edd_jserver.beam' filename. */
+	private static final String JSERVER_FILE = "edd_jserver.beam";
+
+	public static final String NODE = "edderlang@localhost";
 	
-	private String buggyCall;
-	private String location;
-	private OtpMbox mailbox;
+	private static final String CMD = "cmd";
+	/** Carries out the command specified by string and then terminates. */
+	private static final String C = "/C";
+	/** Carries out the command specified by string but remains. */
+//	private static final String K = "/K";
+	
+	private static final String START = "start";
+	
+
+	private boolean consoleVisible = false;
+	private boolean isLoaded;
+	private StringBuffer sbOutput;
+	
+	private volatile boolean finished = false;
 	
 	/**
 	 * 
-	 * @param buggyCall
-	 * @param location
-	 * @param node
 	 */
-	public ErlangServer(String buggyCall, String location, OtpNode node) {
-		this.buggyCall = buggyCall;
-		this.location = location;
-		this.mailbox = node.createMbox(MAILBOX);
+	public ErlangServer() {
+		//
+	}
+	
+	/**
+	 * Executes the 'edd_jserver' module in background mode.
+	 *  
+	 * @throws EDDException 
+	 */
+	private boolean executeEddJServerInBackground() throws EDDException {
+		Process process = null;
+        BufferedReader processInputReader = null;
+        BufferedReader processErrorReader = null;
+        
+		try { 	
+        	StringBuffer sbCommand = new StringBuffer();
+        	sbCommand.append("erl -sname ");
+        	sbCommand.append(NODE);
+        	sbCommand.append(" -setcookie ");
+        	sbCommand.append(Erlang2Java.COOKIE);
+        	sbCommand.append(" -run edd_jserver start");
+        	sbCommand.append(" -noshell -s erlang halt");
+        	
+        	String command = sbCommand.toString();   	
+        	String[] commands;
+        	if (consoleVisible) {
+        		commands = new String[] {CMD, C, START, command};
+//        		commands = new String[] {CMD, K, START, command};
+        	}
+			else { 
+				commands = new String[] {CMD, C, command};
+//				commands = new String[] {CMD, K, command};
+			}
+			
+        	ProcessBuilder processBuilder = new ProcessBuilder(commands);
+        	processBuilder.redirectErrorStream(true);
+        	processBuilder.directory(new File(WORKING_DIRECTORY));
+        	File workDir = processBuilder.directory();
+        	boolean check = new File(workDir, JSERVER_FILE).exists();
+        	if (check) {
+        		System.out.println("Working directory: " + workDir);
+        	}
+        	else {
+        		throw new EDDException("The working directory must contain the 'edd_jserver.beam' file");
+        	}
+    		process = processBuilder.start();
+
+    		// Read out dir output
+    		InputStream processInput = process.getInputStream();
+    		processInputReader = new BufferedReader(new InputStreamReader(processInput));
+    		sbOutput = new StringBuffer();
+    		System.out.printf("Output of running %s is:\n",	Arrays.toString(commands));
+    		String line;
+    		while ((line = processInputReader.readLine()) != null) {
+    			System.out.println(line);
+    			sbOutput.append(line);
+    		}
+    		processInputReader.close();
+    		
+    		OutputStream processOutput = process.getOutputStream();
+    		BufferedWriter processWriter = new BufferedWriter(new OutputStreamWriter(processOutput));
+    		//...
+    		//processWriter.write("Message... "); 
+    		processWriter.close();
+    		
+    		InputStream processError = process.getErrorStream();
+    		processErrorReader = new BufferedReader(new InputStreamReader(processError));
+    		while ((line = processErrorReader.readLine()) != null) {
+    			System.out.println(line);
+    		}
+    		processErrorReader.close();
+
+    		// Wait to get exit value
+    		int exitValue = process.waitFor();
+    		System.out.println("\nExit Value is " + exitValue);
+    		finished = true;
+    		if (exitValue == 0) {
+    			return true;
+    		}
+    		
+        } catch (InterruptedException e) {
+        	System.out.println("The process has been interrupted");
+			e.printStackTrace();
+		} catch (IOException e) {
+			System.out.println("Can't load erlang module");
+			e.printStackTrace();
+		} finally {
+			try {
+				processInputReader.close();
+				processErrorReader.close();
+			} catch (IOException e) {
+				e.printStackTrace();
+			}
+			process.destroy();
+		}
+        
+        return false;
 	}
 
 	@Override
 	public void run() {
-		System.out.println("Erlang EDD server running...");
-		while (true) {
-			try {
-				OtpErlangObject message = mailbox.receive();
-				if (message instanceof OtpErlangTuple) {
-					OtpErlangTuple tuple = (OtpErlangTuple) message;
-					if (tuple.arity() == 2 && tuple.elementAt(0) instanceof OtpErlangAtom && tuple.elementAt(1) instanceof OtpErlangPid) {
-						OtpErlangAtom command = (OtpErlangAtom) tuple.elementAt(0);
-						OtpErlangPid from = (OtpErlangPid) tuple.elementAt(1);
-						processMessage(command, from);
-					}
-					
-					if (tuple.arity() == 2 && tuple.elementAt(0) instanceof OtpErlangAtom && tuple.elementAt(1) instanceof OtpErlangString) {
-						OtpErlangAtom command = (OtpErlangAtom) tuple.elementAt(0);
-						OtpErlangString dbg_tree = (OtpErlangString) tuple.elementAt(1);
-						processMessage(command, dbg_tree);
-					}
-				}
-			} catch (OtpException e) {
-				System.out.println("Se ha producido un error: "	+ e.getMessage());			
-				System.out.println("El proceso 'ErlangServer' ha finalizado");
-				e.printStackTrace();
-				mailbox.close();
-			}
-		}
-	}
-
-	/**
-	 * Process received message.
-	 * 
-	 * @param from
-	 * @param command
-	 * 
-	 * @throws OtpException
-	 */
-	private void processMessage(OtpErlangAtom command, OtpErlangObject obj) throws OtpException {
-		String cmd = command.atomValue();
-		System.out.println("Command received: [" + obj + "]" + cmd);
-		switch(cmd) {
-			case "ready":
-				break;
-			
-			case "buggy_call":
-				processBuggyCall((OtpErlangPid)obj, command);
-				break;
-			
-			case "question":
-//				processQuestion((OtpErlangPid)obj, command);
-				break;
-			
-			case "buggy_node":
-//				processBuggyNode((OtpErlangString)obj, command);
-				break;
-			
-			case "aborted":
-				processAborted();
-				break;
-				
-			default:
-//				errorResponse(pidSender, response);
-				System.err.println("An unknown error has occurred trying to execute the command: " + cmd);
+		try {
+			isLoaded = executeEddJServerInBackground();
+			TimeUnit.SECONDS.sleep(1);
+		} catch (EDDException e) {
+			System.out.println("Can't load erlang module.\n" + e.getMessage());
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
 		}
 	}
 	
-	/**
-	 * Send reply with buggy call and its location.
-	 * 
-	 * @param command
-	 * @param from
-	 */
-	private void processBuggyCall(OtpErlangPid from, OtpErlangAtom command) {
-		OtpErlangObject[] reply = new OtpErlangObject[3];
-		reply[0] = command;
-		reply[1] = new OtpErlangString(buggyCall);
-		reply[2] = new OtpErlangString(location);
-		OtpErlangTuple tuple = new OtpErlangTuple(reply);
-		mailbox.send(from, tuple);
+	public boolean isLoaded() {
+		return isLoaded;
 	}
 	
-	/**
-	 * @param from
-	 * @param command
-	 * @param dbg_tree
-	 */
-	private void processBuggyNode(OtpErlangPid from, OtpErlangLong buggyNode) {
-		System.out.println("Buggy node: " + buggyNode.longValue());
+	public boolean isFinished() {
+		return finished;
 	}
 	
-	/**
-	 * @param from
-	 * @param question
-	 * @param state
-	 */
-	private void processQuestion(OtpErlangPid from, OtpErlangLong question, OtpErlangTuple state) {
-		System.out.println("Question: " + question.longValue());
-		System.out.println("State: " + state.toString() );
-		
-		OtpErlangObject[] reply = new OtpErlangObject[2];
-		reply[0] = new OtpErlangAtom("answer");
-		reply[1] = new OtpErlangAtom("n");
-		OtpErlangTuple tuple = new OtpErlangTuple(reply);
-		mailbox.send(from, tuple);
-	}
-	
-	/**
-	 * Finish the communication.
-	 * 
-	 * @throws OtpException
-	 */
-	private void processAborted() throws OtpException {
-		System.out.println("Aborted.");
-		throw new EDDException("Aborted...");
-	}
-	
-	/**
-	 * @param pidSender
-	 * @param msg
-	 */
-	private void errorResponse(OtpErlangPid pidSender, OtpErlangTuple msg) {
-		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
-		OtpErlangTuple response = new OtpErlangTuple(new OtpErlangObject[] {errorAtom, msg});
-		sendMessage(pidSender, response);
-	}
-
-	/**
-	 * @param pidSender
-	 * @param msg
-	 */
-	private void sendMessage(OtpErlangPid pidSender, OtpErlangObject msg) {
-		OtpErlangTuple tuple = new OtpErlangTuple(new OtpErlangObject[] {mailbox.self(), msg});
-		mailbox.send(pidSender, tuple);
-	}
-}
-
-/**
- * EDD Exception.
- */
-class EDDException extends OtpException {
-	
-	private static final long serialVersionUID = 1L;
-
-	public EDDException() {
-		super();
-	}
-
-	public EDDException(String message) {
-		super(message);
-	}
-
-	public EDDException(Throwable cause) {
-//		super(cause);
-	}
-
-	public EDDException(String message, Throwable cause) {
-//		super(message, cause);
-	}
-
-	public EDDException(String message, Throwable cause, boolean enableSuppression, boolean writableStackTrace) {
-//		super(message, cause, enableSuppression, writableStackTrace);
+	public String getOutput() {
+		return sbOutput.toString();
 	}
 }

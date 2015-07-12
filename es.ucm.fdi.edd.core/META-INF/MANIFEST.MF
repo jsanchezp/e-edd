@@ -14,7 +14,9 @@ Bundle-ClassPath: lib/gson-2.3.1.jar,
  lib/tools.jar,
  .
 Bundle-Vendor: %Bundle-Vendor
-Export-Package: es.ucm.fdi.edd.core.erlang.jinterface,
+Export-Package: es.ucm.fdi.edd.core.erlang,
+ es.ucm.fdi.edd.core.erlang.jinterface,
+ es.ucm.fdi.edd.core.exception,
  es.ucm.fdi.edd.core.graphviz,
  es.ucm.fdi.edd.core.json.model,
  es.ucm.fdi.edd.core.json.utils,

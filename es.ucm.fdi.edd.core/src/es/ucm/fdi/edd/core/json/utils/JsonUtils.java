@@ -46,6 +46,11 @@ public class JsonUtils {
 		Object fromJson = gson.fromJson(fileReader, clazz);
 		return fromJson;
 	}
+	
+	public Object fromString(String content, Class<?> clazz) throws IOException {
+		Object fromJson = gson.fromJson(content, clazz);
+		return fromJson;
+	}
 
 	public void toStream(Object object, OutputStream bytes) throws IOException {
 		Writer writer = new OutputStreamWriter(bytes, UTF_8);

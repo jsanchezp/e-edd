@@ -9,18 +9,19 @@ import java.util.Arrays;
 public class ErlangServer extends Thread {
 	
 	private boolean visible = false;
-	private String path;
+	private String location;
 
-	public ErlangServer(String path) {
-		this.path = path;
+	public ErlangServer(String location) {
+		setName("EDD-Server");
+		this.location = location;
 	}
     
 	public void run() {
         try {
-			//Process cmdProc = Runtime.getRuntime().exec("./load_erlang_server.sh");
-//        	String command = "erl -sname edderlang@localhost -run edd_jserver start -noshell -s erlang halt";
-        	
-        	String command = "erl -sname edderlang@localhost -run edd_jserver start";
+			//Process cmdProc = Runtime.getRuntime().exec("./load_erlang_server.sh");       	
+//        	String command = "erl -sname edderlang@localhost -setcookie erlide -run edd_jserver start -noshell -s erlang halt";
+//        	String command = "erl -sname edderlang@localhost -setcookie erlide -run edd_jserver start ";
+        	String command = "erl -sname edderlang@localhost -run edd_jserver start ";
         	
         	String[] commands;
         	if (visible) {
@@ -33,9 +34,9 @@ public class ErlangServer extends Thread {
 			}
 			
         	ProcessBuilder probuilder = new ProcessBuilder(commands);
-        	File file = new File(path);
-        	System.out.println(file.getAbsolutePath());
-    		probuilder.directory(new File("D:/workspace/runtime-tests/EDDSample/ebin"));
+        	File wsDir = new File(location);
+        	System.out.println(wsDir.getAbsolutePath());
+//    		probuilder.directory(wsDir);
     		Process process = probuilder.start();
 
     		// Read out dir output

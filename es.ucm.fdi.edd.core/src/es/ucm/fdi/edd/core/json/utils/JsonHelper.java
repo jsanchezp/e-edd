@@ -25,9 +25,15 @@ public class JsonHelper {
 		return null;
 	}
 	
-	public static Object readJson(String path, Class<?> clazz) throws IOException {
+	public static Object readJsonFromFile(String path, Class<?> clazz) throws IOException {
 		JsonUtils jsonUtils = new JsonUtils();
 		Object root = jsonUtils.fromFile(path, clazz);
+		return root;
+	}
+	
+	public static Object readJsonFromString(String content, Class<?> clazz) throws IOException {
+		JsonUtils jsonUtils = new JsonUtils();
+		Object root = jsonUtils.fromString(content, clazz);
 		return root;
 	}
 
