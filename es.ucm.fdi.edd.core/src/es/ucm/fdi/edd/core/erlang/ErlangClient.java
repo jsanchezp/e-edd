@@ -1,9 +1,8 @@
 package es.ucm.fdi.edd.core.erlang;
 
-import java.util.Arrays;
+import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpErlangAtom;
-import com.ericsson.otp.erlang.OtpErlangList;
 import com.ericsson.otp.erlang.OtpErlangLong;
 import com.ericsson.otp.erlang.OtpErlangObject;
 import com.ericsson.otp.erlang.OtpErlangPid;
@@ -13,6 +12,9 @@ import com.ericsson.otp.erlang.OtpException;
 import com.ericsson.otp.erlang.OtpMbox;
 import com.ericsson.otp.erlang.OtpNode;
 
+import es.ucm.fdi.edd.core.erlang.model.DebugTree;
+import es.ucm.fdi.edd.core.erlang.model.EddModel;
+import es.ucm.fdi.edd.core.erlang.model.EddState;
 import es.ucm.fdi.edd.core.exception.EddOTPException;
 
 /**
@@ -22,8 +24,9 @@ import es.ucm.fdi.edd.core.exception.EddOTPException;
  * 		cmd> erl -sname console -setcookie erlide
  * 
  * (console@localhost)1> {edd, eddjava@localhost} ! {buggy_call, self()}.
+ * (console@localhost)2> {edd, eddjava@localhost} ! {question, 16, none}.
  */
-public class ErlangClient implements Runnable {
+public class ErlangClient implements Runnable, AutoCloseable {
 	
 	/** The Erlang/OTP mailbox. */
 	private static final String MAILBOX = "edd";
@@ -31,12 +34,15 @@ public class ErlangClient implements Runnable {
 	private String buggyCall;
 	private String location;
 	private OtpMbox mailbox;
+	
 	private OtpErlangPid pidServer;
-
-	private String debugTree;
-	private Integer questionIndex;
-	private boolean isBuggyNode;
-	private Integer buggyNodeIndex;
+	/** state: none | {vertices, correct, notCorrect, unknown} */
+	private OtpErlangObject erlState;
+	
+	private EddModel eddModel;
+	private boolean firstTime;
+	
+	private volatile boolean stop = false;
 	
 	/**
 	 * Starts the erlang server client. 
@@ -52,6 +58,9 @@ public class ErlangClient implements Runnable {
 		this.buggyCall = buggyCall;
 		this.location = location;
 		this.mailbox = node.createMbox(MAILBOX);
+		
+		eddModel = new EddModel();
+		firstTime = true;
 	}
 
 	/* (non-Javadoc)
@@ -60,7 +69,7 @@ public class ErlangClient implements Runnable {
 	@Override
 	public void run() {
 		System.out.println("Erlang EDD server running...");
-		while (true) {
+		while (!stop) {
 			try {
 				OtpErlangObject message = mailbox.receive();
 				System.out.println("<<<<< Received message: " + message);
@@ -77,13 +86,17 @@ public class ErlangClient implements Runnable {
 						}
 					}
 				}
+				TimeUnit.SECONDS.sleep(0);
 			} catch (OtpException e) {
 				System.out.println("Se ha producido un error: "	+ e.getMessage());			
 				System.out.println("El proceso 'ErlangServer' ha finalizado");
 				e.printStackTrace();
 				mailbox.close();
-			} 
+			} catch (InterruptedException e) {
+				System.out.println("Interrupted, closing...");
+		    }
 		}
+		System.out.println(">>>>> Client closed!");
 	}
 
 	/**
@@ -135,11 +148,8 @@ public class ErlangClient implements Runnable {
 	 */
 	private void proccessReady(OtpErlangAtom command, OtpErlangObject otpErlangObject) {
 		if (otpErlangObject instanceof OtpErlangPid) {
-			OtpErlangPid from = (OtpErlangPid) otpErlangObject;
-			isBuggyNode = false;
-			buggyNodeIndex = null;
-			pidServer =  from;
-			sendBuggyCall(from);
+			pidServer = (OtpErlangPid) otpErlangObject;
+			sendBuggyCall();
 		}
 		else {
 			System.out.println("The 'ready' tuple is malformmed...");
@@ -147,15 +157,20 @@ public class ErlangClient implements Runnable {
 	}
 
 	/**
-	 * @param from
+	 * 
 	 */
-	private void sendBuggyCall(OtpErlangPid from) {
+	private void sendBuggyCall() {
 		// Send reply with buggy call and its location
-		OtpErlangObject[] reply = new OtpErlangObject[3];
+		OtpErlangObject[] reply = new OtpErlangObject[4];
 		reply[0] = new OtpErlangAtom("buggy_call");
 		reply[1] = new OtpErlangString(buggyCall);
 		reply[2] = new OtpErlangString(location);
-		sendMessage(from, reply);
+		if (firstTime) {
+			erlState = new OtpErlangAtom("none"); 
+			firstTime = false;
+		}
+		reply[3] = erlState;
+		sendMessage(pidServer, reply);
 	}
 	
 	/**
@@ -166,9 +181,14 @@ public class ErlangClient implements Runnable {
 	 * @param otpErlangObject
 	 */
 	private void processDebugTree(OtpErlangAtom command, OtpErlangObject otpErlangObject) {
-		if (otpErlangObject instanceof OtpErlangString) {
-			OtpErlangString dbgTree = (OtpErlangString) otpErlangObject;
-			debugTree = dbgTree.stringValue();
+		if (otpErlangObject instanceof OtpErlangTuple) {
+			OtpErlangTuple dbgTreeTuple = (OtpErlangTuple) otpErlangObject;
+			if (dbgTreeTuple.arity() == 2) {
+				eddModel.setDebugTree(new DebugTree(dbgTreeTuple));
+			}
+			else {
+				System.out.println("The 'dbg_tree' tuple is malformmed...");
+			}			
 		}
 		else {
 			System.out.println("The 'dbg_tree' tuple is malformmed...");
@@ -186,40 +206,13 @@ public class ErlangClient implements Runnable {
 	private void processQuestion(OtpErlangAtom command, OtpErlangObject arg1, OtpErlangObject arg2) {
 		if (arg1 instanceof OtpErlangLong && arg2 instanceof OtpErlangTuple) {
 			OtpErlangLong qIndex = (OtpErlangLong) arg1;
-			OtpErlangTuple tuple = (OtpErlangTuple) arg2;
-			if (tuple.arity() == 4) {
-				OtpErlangString t1 = (OtpErlangString) tuple.elementAt(0);
-				OtpErlangList t2 = (OtpErlangList) tuple.elementAt(1);
-				for (OtpErlangObject otpErlangObject : t2) {
-					System.out.println(otpErlangObject);
-				}
-				OtpErlangString t3 = (OtpErlangString) tuple.elementAt(2);
-				OtpErlangList t4 = (OtpErlangList) tuple.elementAt(3);
-				for (OtpErlangObject otpErlangObject : t4) {
-					System.out.println(otpErlangObject.toString());
-				}
+			OtpErlangTuple stateTuple = (OtpErlangTuple) arg2;
+			if (stateTuple.arity() == 4) {
+				eddModel.setCurrentQuestionIndex((int) qIndex.longValue());
+				eddModel.setState(new EddState(stateTuple));
 				
-//				try {
-//					OtpOutputStream oos = new OtpOutputStream(t1);
-//					byte[] bytes = oos.toByteArray();
-//					String str1 = new String(bytes, StandardCharsets.UTF_8);
-//					InputStream inputStream = new ByteArrayInputStream(bytes); 
-////					String str2 = IOUtils.toString(inputStream);
-//					String str2 = inputStream.toString();
-//					
-//					System.out.println("OOS: " + bytes + " :: " + str1 + " :1: " + str2);
-//				}
-//				catch (Exception e) {
-//					e.printStackTrace();
-//				}
-				
-				System.out.println("1: " + t1.stringValue());
-				System.out.println("2: " + Arrays.toString(t2.elements()));
-				System.out.println("3: " + t3.stringValue());
-				System.out.println("4: " + Arrays.toString(t4.elements()));
-				
-				questionIndex = (int) qIndex.longValue();
-//				sendAnswer("n");
+				// FIXME Descomentada sirve para avanzar en la búsqueda del buggy_node...
+//				 sendAnswer("n");
 			}
 			else {
 				System.out.println("The tuple is malformmed...");
@@ -254,9 +247,9 @@ public class ErlangClient implements Runnable {
 	private void processBuggyNode(OtpErlangAtom command, OtpErlangObject otpErlangObject) {
 		if (otpErlangObject instanceof OtpErlangLong) {
 			OtpErlangLong buggyNode = (OtpErlangLong) otpErlangObject;
-			isBuggyNode = true;
-			buggyNodeIndex =  (int) buggyNode.longValue();
+			int buggyNodeIndex = (int) buggyNode.longValue();
 			System.out.println("Buggy node: " + buggyNodeIndex);
+			eddModel.setBuggyNodeIndex(buggyNodeIndex);
 		}
 		else {
 			System.out.println("The 'buggy_node' tuple is malformmed...");
@@ -269,6 +262,7 @@ public class ErlangClient implements Runnable {
 	 * @throws OtpException
 	 */
 	private void processAborted() throws OtpException {
+		sendAnswer("a");
 		throw new EddOTPException("Aborted...");
 	}
 	
@@ -306,23 +300,42 @@ public class ErlangClient implements Runnable {
 	
 	//--------------------------------------------------------------------------------------------------------------------------
 	
-	public String getDebugTree() {
-		return debugTree;
+	public String getBuggyCall() {
+		return buggyCall;
+	}
+
+	public void setBuggyCall(String buggyCall) {
+		this.buggyCall = buggyCall;
+	}
+
+	public String getLocation() {
+		return location;
+	}
+
+	public void setLocation(String location) {
+		this.location = location;
 	}
 	
-	public Integer getQuestionIndex() {
-		return questionIndex;
+	public void restart() {
+		firstTime = true;
+		sendBuggyCall();
+	}
+
+	public EddModel getEddModel() {
+		return eddModel;
 	}
 	
 	public void setAnswer(String reply) {
 		sendAnswer(reply);		
 	}
-	
-	public boolean isBuggyNode() {
-		return isBuggyNode;
+
+	public void stopClient() throws Exception {
+		sendAnswer("a");
+		close();
 	}
 	
-	public Integer getBuggyNodeIndex() {
-		return buggyNodeIndex;
+	@Override
+	public void close() throws Exception {
+		stop = true;
 	}
 }

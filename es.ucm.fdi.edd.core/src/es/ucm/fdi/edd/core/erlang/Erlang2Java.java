@@ -1,8 +1,11 @@
 package es.ucm.fdi.edd.core.erlang;
 
 import java.io.IOException;
+import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpNode;
+
+import es.ucm.fdi.edd.core.erlang.model.EddModel;
 
 /**
  * Erlang to Java communication. 
@@ -36,12 +39,29 @@ public class Erlang2Java {
 				String location = args[1];
 				Erlang2Java main = new Erlang2Java();
 				main.initialize(buggyCall, location);
+				
+				try {
+					TimeUnit.SECONDS.sleep(5);
+					String buggyCall2 = "merge:mergesort([b,a], fun merge:comp/2)";
+					String location2 = "D:/workspace/runtime-tests/EDDSample/src/";
+					main.restartDebugger(buggyCall2, location2);
+					
+					TimeUnit.SECONDS.sleep(5);
+					main.stopServer();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+				
 				break;
 
 			default:
 				System.out.println("You must provide two argument: a buggy call and the location of the erlang source file to debug.");
 				break;
 		}
+	}
+	
+	public Erlang2Java() {
+		//
 	}
 	
 	/**
@@ -75,33 +95,38 @@ public class Erlang2Java {
 	 */
 	public OtpNode getNode() {
 		return node;
+	}	
+	
+	/**
+	 * Stops the server.
+	 * 
+	 * @throws Exception
+	 */
+	public void stopServer() throws Exception {
+		erlangClient.stopClient();
+		TimeUnit.SECONDS.sleep(1);
+		erlangServer.stopServer();
 	}
 	
-	public boolean isLoaded() {
-		return erlangServer.isLoaded();
+	/**
+	 * Starts the communication.
+	 * 
+	 * @param buggyCall
+	 * 			a buggy call to debug.
+	 * @param location
+	 * 			the location of the erlang source file to debug.
+	 */
+	public void restartDebugger(String buggyCall, String location) {
+		erlangClient.setBuggyCall(buggyCall);
+		erlangClient.setLocation(location);
+		erlangClient.restart();
 	}
 	
-	public String getOutput() {
-		return erlangServer.getOutput();
-	}
-
-	public String getDebugTree() {
-		return erlangClient.getDebugTree();
+	public EddModel getEddModel() {
+		return erlangClient.getEddModel();
 	}
 	
-	public Integer getQuestionIndex() {
-		return erlangClient.getQuestionIndex();
-	}
-	
-	public void setAnswer(String reply) {
+	public void sendAnswer(String reply) {
 		erlangClient.setAnswer(reply);
-	}
-	
-	public boolean isBuggyNode() {
-		return erlangClient.isBuggyNode();
-	}
-	
-	public Integer getBuggyNodeIndex() {
-		return erlangClient.getBuggyNodeIndex();
 	}
 }

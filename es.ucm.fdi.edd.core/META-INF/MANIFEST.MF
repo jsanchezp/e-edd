@@ -12,10 +12,12 @@ Bundle-ClassPath: lib/gson-2.3.1.jar,
  lib/OtpErlang.jar,
  lib/UmlGraph.jar,
  lib/tools.jar,
+ lib/jna.jar,
  .
 Bundle-Vendor: %Bundle-Vendor
 Export-Package: es.ucm.fdi.edd.core.erlang,
  es.ucm.fdi.edd.core.erlang.jinterface,
+ es.ucm.fdi.edd.core.erlang.model,
  es.ucm.fdi.edd.core.exception,
  es.ucm.fdi.edd.core.graphviz,
  es.ucm.fdi.edd.core.json.model,
