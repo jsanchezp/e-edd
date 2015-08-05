@@ -8,7 +8,7 @@ public class EddModel {
 	private Integer buggyNodeIndex;
 	
 	public EddModel() {
-		// 
+		buggyNodeIndex = -1;
 	}
 
 	public DebugTree getDebugTree() {

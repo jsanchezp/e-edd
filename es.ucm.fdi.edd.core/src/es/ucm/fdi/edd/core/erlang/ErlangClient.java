@@ -1,5 +1,6 @@
 package es.ucm.fdi.edd.core.erlang;
 
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpErlangAtom;
@@ -15,7 +16,6 @@ import com.ericsson.otp.erlang.OtpNode;
 import es.ucm.fdi.edd.core.erlang.model.DebugTree;
 import es.ucm.fdi.edd.core.erlang.model.EddModel;
 import es.ucm.fdi.edd.core.erlang.model.EddState;
-import es.ucm.fdi.edd.core.exception.EddOTPException;
 
 /**
  * Para probar la comunicación erlang<->java, debes ejecutar la aplicación java y luego abrir una consola erlang para el paso de mensajes.  
@@ -33,6 +33,7 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	
 	private String buggyCall;
 	private String location;
+	private OtpNode node;
 	private OtpMbox mailbox;
 	
 	private OtpErlangPid pidServer;
@@ -44,19 +45,30 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	
 	private volatile boolean stop = false;
 	
+	private boolean ready = false;
+	
+	private final CountDownLatch startSignal;
+	private final CountDownLatch doneSignal;
+	
 	/**
 	 * Starts the erlang server client. 
 	 * 
+	 * @param doneSignal 
+	 * 			done signal
 	 * @param buggyCall
 	 * 			a buggy call to debug.
 	 * @param location
 	 * 			the location of the erlang source file to debug.
 	 * @param node
 	 * 			the Erlang/OTP node.
+	 * 
 	 */
-	public ErlangClient(String buggyCall, String location, OtpNode node) {
+	public ErlangClient(CountDownLatch startSignal, CountDownLatch doneSignal, String buggyCall, String location, OtpNode node) {
+		this.startSignal = startSignal;
+		this.doneSignal = doneSignal;
 		this.buggyCall = buggyCall;
 		this.location = location;
+		this.node = node;
 		this.mailbox = node.createMbox(MAILBOX);
 		
 		eddModel = new EddModel();
@@ -94,9 +106,12 @@ public class ErlangClient implements Runnable, AutoCloseable {
 				mailbox.close();
 			} catch (InterruptedException e) {
 				System.out.println("Interrupted, closing...");
+				mailbox.close();
 		    }
 		}
-		System.out.println(">>>>> Client closed!");
+		node.close();
+		mailbox.close();
+		System.err.println("\t--> Client closed!");
 	}
 
 	/**
@@ -113,9 +128,12 @@ public class ErlangClient implements Runnable, AutoCloseable {
 		String key = command.atomValue();
 //		int size = args.length;
 		switch(key) {
-			case "ready":
+			case "ready": {
 				proccessReady(command, args[0]);
+	    		System.err.println("\t--> " + Thread.currentThread().getName() + " is Up");
+	    		doneSignal.countDown(); //reduce count of CountDownLatch by 1
 				break;
+			}
 				
 			case "dbg_tree":
 				processDebugTree(command, args[0]);
@@ -170,7 +188,15 @@ public class ErlangClient implements Runnable, AutoCloseable {
 			firstTime = false;
 		}
 		reply[3] = erlState;
-		sendMessage(pidServer, reply);
+
+		try {
+			startSignal.await();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		sendMessage(pidServer, reply);		
+		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> + se envía el buggy_call");
 	}
 	
 	/**
@@ -234,7 +260,11 @@ public class ErlangClient implements Runnable, AutoCloseable {
 		reply[0] = new OtpErlangAtom("answer");
 		reply[1] = new OtpErlangAtom(response);
 //		sendMessage(mailbox.self(), reply);
-		sendMessage(pidServer, reply);
+		if (eddModel.getBuggyNodeIndex() == null || eddModel.getBuggyNodeIndex() == -1) {
+			sendMessage(pidServer, reply);
+		} else {
+			System.out.println("Discard: " + response);
+		}
 	}
 	
 	/**
@@ -250,6 +280,12 @@ public class ErlangClient implements Runnable, AutoCloseable {
 			int buggyNodeIndex = (int) buggyNode.longValue();
 			System.out.println("Buggy node: " + buggyNodeIndex);
 			eddModel.setBuggyNodeIndex(buggyNodeIndex);
+			
+			try {
+				close();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
 		}
 		else {
 			System.out.println("The 'buggy_node' tuple is malformmed...");
@@ -262,8 +298,7 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 * @throws OtpException
 	 */
 	private void processAborted() throws OtpException {
-		sendAnswer("a");
-		throw new EddOTPException("Aborted...");
+		System.out.println("Aborted...");
 	}
 	
 	/**

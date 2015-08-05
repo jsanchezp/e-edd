@@ -82,7 +82,7 @@ public class TaskList {
         	sbCommand.append(" -setcookie ");
         	sbCommand.append(Erlang2Java.COOKIE);
         	sbCommand.append(" -run edd_jserver start");
-        	sbCommand.append(" -noshell -s erlang halt");
+//        	sbCommand.append(" -noshell -s erlang halt");
 
 //	        String wmicCommand1 = "wmic PROCESS where \"name like '%erl.exe%'\" get Processid,Caption,Commandline";
 	        String wmicCommand2 = "wmic process where \"name like '%erl.exe%' and commandline like '%"+sbCommand+"%'\" get Processid, Caption,Commandline";

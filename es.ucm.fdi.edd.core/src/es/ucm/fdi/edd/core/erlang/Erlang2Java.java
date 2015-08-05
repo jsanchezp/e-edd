@@ -1,6 +1,7 @@
 package es.ucm.fdi.edd.core.erlang;
 
 import java.io.IOException;
+import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpNode;
@@ -19,7 +20,7 @@ public class Erlang2Java {
 	private static final String THREAD_SERVER_NAME = "EDD-Server";
 	
 	/** The Erlang/OTP node. */
-	private OtpNode node;
+//	private OtpNode node;
 	
 	private ErlangClient erlangClient;
 	private ErlangServer erlangServer;
@@ -30,11 +31,12 @@ public class Erlang2Java {
 	public static void main(String[] args) {
 		int params = args.length;
 		switch (params) {
-			case 0:
+			case 0: {
 				System.out.println("The argument list can not be empty.");
 				break;
+			}
 				
-			case 2:
+			case 2: {
 				String buggyCall = args[0];
 				String location = args[1];
 				Erlang2Java main = new Erlang2Java();
@@ -48,15 +50,28 @@ public class Erlang2Java {
 					
 					TimeUnit.SECONDS.sleep(5);
 					main.stopServer();
+					
+					for (int i = 0; i < 2; i++) {
+						System.out.println("=============== START [" + i + "]===============\n");
+						TimeUnit.SECONDS.sleep(5);
+						main = null;
+						main = new Erlang2Java();
+						main.initialize(buggyCall, location);
+						TimeUnit.SECONDS.sleep(5);
+						main.stopServer();	
+						System.out.println("=============== END ===============\n");
+					}
 				} catch (Exception e) {
 					e.printStackTrace();
-				}
+				} 
 				
 				break;
+			}
 
-			default:
+			default: {
 				System.out.println("You must provide two argument: a buggy call and the location of the erlang source file to debug.");
 				break;
+			}
 		}
 	}
 	
@@ -74,18 +89,34 @@ public class Erlang2Java {
 	 */
 	public void initialize(String buggyCall, String location) {
 		try {
-			node = new OtpNode(NODE);
+			OtpNode node = new OtpNode(NODE);
 			node.setCookie(COOKIE);
-			erlangClient = new ErlangClient(buggyCall, location, node);
+			
+			final CountDownLatch startSignal = new CountDownLatch(1);
+			final CountDownLatch doneSignal = new CountDownLatch(2);
+			
+			erlangClient = new ErlangClient(startSignal, doneSignal, buggyCall, location, node);
 			Thread erlClient = new Thread(erlangClient, THREAD_CLIENT_NAME);
-			erlClient.start();
-			erlangServer = new ErlangServer();
+			
+			erlangServer = new ErlangServer(startSignal, doneSignal);
 			Thread erlServer = new Thread(erlangServer, THREAD_SERVER_NAME);
+			
+			erlClient.start();
 			erlServer.start();
+					
+			// main thread is waiting on CountDownLatch to finish
+			doneSignal.await(); 
+			System.err.println("\t--> All services are up, Application is starting now");
+			
+//			erlClient.join();
+//			erlServer.join();
+				
 		} catch (IOException e) {
 			System.out.println("No se puede iniciar nodo. Has arrancado epmd?");
 			e.printStackTrace();
-		} 
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
 	}
 	
 	/**
@@ -93,9 +124,9 @@ public class Erlang2Java {
 	 * 
 	 * @return node the java node.
 	 */
-	public OtpNode getNode() {
-		return node;
-	}	
+//	public OtpNode getNode() {
+//		return node;
+//	}	
 	
 	/**
 	 * Stops the server.
@@ -104,7 +135,6 @@ public class Erlang2Java {
 	 */
 	public void stopServer() throws Exception {
 		erlangClient.stopClient();
-		TimeUnit.SECONDS.sleep(1);
 		erlangServer.stopServer();
 	}
 	
