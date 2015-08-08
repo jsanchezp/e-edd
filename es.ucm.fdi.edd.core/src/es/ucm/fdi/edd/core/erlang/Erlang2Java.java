@@ -157,6 +157,6 @@ public class Erlang2Java {
 	}
 	
 	public void sendAnswer(String reply) {
-		erlangClient.setAnswer(reply);
+		erlangClient.setAnswer(reply, new CountDownLatch(1));
 	}
 }

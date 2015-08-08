@@ -3,6 +3,15 @@ package es.ucm.fdi.edd.core.erlang;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.lang.management.ManagementFactory;
+import java.lang.management.RuntimeMXBean;
+import java.lang.management.ThreadMXBean;
+import java.lang.reflect.Field;
+
+import jna.Kernel32;
+import jna.W32API;
+
+import com.sun.jna.Pointer;
 
 /**
  * <p>
@@ -137,6 +146,114 @@ public class TaskList {
 		
 		return data;
 	}
+	
+	/**
+	 * Descartados...
+	 * ================================================================================ 
+	 */
+	protected void killProcess(Process process) throws Exception {
+		if (process != null) {
+			Integer pid;
+			Runtime rt = Runtime.getRuntime();
+			if (System.getProperty("os.name").toLowerCase().indexOf("windows") > -1) {
+				pid = getWindowsPid(process);
+				rt.exec("taskkill /F /PID " + pid);
+			} else {
+				pid = getUnixPid(process);
+				rt.exec("kill -9 " + pid);
+			}
+
+			process.destroy();
+			process.destroyForcibly();
+			process = null;
+		}
+	}
+
+	/**
+	 * Determine the pid on windows plattforms.
+	 * 
+	 * @return the pid.
+	 */
+	private Integer getWindowsPid(Process process) {
+		Class<?> processImpl = process.getClass();
+		String processClassName = processImpl.getName();
+		if (processClassName.equals("java.lang.Win32Process")
+				|| processClassName.equals("java.lang.ProcessImpl")) {
+			try {
+				Field field = processImpl.getDeclaredField("handle");
+				field.setAccessible(true);
+				long peer = field.getLong(process);
+
+				Kernel32 kernel = Kernel32.INSTANCE;
+				W32API.HANDLE handle = new W32API.HANDLE();
+				handle.setPointer(Pointer.createConstant(peer));
+				Integer pid = kernel.GetProcessId(handle);
+				System.err.println("Windows --> Process handle: " + peer
+						+ " \tpid: " + pid);
+				// getPid();
+				return pid;
+			} catch (NoSuchFieldException | IllegalAccessException
+					| IllegalArgumentException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return -1;
+	}
+
+	/**
+	 * Gets the PID on unix/linux systems
+	 * 
+	 * @return the pid.
+	 */
+	private Integer getUnixPid(Process process) {
+		if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+			try {
+				Class<?> processImpl = process.getClass();
+				Field f = processImpl.getDeclaredField("pid");
+				f.setAccessible(true);
+				Integer pid = f.getInt(process);
+				return pid;
+			} catch (NoSuchFieldException | IllegalAccessException
+					| IllegalArgumentException e) {
+				e.printStackTrace();
+			}
+		}
+
+		return -1;
+	}
+	
+	protected void getPid() {
+		try {
+			RuntimeMXBean runtimeMXBean = ManagementFactory.getRuntimeMXBean();
+
+			String jvmName = runtimeMXBean.getName();
+			System.out.println("JVM Name = " + jvmName);
+
+			long pid = Long.valueOf(jvmName.split("@")[0]);
+			System.out.println("JVM PID  = " + pid);
+
+			ThreadMXBean bean = ManagementFactory.getThreadMXBean();
+			int peakThreadCount = bean.getPeakThreadCount();
+			System.out.println("Peak Thread Count = " + peakThreadCount);
+
+			// Field jvmField =
+			// runtimeMXBean.getClass().getDeclaredField("jvm");
+			// jvmField.setAccessible(true);
+			// VMManagement vmManagement = (VMManagement)
+			// jvmField.get(runtimeMXBean);
+			// Method getProcessIdMethod =
+			// vmManagement.getClass().getDeclaredMethod("getProcessId");
+			// getProcessIdMethod.setAccessible(true);
+			// Integer processId = (Integer)
+			// getProcessIdMethod.invoke(vmManagement);
+			// System.out.println("################    ProcessId = " +
+			// processId);
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+
 }
 
 class TaskProcess {

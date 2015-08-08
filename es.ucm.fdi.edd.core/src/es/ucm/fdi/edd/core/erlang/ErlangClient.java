@@ -45,8 +45,6 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	
 	private volatile boolean stop = false;
 	
-	private boolean ready = false;
-	
 	private final CountDownLatch startSignal;
 	private final CountDownLatch doneSignal;
 	
@@ -314,8 +312,8 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 */
 	private void errorResponse(OtpErlangPid pidSender, OtpErlangTuple message) {
 		System.err.println("An unknown error has occurred trying to execute the command: " + message.toString());
-		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
-		OtpErlangObject[] response = new OtpErlangObject[] {errorAtom, message};
+//		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
+//		OtpErlangObject[] response = new OtpErlangObject[] {errorAtom, message};
 //		sendMessage(pidSender, response);
 	}
 
@@ -360,8 +358,9 @@ public class ErlangClient implements Runnable, AutoCloseable {
 		return eddModel;
 	}
 	
-	public void setAnswer(String reply) {
+	public void setAnswer(String reply, CountDownLatch countDownLatch) {
 		sendAnswer(reply);		
+		countDownLatch.countDown(); //reduce count of CountDownLatch by 1
 	}
 
 	public void stopClient() throws Exception {
