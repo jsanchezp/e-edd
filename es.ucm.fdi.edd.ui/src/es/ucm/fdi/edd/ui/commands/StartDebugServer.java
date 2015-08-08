@@ -24,18 +24,18 @@ import es.ucm.fdi.edd.ui.connection.ConnectionManager;
 import es.ucm.fdi.edd.ui.views.EDDebugView;
 
 /**
- * {@link StartDebugCommand} which corresponds to "connect" action, subscribes to
+ * {@link StartDebugServer} which corresponds to "connect" action, subscribes to
  * listen {@link ConnectionManager} state changes and sets its sate by calling
  * <code>setBaseEnabled<code>.
  */
-public class StartDebugCommand extends AbstractHandler implements Observer {
+public class StartDebugServer extends AbstractHandler implements Observer {
 	
 	private static final String WS_EDD = "edd";
 	
 	/**
 	 * 
 	 */
-	public StartDebugCommand() {
+	public StartDebugServer() {
 		super();
 		ConnectionManager.getInstance().addObserver(this);
 	}
@@ -51,9 +51,12 @@ public class StartDebugCommand extends AbstractHandler implements Observer {
 			IFile debugFile = view.getDebugFile();
 			if (debugFile != null && debugFile.isAccessible() && buggyCall != null && !buggyCall.isEmpty()) {
 				createEDDFolder(debugFile);
-				boolean result = view.startDebugger();
+				boolean result = view.startServer();
 				if (result) {
 					ConnectionManager.getInstance().connect();
+				}
+				else {
+					MessageDialog.openError(shell, "EDD - Error", "EDD server cannot be correctly initialized...");
 				}
 			}
 			else {
@@ -62,28 +65,15 @@ public class StartDebugCommand extends AbstractHandler implements Observer {
 		}
 		
 		return null;
-	}
-
-	private void test(IFile debugFile) {
-		String name = debugFile.getName();
-		String extension = debugFile.getFileExtension();
-		IPath location = debugFile.getLocation();
-		IContainer parent = debugFile.getParent();
-		IProject project = debugFile.getProject();
-		String srcName = debugFile.getName();
-		String binName = srcName.replace(".erl", ".beam");
-		
-		String srcPath = debugFile.getLocation().toPortableString();
-		String binPath1 = srcPath.replace("/src/", "/ebin/");
-		String binPath2 = binPath1.replace(".erl", ".beam");
-		
-		IProject iProject = debugFile.getProject();
-//				IResource beamFile1 = iProject.getFile(binName);
-//				System.out.println(beamFile1);
-		
-		IResource beamFile = iProject.findMember(binPath2);
-		//D:\workspace\runtime-tests\EDDAckermann\ebin\ackermann.beam
-		System.out.println(beamFile);
+	}	
+	
+	/* (non-Javadoc)
+	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
+	 */
+	@Override
+    public void update(Observable o, Object arg) {
+        ConnectionManager connectionManager = (ConnectionManager) o;
+        setBaseEnabled(!connectionManager.isConnected());
 	}
 	
 	/**
@@ -107,13 +97,26 @@ public class StartDebugCommand extends AbstractHandler implements Observer {
 			e.printStackTrace();
 		}
 	}
-
-	/* (non-Javadoc)
-	 * @see java.util.Observer#update(java.util.Observable, java.lang.Object)
-	 */
-	@Override
-    public void update(Observable o, Object arg) {
-        ConnectionManager connectionManager = (ConnectionManager) o;
-        setBaseEnabled(!connectionManager.isConnected());
-  }
+	
+	private void test(IFile debugFile) {
+		String name = debugFile.getName();
+		String extension = debugFile.getFileExtension();
+		IPath location = debugFile.getLocation();
+		IContainer parent = debugFile.getParent();
+		IProject project = debugFile.getProject();
+		String srcName = debugFile.getName();
+		String binName = srcName.replace(".erl", ".beam");
+		
+		String srcPath = debugFile.getLocation().toPortableString();
+		String binPath1 = srcPath.replace("/src/", "/ebin/");
+		String binPath2 = binPath1.replace(".erl", ".beam");
+		
+		IProject iProject = debugFile.getProject();
+//				IResource beamFile1 = iProject.getFile(binName);
+//				System.out.println(beamFile1);
+		
+		IResource beamFile = iProject.findMember(binPath2);
+		//D:\workspace\runtime-tests\EDDAckermann\ebin\ackermann.beam
+		System.out.println(beamFile);
+	}
 }

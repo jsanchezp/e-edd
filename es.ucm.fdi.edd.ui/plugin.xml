@@ -327,11 +327,26 @@
                id="org.eclipse.ui.commands.toggleState">
          </state>
       </command>
+      <command
+            defaultHandler="es.ucm.fdi.edd.ui.commands.StartDebugger"
+            id="es.ucm.fdi.edd.ui.commands.restartServer"
+            name="Restart server">
+      </command>
+      <command
+            defaultHandler="es.ucm.fdi.edd.ui.commands.ClearAndResetDebugger"
+            id="es.ucm.fdi.edd.ui.commands.clearServer"
+            name="Clear server">
+      </command>
+      <command
+            defaultHandler="es.ucm.fdi.edd.ui.commands.Help"
+            id="es.ucm.fdi.edd.ui.commands.help"
+            name="Help">
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.handlers">
       <handler
-            class="es.ucm.fdi.edd.ui.commands.StartDebugCommand"
+            class="es.ucm.fdi.edd.ui.commands.StartDebugServer"
             commandId="es.ucm.fdi.edd.ui.commands.debugStart">
       </handler>
       <handler
@@ -347,7 +362,7 @@
             commandId="es.ucm.fdi.edd.ui.commands.debugFinish">
       </handler>
       <handler
-            class="es.ucm.fdi.edd.ui.commands.FinishDebugCommand"
+            class="es.ucm.fdi.edd.ui.commands.StopDebugServer"
             commandId="es.ucm.fdi.edd.ui.commands.debugCancel">
       </handler>
       <handler
@@ -370,6 +385,7 @@
             locationURI="toolbar:es.ucm.fdi.edd.ui.views.EDDebugView">
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugStart"
+               disabledIcon="icons/resume_co_disable.gif"
                icon="icons/resume_co.gif"
                label="Start"
                style="push">
@@ -394,6 +410,7 @@
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugCancel"
+               disabledIcon="icons/stop_disable.gif"
                icon="icons/stop.gif"
                label="Cancel"
                style="push">
@@ -568,10 +585,26 @@
       <menuContribution
             allPopups="true"
             locationURI="toolbar:formsEDDebugToolBar">
+         <!--
          <command
-               commandId="es.ucm.fdi.edd.ui.commands.hello"
-               icon="icons/sample.gif"
-               label="Hello"
+               commandId="es.ucm.fdi.edd.ui.commands.clearServer"
+               icon="icons/clear.gif"
+               label="Clear debugger"
+               style="push"
+               tooltip="Clear the current debugger section">
+         </command>
+         <command
+               commandId="es.ucm.fdi.edd.ui.commands.restartServer"
+               icon="icons/execution_obj.gif"
+               label="Execute debugger"
+               style="push"
+               tooltip="Execute Erlang Declarative Debugger">
+         </command>
+         -->
+         <command
+               commandId="es.ucm.fdi.edd.ui.commands.help"
+               icon="icons/help.gif"
+               label="Help"
                style="push">
          </command>
       </menuContribution>
@@ -591,6 +624,49 @@
             properties="isQuestionPanelVisible,hasContent"
             type="java.lang.Object">
       </propertyTester>
+   </extension>
+   <extension
+         point="org.eclipse.ui.preferencePages">
+      <page
+            class="es.ucm.fdi.edd.ui.preferences.EDDPreferencesPage"
+            id="es.ucm.fdi.edd.ui.preferences.EDDPreferencesPage"
+            name="EDD Preferences">
+      </page>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="es.ucm.fdi.edd.ui.preferences.PreferenceInitializer">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.adapters">
+      <factory
+			adaptableType="org.erlide.ui.editors.erl.ErlangEditor"
+			class="es.ucm.fdi.edd.ui.adapters.EddAdapterFactory">
+			<adapter
+				type="org.eclipse.ui.views.contentoutline.IContentOutlinePage" />
+	  </factory>
+   </extension>
+   <extension
+         point="org.eclipse.ui.editors">
+      <!--<editor
+            class="es.ucm.fdi.edd.ui.editors.MultiPageEddEditor"
+            contributorClass="es.ucm.fdi.edd.ui.editors.MultiPageEddEditorContributor"
+            default="false"
+            extensions="ed2"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.editors.MultiPageEddEditor"
+            name="Multi-page Edd Editor">
+      </editor>
+      <editor
+            class="es.ucm.fdi.edd.ui.editors.MultiPageEditor"
+            contributorClass="es.ucm.fdi.edd.ui.editors.MultiPageEditorContributor"
+            extensions="mpe"
+            icon="icons/sample.gif"
+            id="es.ucm.fdi.edd.ui.editors.MultiPageEditor"
+            name="Sample Multi-page Editor">
+      </editor>-->
    </extension>
 
 </plugin>

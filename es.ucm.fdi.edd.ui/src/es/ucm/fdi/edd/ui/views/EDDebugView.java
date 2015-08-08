@@ -5,6 +5,7 @@ import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
 import java.util.LinkedHashSet;
+import java.util.List;
 import java.util.Set;
 
 import org.eclipse.core.resources.IFile;
@@ -27,6 +28,10 @@ import org.eclipse.jface.fieldassist.ControlDecoration;
 import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
+import org.eclipse.jface.text.BadLocationException;
+import org.eclipse.jface.text.FindReplaceDocumentAdapter;
+import org.eclipse.jface.text.IDocument;
+import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -52,10 +57,13 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorPart;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.IWorkbenchActionConstants;
+import org.eclipse.ui.IWorkbenchPage;
+import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
 import org.eclipse.ui.dialogs.ContainerSelectionDialog;
 import org.eclipse.ui.forms.HyperlinkSettings;
@@ -71,17 +79,29 @@ import org.eclipse.ui.forms.widgets.FormToolkit;
 import org.eclipse.ui.forms.widgets.ScrolledForm;
 import org.eclipse.ui.forms.widgets.ScrolledPageBook;
 import org.eclipse.ui.forms.widgets.Section;
+import org.eclipse.ui.ide.IDE;
 import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.ViewPart;
+import org.erlide.engine.internal.model.erlang.ErlFunction;
+import org.erlide.engine.model.IParent;
+import org.erlide.engine.model.erlang.IErlModule;
+import org.erlide.engine.model.root.ErlElementKind;
+import org.erlide.engine.model.root.IErlElement;
+import org.erlide.ui.editors.erl.ErlangEditor;
+import org.erlide.ui.editors.util.EditorUtility;
+import org.erlide.ui.util.ErlModelUtils;
+import org.erlide.util.StringUtils;
 
 import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
 import es.ucm.fdi.edd.ui.dialogs.ErlangFileDialog;
+import es.ucm.fdi.edd.ui.emf2gv.StandaloneApp;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
 import es.ucm.fdi.emf.model.ed2.Model;
 
+@SuppressWarnings("restriction")
 public class EDDebugView extends ViewPart {
 
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDebugView";
@@ -409,7 +429,7 @@ public class EDDebugView extends ViewPart {
 			@SuppressWarnings("unused")
 			ContentProposalAdapter adapter = new ContentProposalAdapter(buggyCallText, 
 				  new TextContentAdapter(), 
-				  new SimpleContentProposalProvider(new String[] {"ackermann:main([3,4])", "ProposalOne", "ProposalTwo", "ProposalThree"}),
+				  new SimpleContentProposalProvider(new String[] {"ackermann:main([3,4])", "merge:mergesort([b,a], fun merge:comp/2)", "merge:mergesort([o,h,i,o], fun merge:comp/2)", "ProposalOne", "ProposalTwo", "ProposalThree"}),
 				  keyStroke, autoActivationCharacters);
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -681,8 +701,8 @@ public class EDDebugView extends ViewPart {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					helper.setAnswer("y"); // Yes
-					waitForNextQuestionAndUpdate();
+//					helper.setAnswer("y"); // Yes
+					waitForNextQuestionAndUpdate("y");
 					break;
 				}
 			}
@@ -692,8 +712,8 @@ public class EDDebugView extends ViewPart {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					helper.setAnswer("n"); // No
-					waitForNextQuestionAndUpdate();
+//					helper.setAnswer("n"); // No
+					waitForNextQuestionAndUpdate("n");
 					break;
 				}
 			}
@@ -703,8 +723,8 @@ public class EDDebugView extends ViewPart {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					helper.setAnswer("t"); // Trusted
-					waitForNextQuestionAndUpdate();
+//					helper.setAnswer("t"); // Trusted
+					waitForNextQuestionAndUpdate("t");
 					break;
 				}
 			}
@@ -714,8 +734,8 @@ public class EDDebugView extends ViewPart {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					helper.setAnswer("d"); // Don't know
-					waitForNextQuestionAndUpdate();
+//					helper.setAnswer("d"); // Don't know
+					waitForNextQuestionAndUpdate("d");
 					break;
 				}
 			}
@@ -725,8 +745,8 @@ public class EDDebugView extends ViewPart {
 			public void handleEvent(Event e) {
 				switch (e.type) {
 				case SWT.Selection:
-					helper.setAnswer("i"); // Inadmissible
-					waitForNextQuestionAndUpdate();
+//					helper.setAnswer("i"); // Inadmissible
+					waitForNextQuestionAndUpdate("i");
 					break;
 				}
 			}
@@ -735,19 +755,32 @@ public class EDDebugView extends ViewPart {
 		return content;
 	}
 	
-	private void waitForNextQuestionAndUpdate() {
+	private void waitForNextQuestionAndUpdate(String sentence) {
 		try {
-			if (helper.isBuggyNode()) {
-				int buggyNodeIndex = helper.getBuggyNode();
-				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
-			}
-			else {
+//			if (helper.isBuggyNode()) {
+//				int buggyNodeIndex = helper.getBuggyNode();
+//				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
+//			}
+//			else {
+			{
+				boolean band = helper.setAnswer(sentence); // Yes
+				if (band) {
+					//FIXME Revisar buggy_node...
+					int buggyNodeIndex = helper.getBuggyNode();
+					MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
+					helper.stopEDDebugger();
+				}
+				
 				//FIXME next...
 				Thread.sleep(1000); // 1s.
 				int goToIndex = helper.getCurrentQuestion();
 				updateSelection(goToIndex);
 			}
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+		} catch (EDDException e) {
+			e.printStackTrace();
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -794,6 +827,13 @@ public class EDDebugView extends ViewPart {
 				// Forzar un changeListener()...
 				getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
 				
+				String msg = helper.getQuestion(index);
+				String questionUnformated = helper.getInfoQuestionUnformated();
+				int clause = helper.getInfoClause();
+				String file = helper.getInfoFile();
+				int line = helper.getInfoLine();
+				selectAndReveal(msg, questionUnformated, clause, file, line);
+				
 				String dotContent = helper.buildDOT(index, false);
 				writeDotFile(dotContent);
 				
@@ -811,6 +851,84 @@ public class EDDebugView extends ViewPart {
 			}
 		}
 	}
+	
+	private void selectAndReveal(String message, String questionUnformated, int clause, String file, int line) {
+		try {
+			IFile erlFile = ResourcesPlugin.getWorkspace().getRoot().getFile(debugFile.getFullPath());
+			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+			IEditorPart editorPart = IDE.openEditor(page, erlFile);
+			ErlangEditor editor = (ErlangEditor) editorPart;
+			
+			int fxIndex = message.indexOf(":");
+			int startIndex = message.indexOf("(");
+			int endIndex = message.indexOf(")");
+			String fxName = message.substring(fxIndex+1, startIndex);
+			int fxArity = message.substring(startIndex+1, endIndex).split(",").length;
+			System.out.println("Function: " + fxName + "/" + fxArity);
+			
+			IErlModule fModule = ErlModelUtils.getModule(editor.getEditorInput());
+            if (fModule != null) {
+                fModule.open(null);
+            }
+            List<IErlElement> children = fModule.getChildren();
+            for (IErlElement erlElement : children) {
+            	String normalizedName = StringUtils.normalizeSpaces(erlElement.toString());
+				System.out.println(normalizedName);
+            	
+            	ErlElementKind kind = erlElement.getKind();
+            	String name = erlElement.getName();
+            	switch (kind) {
+					case ATTRIBUTE:
+						break;
+					case EXPORT:
+						break;
+					case FUNCTION: {
+						if (name.equals(fxName)) {
+							ErlFunction erlFunction = (ErlFunction) erlElement;
+							if (fxArity == erlFunction.getArity()) {
+								line+= erlFunction.getLineStart();
+							}
+						}
+						break;
+					}
+
+					default:
+						break;
+				}
+            	
+            	if (erlElement instanceof IParent) {
+            		IParent p = (IParent) erlElement;
+            		List<IErlElement> sub_childrens = p.getChildren();
+            		for (IErlElement child : sub_childrens) {
+            			String label = StringUtils.normalizeSpaces(child.toString());
+            			System.out.println(label);	
+					}
+            	}
+			}           
+            
+			final IDocument document = editor.getDocument();
+			int lines = document.getNumberOfLines();
+			if (line > 0 && line < lines) {
+				int lineStart = document.getLineOffset(line);
+				int lineLength = document.getLineLength(line);
+				EditorUtility.revealInEditor(editorPart, lineStart, lineLength);
+			}
+			else {
+				String name = erlFile.getName();
+				String modelName = name.replace(".erl", "");
+				String text = modelName;
+				FindReplaceDocumentAdapter dad = new FindReplaceDocumentAdapter(document);
+				IRegion region = dad.find(0, text, true, false, false, false);
+				EditorUtility.revealInEditor(editorPart, region);
+			}
+        } catch (PartInitException e) {
+			e.printStackTrace();
+		} catch (BadLocationException e) {
+			e.printStackTrace();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+	}
 		
 	public Integer getTotal() {
 		return total;
@@ -820,10 +938,17 @@ public class EDDebugView extends ViewPart {
 		return sectionQuestion.isVisible();
 	}
 	
+	public boolean stopServer() throws Exception {
+		clearAndResetDebugger();
+		helper.stopEDDebugger();
+		
+		return true;
+	}
+	
 	/**
 	 * Starts the debugging. 
 	 */
-	public boolean startDebugger() {
+	public boolean startServer() {
 		cleanQuestionSection();
 		
 		try {
@@ -851,12 +976,13 @@ public class EDDebugView extends ViewPart {
 				
 				writeJsonFile();
 				writeDiagramFiles();
+//				writeEmf2Graphviz();
 				
 				return true;
 			}
 			else {
 				MessageDialog.openError(getSite().getShell(), "EDD - Error", "Ha ocurrido un error interno al intentar cargar el servidor de depuración...");
-				Activator.logUnexpected(helper.getOutput(), new EDDException());
+				Activator.logUnexpected("Revisar consola de servidor...", new EDDException());
 			}
 		} catch (EDDException e) {
 			e.printStackTrace();
@@ -872,7 +998,7 @@ public class EDDebugView extends ViewPart {
 		IFolder eddFolder = iProject.getFolder("edd");
 		String jsonFile = debugFile.getName().replace(".erl", ".json");
 		IPath jsonPath = new Path(eddFolder.getFullPath() + File.separator + jsonFile);
-		helper.writeJsonDocument(jsonPath);
+//		FIXME helper.writeJsonDocument(jsonPath);
 	}
 	
 	private void writeDotFile(String dotContent) throws EDDException, CoreException {
@@ -896,13 +1022,28 @@ public class EDDebugView extends ViewPart {
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-			System.out.println(modelName);
+//			System.out.println(modelName);
 			Model model = helper.buildEMF(modelName, ed2Path, ed2DiagramPath);
 			view.updateContent(model);
 		}
 	}
+	
+	private void writeEmf2Graphviz() {
+		IProject iProject = debugFile.getProject();
+		IFolder eddFolder = iProject.getFolder("edd");
+		String name = debugFile.getName();
+		String model = debugFile.getLocation().toPortableString();
+		String workDirectory = eddFolder.getLocation().toPortableString();
+		String graphFilename = name.replace(".erl", ".jpg");
+		
+		StandaloneApp app = new StandaloneApp(model, workDirectory, graphFilename);
+		app.execute();
+		
+//		EMF2GvProcessorShortcut launchShortcut = new EMF2GvProcessorShortcut();
+//		launchShortcut.launch("Pass the Java Project containing JUnits Classes", "run");
+	}
 
-	public boolean stopDebugger() {
+	public void clearAndResetDebugger() {
 		cleanQuestionSection();
 		index = 0;
 		total = 0;
@@ -911,10 +1052,6 @@ public class EDDebugView extends ViewPart {
 		sectionQuestion.setExpanded(false);
 		setDebugFile(null);
 		buggyCallText.setText("");
-		
-		//FIXME helper.setAnswer("a");
-		
-		return true;
 	}
 	
 	private void cleanQuestionSection() {

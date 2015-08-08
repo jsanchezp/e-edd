@@ -44,7 +44,9 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.gmf.runtime.diagram.ui,
  org.eclipse.gmf.runtime.diagram.ui.resources.editor,
  es.ucm.fdi.ed2.emf.editor,
- org.eclipse.core.filesystem
+ org.eclipse.core.filesystem,
+ org.emftools.emf2gv.processor.core,
+ org.erlide.model
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor

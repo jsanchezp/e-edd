@@ -84,11 +84,11 @@ public class EDDViewSelectionListener implements ISelectionListener {
 			if (object instanceof Node) {
 				Node node = (Node) object;
 				Integer index = node.getIndex();
-				updateEDDebugView(index);
+//				updateEDDebugView(index);
 			}
 			else if (object instanceof Integer) {
 				Integer index = (Integer) object;
-				updateEDDTreeView(index);
+//				updateEDDTreeView(index);
 			}
 		}
 		
@@ -99,7 +99,7 @@ public class EDDViewSelectionListener implements ISelectionListener {
 	 * @param text
 	 */
 	private void showText(String text) {
-		System.out.println(text);
+//		System.out.println(text);
 	}
 	
 	/**
