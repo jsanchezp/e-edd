@@ -95,6 +95,7 @@ import org.erlide.ui.editors.erl.ErlangEditor;
 import org.erlide.ui.editors.util.EditorUtility;
 import org.erlide.ui.util.ErlModelUtils;
 
+import es.ucm.fdi.edd.core.erlang.ErlangClient;
 import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
@@ -664,6 +665,8 @@ public class EDDebugView extends ViewPart {
 			pageBook.registerPage(i, createTabContent(pageContainer, question));
 //			pageContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));	        
 	    }
+	    //FIXME contenido extra para cuando no se tiene un indice...
+	    pageBook.registerPage(ErlangClient.UNKNOWN_CURRENT_QUESTION_INDEX, createTabContent(pageBook.getContainer(), ""));
 	 
 	    // Force to display the first tab
 //	    pageBook.showPage(0);
@@ -679,22 +682,28 @@ public class EDDebugView extends ViewPart {
 		GridLayout layout = new GridLayout(1, false);
 	    layout.marginHeight = 5;
 	    
-		Composite content = toolkit.createComposite(parent);
-		content.setLayout(layout);
-		content.setLayoutData(new GridData(GridData.FILL_BOTH));
+		Composite tabContent = toolkit.createComposite(parent);
+		tabContent.setLayout(layout);
+		tabContent.setLayoutData(new GridData(GridData.FILL_BOTH));
 //		content.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_MAGENTA));
 		
 		GridData gdTextArea = new GridData(GridData.FILL_HORIZONTAL);
 		gdTextArea.heightHint = 100;
 		
-		toolkit.createLabel(content, "Please answer the next questions.", SWT.NONE);
+		toolkit.createLabel(tabContent, "Please answer the next questions.", SWT.NONE);
 //		Text text = createDecoratedTextField("", content, true);
-		Text text = toolkit.createText(content, "", SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
+		Text text = toolkit.createText(tabContent, "", SWT.MULTI | SWT.BORDER | SWT.WRAP | SWT.V_SCROLL);
 		text.setLayoutData(gdTextArea);
 		text.setText(message);
 		text.setEditable(false);
 
-		Map<String, String> answersMap = helper.getZoomAnswers();
+		updateButtonsSection(tabContent);
+		
+		return tabContent;
+	}
+
+	private void updateButtonsSection(Composite content) {
+		LinkedHashMap<String, String> answersMap = helper.getZoomAnswers();
 		if (answersMap == null) {
 		    answersMap = new LinkedHashMap<String, String>();
 		    answersMap.put("y", "Yes");
@@ -706,14 +715,12 @@ public class EDDebugView extends ViewPart {
 	        answersMap.put("a", "Abort");
 		}
 		
-	    Composite buttonsComposite = toolkit.createComposite(content);
-	    buttonsComposite.setLayout(new GridLayout(answersMap.size(), false));
-	    buttonsComposite.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
+		Composite buttonsComposite = toolkit.createComposite(content);	
+		buttonsComposite.setLayout(new GridLayout(answersMap.size(), false));
+		buttonsComposite.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
 //	    radioContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));
-	        
+			        
 		createButtonsSection(buttonsComposite, answersMap);
-		
-		return content;
 	}
 	
 	private void createButtonsSection(Composite parent, Map<String, String> answersMap) {
@@ -741,27 +748,67 @@ public class EDDebugView extends ViewPart {
 				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
 			}
 			else {
-				boolean band = helper.setAnswer(sentence); // Yes
-				if (band) {
-					//FIXME Revisar buggy_node...
-					TimeUnit.MILLISECONDS.sleep(100);
-					int buggyNodeIndex = helper.getBuggyNode();
-					boolean startZoomDbg = MessageDialog.openQuestion(getSite().getShell(), "EDD - Buggy node: " + buggyNodeIndex, 
-							"Call to a function that contains an error: \n\t'" + helper.getInfoQuestionUnformated(buggyNodeIndex) + "'" + 
-							"\nPlease, revise the fail clause: \n\t'" + getBuggyClause(buggyNodeIndex) + "'" +
-							"\n\nDo you want to follow the debugging session inside this function?");
-					if (startZoomDbg) {
-						startZoomDebugger();
-					} else {
-						helper.stopEDDebugger();	
-					}
-				}
-				
 				if (!helper.isZoomEnabled()) {
+					// Normal
+					boolean band = helper.setAnswer(sentence); // Yes
+					if (band) {
+						//FIXME Revisar buggy_node...
+						TimeUnit.MILLISECONDS.sleep(100);
+						int buggyNodeIndex = helper.getBuggyNode();
+						boolean startZoomDbg = MessageDialog.openQuestion(getSite().getShell(), "EDD - Buggy node: " + buggyNodeIndex, 
+								"Call to a function that contains an error: \n\t'" + helper.getInfoQuestionUnformated(buggyNodeIndex) + "'" + 
+								"\nPlease, revise the fail clause: \n\t'" + getBuggyClause(buggyNodeIndex) + "'" +
+								"\n\nDo you want to follow the debugging session inside this function?");
+						if (startZoomDbg) {
+							startZoomDebugger();
+						} else {
+							helper.stopEDDebugger();	
+						}
+					}
+					
 					TimeUnit.MILLISECONDS.sleep(100);
 					int goToIndex = helper.getCurrentQuestion();
 					System.out.println("\t\t-->Q: " + goToIndex);
 					updateSelection(goToIndex);
+				}
+				else {
+					// Zoom
+					boolean band = helper.setAnswer(sentence); // Yes
+					if (band) {
+						//FIXME Revisar buggy_node...
+						TimeUnit.MILLISECONDS.sleep(100);
+						int buggyNodeIndex = helper.getBuggyNode();
+						String buggyErrorCall = helper.getBuggyErrorCall();
+						MessageDialog.openError(getSite().getShell(), "EDD - Buggy node: " + buggyNodeIndex, 
+								"This is the reason for the error:: \n\t'" + buggyErrorCall + "'");
+					}
+					
+					TimeUnit.MILLISECONDS.sleep(100);
+					int goToIndex = helper.getCurrentQuestion();
+					System.out.println("\t\t-->Q: " + goToIndex);
+					updateSelection(goToIndex);
+					
+					Composite page = (Composite)pageBook.getCurrentPage();
+					Control[] children = page.getChildren();
+					for (Control control : children) {
+						if (control instanceof Composite) {
+							Composite composite  = (Composite)control;
+							Control[] layoutComposite = composite.getChildren();
+							for (Control button : layoutComposite) {
+								button.dispose();
+							}
+							composite.dispose();
+							
+							updateButtonsSection(page);
+							break;
+						}
+					}
+//					pageBook.update();
+//					refresh();
+//					pageBook.showPage(goToIndex);
+//					sectionQuestion.redraw();
+					sectionQuestion.setExpanded(false);
+					sectionQuestion.setExpanded(true);
 				}
 			}
 		} catch (InterruptedException e) {
@@ -869,39 +916,56 @@ public class EDDebugView extends ViewPart {
 	public void updateSelection(Integer index) {
 		if (pageBook != null) {
 			try {
-				this.index = index;
-				pageBook.showPage(index);
-				sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title") + " " + index + "/" + total );
-				
-				// Forzar un changeListener()...
-				getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
-				
-				// Generar el archivo dot
-				if (helper.isZoomEnabled()) {
-					String dotContent = helper.buildDOT(true, index, false);
-					writeDotFile("_zoom", dotContent);
+				if (index == ErlangClient.UNKNOWN_CURRENT_QUESTION_INDEX) {
+					this.index = index;
+					pageBook.showPage(index);
+					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title"));
+					
+					Composite page = (Composite)pageBook.getCurrentPage();
+					Control[] children = page.getChildren();
+					for (Control control : children) {
+						if (control instanceof Text) {
+							String question = helper.getCurrentQuestionText();
+							Text text = (Text) control;
+							text.setText(question != null ? question : "N/A");
+						}
+					}	
 				}
 				else {
-					// Activar selección en el editor...
-					String msg = helper.getQuestion(index);
-					String questionUnformated = helper.getInfoQuestionUnformated(index);
-					int clause = helper.getInfoClause(index);
-					String file = helper.getInfoFile(index);
-					int line = helper.getInfoLine(index);
-					String module = helper.getModule(index);
-					String function = helper.getFunction(index);
-					int arity = helper.getArity(index);
+					this.index = index;
+					pageBook.showPage(index);
+					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title") + " " + index + "/" + total );
 					
-					selectAndReveal(msg, questionUnformated, clause, file, line, module, function, arity);
+					// Forzar un changeListener()...
+					getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
 					
-					String dotContent = helper.buildDOT(false, index, false);
-					writeDotFile("", dotContent);
-				}
-				
-				IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
-				if (part instanceof GraphvizView) {
-					GraphvizView view = (GraphvizView) part;
-					view.requestUpdate();
+					// Generar el archivo dot
+					if (helper.isZoomEnabled()) {
+						String dotContent = helper.buildDOT(true, index, false);
+						writeDotFile("_zoom", dotContent);
+					}
+					else {
+						// Activar selección en el editor...
+						String msg = helper.getQuestion(index);
+						String questionUnformated = helper.getInfoQuestionUnformated(index);
+						int clause = helper.getInfoClause(index);
+						String file = helper.getInfoFile(index);
+						int line = helper.getInfoLine(index);
+						String module = helper.getModule(index);
+						String function = helper.getFunction(index);
+						int arity = helper.getArity(index);
+						
+						selectAndReveal(msg, questionUnformated, clause, file, line, module, function, arity);
+						
+						String dotContent = helper.buildDOT(false, index, false);
+						writeDotFile("", dotContent);
+					}
+					
+					IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
+					if (part instanceof GraphvizView) {
+						GraphvizView view = (GraphvizView) part;
+						view.requestUpdate();
+					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -1060,7 +1124,7 @@ public class EDDebugView extends ViewPart {
 				
 				writeJsonFile("");
 				writeDiagramFiles("");
-//				writeEmf2Graphviz("");
+				writeEmf2Graphviz("");
 				
 				return true;
 			}
@@ -1098,7 +1162,7 @@ public class EDDebugView extends ViewPart {
 				
 				writeJsonFile("_zoom");
 				writeDiagramFiles("_zoom");
-//				writeEmf2Graphviz("_zoom");
+				writeEmf2Graphviz("_zoom");
 				
 				return true;
 			}
@@ -1152,16 +1216,23 @@ public class EDDebugView extends ViewPart {
 		}
 	}
 	
-	protected void writeEmf2Graphviz(String suffix) {
+	private void writeEmf2Graphviz(String suffix) {
 		IProject iProject = debugFile.getProject();
 		IFolder eddFolder = iProject.getFolder("edd");
-		String name = debugFile.getName();
-		String model = debugFile.getLocation().toPortableString();
 		String workDirectory = eddFolder.getLocation().toPortableString();
+		String name = debugFile.getName();
+		String ed2Filename = name.replace(".erl", suffix + ".ed2");
 		String graphFilename = name.replace(".erl", suffix + ".jpg");
+		IFile model = eddFolder.getFile(ed2Filename);
 		
-		StandaloneApp app = new StandaloneApp(model, workDirectory, graphFilename);
-		app.execute();
+		if (model.exists() && model.isAccessible()) {
+			String modelPath = model.getLocation().toPortableString();
+			StandaloneApp app = new StandaloneApp(modelPath, workDirectory, graphFilename);
+			app.execute();
+		}
+		else {
+			System.out.println("The model is not accessible " + ed2Filename);
+		}
 		
 //		EMF2GvProcessorShortcut launchShortcut = new EMF2GvProcessorShortcut();
 //		launchShortcut.launch("Pass the Java Project containing JUnits Classes", "run");

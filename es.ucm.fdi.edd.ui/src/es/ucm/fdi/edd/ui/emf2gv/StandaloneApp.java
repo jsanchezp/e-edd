@@ -29,7 +29,7 @@ public class StandaloneApp {
 		
 		String model = StandaloneApp.class.getResource("ackermann.ed2").toString();
 		String graphDescriptor = StandaloneApp.class.getResource("ed2.graphdesc").toString();
-		String workDirectory = "edd";
+		String workDirectory = "D:/workspace/git/e-edd/es.ucm.fdi.edd.ui/src/es/ucm/fdi/edd/ui/emf2gv";
 		String graphFilename = "ackermann.jpg";
 		
 		StandaloneApp app = new StandaloneApp(model, graphDescriptor, workDirectory, graphFilename);
@@ -86,10 +86,10 @@ public class StandaloneApp {
 					null, // Additional filters
 					null, // ILogger
 					null); // Progress monitor
-			System.out.println("Done." + wsDirectory + File.separator + graphFilename);
-		} catch (Throwable t) {
+			System.out.println("Done. " + wsDirectory + File.separator + graphFilename);
+		} catch (Exception e) {
 			System.err.println("An unexpected error occured");
-			t.printStackTrace();
+			e.printStackTrace();
 		}
 	}
 

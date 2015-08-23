@@ -246,6 +246,15 @@ public class EDDHelper {
 		}
 	}
 	
+	public String getCurrentQuestionText() throws EDDException {
+		validateEddModel();
+		if (isZoomEnabled()) {
+			return eddModel.getCurrentZoomQuestion();	
+		}
+		else {
+			return null;	
+		}
+	}
 	
 	public boolean isZoomEnabled() throws EDDException {
 		validateEddModel();
@@ -380,7 +389,13 @@ public class EDDHelper {
 		return eddModel.getBuggyNodeIndex();
 	}
 	
-	public Map<String, String> getZoomAnswers() {
+	public String getBuggyErrorCall() throws EDDException {
+		validateEddModel();
+		
+		return eddModel.getBuggyErrorCall();
+	}
+	
+	public LinkedHashMap<String, String> getZoomAnswers() {
 		try {
 			validateEddModel();
 		} catch (EDDException e) {
@@ -389,7 +404,7 @@ public class EDDHelper {
 		
 		LinkedList<String> answerList = eddModel.getAnswerList();
 		if (answerList != null) {
-			Map<String, String> answersMap = new LinkedHashMap<String, String>();
+			LinkedHashMap<String, String> answersMap = new LinkedHashMap<String, String>();
 			for (String key : answerList) {
 				switch (key) {
 					case "y":
@@ -413,6 +428,11 @@ public class EDDHelper {
 					case "a":
 						answersMap.put("a", "Abort");
 						break;
+						
+					case "s":
+						answersMap.put("s", "Change strategy");
+						break;
+						
 					default:
 						answersMap.put(key, key);
 						break;
@@ -440,7 +460,7 @@ public class EDDHelper {
 		
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
-		gv.addln("\tgraph [dpi = 600]; ");
+		gv.addln("\tgraph [dpi = 200]; ");
 //		gv.addln("\tratio=\"fill\"; ");
 		gv.addln("\tsize=\"8.3,11.7!\"; ");
 		gv.addln("\tmargin = 0; ");

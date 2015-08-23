@@ -5,6 +5,7 @@ import java.util.Map;
 import org.eclipse.emf.ecore.resource.ResourceSet;
 import org.eclipse.emf.ecore.resource.impl.ResourceSetImpl;
 import org.eclipse.emf.ecore.xmi.impl.XMIResourceFactoryImpl;
+import org.eclipse.gmf.runtime.notation.NotationPackage;
 
 import es.ucm.fdi.emf.model.ed2.Ed2Package;
 
@@ -30,6 +31,7 @@ public class RegisterPackage {
 	 */
 	private static void packageRegister() {
 		ed2PackageRegister();
+		notationPackageRegister();
 		registryResourceExtension();
 	}
 
@@ -40,6 +42,12 @@ public class RegisterPackage {
 		resourceSet.getPackageRegistry().put(
 				Ed2Package.eNS_URI,
 				Ed2Package.eINSTANCE);
+	}
+	
+	private static void notationPackageRegister() {
+		resourceSet.getPackageRegistry().put(
+				NotationPackage.eNS_URI,
+				NotationPackage.eINSTANCE);
 	}
 
 	/**

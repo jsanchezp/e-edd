@@ -46,7 +46,16 @@ Require-Bundle: com.abstratt.content,
  es.ucm.fdi.ed2.emf.editor,
  org.eclipse.core.filesystem,
  org.emftools.emf2gv.processor.core,
- org.erlide.model
+ org.emftools.emf2gv.util,
+ org.erlide.model,
+ org.eclipse.core.databinding.observable,
+ org.eclipse.core.databinding,
+ org.eclipse.jface.databinding,
+ org.eclipse.e4.core.di,
+ org.eclipse.e4.ui.di,
+ org.eclipse.e4.ui.services,
+ org.emftools.validation.utils,
+ org.eclipse.ocl
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor
