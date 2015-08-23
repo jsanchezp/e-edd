@@ -73,7 +73,8 @@
          class="org.eclipse.gmf.runtime.diagram.ui.providers.DiagramGlobalActionHandlerProvider"
          id="Ed2Presentation">
          <Priority name="Lowest"/>
-         <ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">
+         <!--<ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">-->
+         <ViewId id="es.ucm.fdi.emf.model.ed2.presentation.Ed2EditorID">
             <ElementType class="org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart">
                <GlobalActionId actionId="delete"/>
             </ElementType>
@@ -90,7 +91,8 @@
          class="org.eclipse.gmf.runtime.diagram.ui.providers.ide.providers.DiagramIDEGlobalActionHandlerProvider"
          id="Ed2PresentationIDE">
          <Priority name="Lowest"/>
-         <ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">
+         <!--<ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">-->
+         <ViewId id="es.ucm.fdi.emf.model.ed2.presentation.Ed2EditorID">
             <ElementType class="org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart">
                <GlobalActionId actionId="bookmark"/>
             </ElementType>
@@ -100,7 +102,8 @@
             class="org.eclipse.gmf.runtime.diagram.ui.render.providers.DiagramUIRenderGlobalActionHandlerProvider"
             id="Ed2Render">
          <Priority name="Lowest"/>
-         <ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">
+         <!--<ViewId id="es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorID">-->
+         <ViewId id="es.ucm.fdi.emf.model.ed2.presentation.Ed2EditorID">
             <ElementType class="org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart">
                <GlobalActionId actionId="cut"/>
                <GlobalActionId actionId="copy"/>
@@ -413,7 +416,8 @@
             contentProvider="es.ucm.fdi.emf.model.ed2.diagram.navigator.Ed2NavigatorContentProvider" 
             labelProvider="es.ucm.fdi.emf.model.ed2.diagram.navigator.Ed2NavigatorLabelProvider"
             icon="icons/obj16/Ed2DiagramFile.gif"
-            activeByDefault="true">
+            activeByDefault="false">
+            <!--activeByDefault="true"-->
          <triggerPoints>
             <or>
 	           <and>

@@ -30,7 +30,8 @@
             icon="icons/full/obj16/Ed2ModelFile.gif"
             extensions="ed2"
             class="es.ucm.fdi.emf.model.ed2.presentation.Ed2Editor"
-            contributorClass="es.ucm.fdi.emf.model.ed2.presentation.Ed2ActionBarContributor">
+            contributorClass="es.ucm.fdi.emf.model.ed2.presentation.Ed2MultipageActionBarContributor">
+            <!--contributorClass="es.ucm.fdi.emf.model.ed2.presentation.Ed2ActionBarContributor">-->
       </editor>
    </extension>
 
