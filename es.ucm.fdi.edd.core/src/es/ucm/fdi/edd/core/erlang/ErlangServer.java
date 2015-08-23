@@ -10,14 +10,17 @@ import java.io.InputStreamReader;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.Arrays;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.CountDownLatch;
 
+import es.ucm.fdi.edd.core.erlang.connection.ErlConnectionManager;
 import es.ucm.fdi.edd.core.exception.EDDException;
 
 /**
  * EDD server.
  */
-public class ErlangServer implements Runnable, AutoCloseable {
+public class ErlangServer implements Runnable, AutoCloseable, Observer {
 
 	/** The working directory (Must contain the 'edd_jserver.beam' file). */
 	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd/ebin";
@@ -44,6 +47,8 @@ public class ErlangServer implements Runnable, AutoCloseable {
 	 * @param doneSignal
 	 */
 	public ErlangServer(CountDownLatch startSignal, CountDownLatch doneSignal) {
+		ErlConnectionManager.getInstance().addObserver(this); 
+		
 		this.startSignal = startSignal;
 		this.doneSignal = doneSignal;
 
@@ -137,6 +142,7 @@ public class ErlangServer implements Runnable, AutoCloseable {
 			// input(process.getErrorStream()));
 
 			System.err.println("\t--> " + Thread.currentThread().getName() + " is Up");
+			ErlConnectionManager.getInstance().serverConnect();
 			startSignal.countDown();
 			doneSignal.countDown(); // reduce count of CountDownLatch by 1
 
@@ -250,7 +256,7 @@ public class ErlangServer implements Runnable, AutoCloseable {
 		} else {
 			System.err.println("El nodo '" + NODE + "' no esta en ejecución");
 		}
-		
+		ErlConnectionManager.getInstance().serverDisconnect();
 	}
 
 	protected static void printFile(File file) {
@@ -275,5 +281,12 @@ public class ErlangServer implements Runnable, AutoCloseable {
 			}
 		}
 		System.out.println("*********************************");
+	}
+
+	@Override
+	public void update(Observable o, Object arg) {
+		// TODO Auto-generated method stub
+		ErlConnectionManager connectionManager = (ErlConnectionManager) o;
+		System.err.println(String.format("\tClient: %s, Server: %s", connectionManager.isClientConnected(), connectionManager.isServerConnected()));
 	}
 }

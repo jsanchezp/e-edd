@@ -9,13 +9,14 @@ public class EddModel {
 	private EddState state;
 	private Integer currentQuestionIndex;
 	private Integer currentZoomQuestionIndex;
+	private String currentZoomQuestion;
 	private Integer buggyNodeIndex;
 	private String buggyErrorCall;
-	
+
 	private LinkedList<String> answerList;
-	
+
 	public EddModel() {
-		//buggyNodeIndex = -1;
+		// buggyNodeIndex = -1;
 	}
 
 	public DebugTree getDebugTree() {
@@ -25,7 +26,7 @@ public class EddModel {
 	public void setDebugTree(DebugTree debugTree) {
 		this.debugTree = debugTree;
 	}
-	
+
 	public ZoomDebugTree getZoomDebugTree() {
 		return zoomDebugTree;
 	}
@@ -56,6 +57,14 @@ public class EddModel {
 
 	public void setCurrentZoomQuestionIndex(Integer currentZoomQuestionIndex) {
 		this.currentZoomQuestionIndex = currentZoomQuestionIndex;
+	}
+
+	public String getCurrentZoomQuestion() {
+		return currentZoomQuestion;
+	}
+
+	public void setCurrentZoomQuestion(String currentZoomQuestion) {
+		this.currentZoomQuestion = currentZoomQuestion;
 	}
 
 	public Integer getBuggyNodeIndex() {
