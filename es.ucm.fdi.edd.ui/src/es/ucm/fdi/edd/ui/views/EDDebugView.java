@@ -4,9 +4,13 @@ import java.io.File;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.io.StringWriter;
+import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
@@ -29,9 +33,7 @@ import org.eclipse.jface.fieldassist.FieldDecorationRegistry;
 import org.eclipse.jface.fieldassist.SimpleContentProposalProvider;
 import org.eclipse.jface.fieldassist.TextContentAdapter;
 import org.eclipse.jface.text.BadLocationException;
-import org.eclipse.jface.text.FindReplaceDocumentAdapter;
 import org.eclipse.jface.text.IDocument;
-import org.eclipse.jface.text.IRegion;
 import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionChangedListener;
 import org.eclipse.jface.viewers.ISelectionProvider;
@@ -84,13 +86,14 @@ import org.eclipse.ui.menus.IMenuService;
 import org.eclipse.ui.part.ViewPart;
 import org.erlide.engine.internal.model.erlang.ErlFunction;
 import org.erlide.engine.model.IParent;
+import org.erlide.engine.model.erlang.IErlFunctionClause;
 import org.erlide.engine.model.erlang.IErlModule;
+import org.erlide.engine.model.erlang.ISourceRange;
 import org.erlide.engine.model.root.ErlElementKind;
 import org.erlide.engine.model.root.IErlElement;
 import org.erlide.ui.editors.erl.ErlangEditor;
 import org.erlide.ui.editors.util.EditorUtility;
 import org.erlide.ui.util.ErlModelUtils;
-import org.erlide.util.StringUtils;
 
 import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.ui.Activator;
@@ -443,12 +446,12 @@ public class EDDebugView extends ViewPart {
 	/**
 	 * Ensures that both text fields are set.
 	 */
-	private void dialogChanged() {
+	protected void dialogChanged() {
 		String fileName = locationText.getText();
 		String containerName = fileName.substring(0, fileName.lastIndexOf("/"));
 		
 		IWorkspaceRoot root = ResourcesPlugin.getWorkspace().getRoot();
-		IResource iFile = root.findMember(new Path(fileName));
+//		IResource iFile = root.findMember(new Path(fileName));
 		IResource container = root.findMember(new Path(containerName));
 		if (container != null) {
 			if (container.getName().length() == 0) {
@@ -586,33 +589,33 @@ public class EDDebugView extends ViewPart {
 		}
 		text.addModifyListener(new ModifyListener() {
 			public void modifyText(ModifyEvent e) {
-				String s = text.getText();
-				int length = s.length();
+//				String s = text.getText();
+//				int length = s.length();
 				
 				// flag length
-				if (length > 0 && length <= 5) {
-					mmng.addMessage("textLength", "Text is longer than 0 characters", null, IMessageProvider.INFORMATION, text);
-				} else if (length > 5 && length <= 10) {
-					mmng.addMessage("textLength", "Text is longer than 5 characters", null,	IMessageProvider.WARNING, text);
-				} else if (length > 10) {
-					mmng.addMessage("textLength", "Text is longer than 10 characters", null, IMessageProvider.ERROR, text);
-				} else {
-					mmng.removeMessage("textLength", text);
-				}
+//				if (length > 0 && length <= 5) {
+//					mmng.addMessage("textLength", "Text is longer than 0 characters", null, IMessageProvider.INFORMATION, text);
+//				} else if (length > 5 && length <= 10) {
+//					mmng.addMessage("textLength", "Text is longer than 5 characters", null,	IMessageProvider.WARNING, text);
+//				} else if (length > 10) {
+//					mmng.addMessage("textLength", "Text is longer than 10 characters", null, IMessageProvider.ERROR, text);
+//				} else {
+//					mmng.removeMessage("textLength", text);
+//				}
 				
 				// flag type
-				boolean badType = false;
-				for (int i = 0; i < length; i++) {
-					if (!Character.isLetter(s.charAt(i))) {
-						badType = true;
-						break;
-					}
-				}
-				if (badType) {
-					mmng.addMessage("textType",	"Text must only contain letters", null,	IMessageProvider.ERROR, text);
-				} else {
-					mmng.removeMessage("textType", text);
-				}
+//				boolean badType = false;
+//				for (int i = 0; i < length; i++) {
+//					if (!Character.isLetter(s.charAt(i))) {
+//						badType = true;
+//						break;
+//					}
+//				}
+//				if (badType) {
+//					mmng.addMessage("textType",	"Text must only contain letters", null,	IMessageProvider.ERROR, text);
+//				} else {
+//					mmng.removeMessage("textType", text);
+//				}
 			}
 		});
 		
@@ -650,14 +653,15 @@ public class EDDebugView extends ViewPart {
 //	    container.setBackground(Display.getDefault().getSystemColor( SWT.COLOR_DARK_GREEN ));
 	    
 	    // Register the pages and bind it all
-	    for(int i=0; i<tabs; i++) {
+	    for(int i=0; i<=tabs; i++) {
 //	    	Label label = new Label(container, SWT.BORDER);
 //	        label.setText("Item " + i);
 //	        label.setData(i);
 //	        label.addListener( SWT.MouseDown, listener );
 	        
 	    	Composite pageContainer = pageBook.getContainer();
-	        pageBook.registerPage(i, createTabContent(pageContainer, helper.getQuestion(i)));
+	        String question = helper.getQuestion(i);
+			pageBook.registerPage(i, createTabContent(pageContainer, question));
 //			pageContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));	        
 	    }
 	 
@@ -681,7 +685,7 @@ public class EDDebugView extends ViewPart {
 //		content.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_MAGENTA));
 		
 		GridData gdTextArea = new GridData(GridData.FILL_HORIZONTAL);
-		gdTextArea.heightHint = 50;
+		gdTextArea.heightHint = 100;
 		
 		toolkit.createLabel(content, "Please answer the next questions.", SWT.NONE);
 //		Text text = createDecoratedTextField("", content, true);
@@ -690,91 +694,75 @@ public class EDDebugView extends ViewPart {
 		text.setText(message);
 		text.setEditable(false);
 
+		Map<String, String> answersMap = helper.getZoomAnswers();
+		if (answersMap == null) {
+		    answersMap = new LinkedHashMap<String, String>();
+		    answersMap.put("y", "Yes");
+	        answersMap.put("n", "No");
+	        answersMap.put("t", "Trusted");
+	        answersMap.put("d", "Don't know");
+	        answersMap.put("i", "Inadmissible");
+	        answersMap.put("u", "Undo ");
+	        answersMap.put("a", "Abort");
+		}
+		
 	    Composite buttonsComposite = toolkit.createComposite(content);
-	    buttonsComposite.setLayout(new GridLayout(5, false));
+	    buttonsComposite.setLayout(new GridLayout(answersMap.size(), false));
 	    buttonsComposite.setLayoutData(new GridData(SWT.END, SWT.DEFAULT, true, false));
 //	    radioContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));
-	    
-//		toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonYes"), SWT.RADIO);		
-		Button btnY = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonYes"), SWT.PUSH);
-		btnY.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				switch (e.type) {
-				case SWT.Selection:
-//					helper.setAnswer("y"); // Yes
-					waitForNextQuestionAndUpdate("y");
-					break;
-				}
-			}
-		});
-		Button btnN = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonNo"), SWT.PUSH);
-		btnN.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				switch (e.type) {
-				case SWT.Selection:
-//					helper.setAnswer("n"); // No
-					waitForNextQuestionAndUpdate("n");
-					break;
-				}
-			}
-		});
-		Button btnT = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonTrusted"), SWT.PUSH);
-		btnT.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				switch (e.type) {
-				case SWT.Selection:
-//					helper.setAnswer("t"); // Trusted
-					waitForNextQuestionAndUpdate("t");
-					break;
-				}
-			}
-		});
-		Button btnD = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonDontKnow"), SWT.PUSH);
-		btnD.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				switch (e.type) {
-				case SWT.Selection:
-//					helper.setAnswer("d"); // Don't know
-					waitForNextQuestionAndUpdate("d");
-					break;
-				}
-			}
-		});
-		Button btnI = toolkit.createButton(buttonsComposite, Messages.getString("EDDebugView.buttonInadmissible"), SWT.PUSH);
-		btnI.addListener(SWT.Selection, new Listener() {
-			public void handleEvent(Event e) {
-				switch (e.type) {
-				case SWT.Selection:
-//					helper.setAnswer("i"); // Inadmissible
-					waitForNextQuestionAndUpdate("i");
-					break;
-				}
-			}
-		});
+	        
+		createButtonsSection(buttonsComposite, answersMap);
 		
 		return content;
 	}
 	
+	private void createButtonsSection(Composite parent, Map<String, String> answersMap) {
+		for(Entry<String, String> entry : answersMap.entrySet()) {
+		    String key = entry.getKey();
+		    String value = entry.getValue();
+		    
+		    Button button = toolkit.createButton(parent, value, SWT.PUSH);
+			button.addListener(SWT.Selection, new Listener() {
+				public void handleEvent(Event e) {
+					switch (e.type) {
+					case SWT.Selection:
+						waitForNextQuestionAndUpdate(key);
+						break;
+					}
+				}
+			});
+		}
+	}
+	
 	private void waitForNextQuestionAndUpdate(String sentence) {
 		try {
-//			if (helper.isBuggyNode()) {
-//				int buggyNodeIndex = helper.getBuggyNode();
-//				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
-//			}
-//			else {
-			{
+			if (false && helper.isBuggyNode()) {
+				int buggyNodeIndex = helper.getBuggyNode();
+				MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
+			}
+			else {
 				boolean band = helper.setAnswer(sentence); // Yes
 				if (band) {
 					//FIXME Revisar buggy_node...
+					TimeUnit.MILLISECONDS.sleep(100);
 					int buggyNodeIndex = helper.getBuggyNode();
-					MessageDialog.openInformation(getSite().getShell(), "EDD - Information", "Se ha detectado el 'buggy node' es la pregunta: " + buggyNodeIndex);
-					helper.stopEDDebugger();
+					boolean startZoomDbg = MessageDialog.openQuestion(getSite().getShell(), "EDD - Buggy node: " + buggyNodeIndex, 
+							"Call to a function that contains an error: \n\t'" + helper.getInfoQuestionUnformated(buggyNodeIndex) + "'" + 
+							"\nPlease, revise the fail clause: \n\t'" + getBuggyClause(buggyNodeIndex) + "'" +
+							"\n\nDo you want to follow the debugging session inside this function?");
+					if (startZoomDbg) {
+						startZoomDebugger();
+					} else {
+						helper.stopEDDebugger();	
+					}
 				}
 				
-				//FIXME next...
-				Thread.sleep(1000); // 1s.
-				int goToIndex = helper.getCurrentQuestion();
-				updateSelection(goToIndex);
+				if (!helper.isZoomEnabled()) {
+					TimeUnit.MILLISECONDS.sleep(100);
+					int goToIndex = helper.getCurrentQuestion();
+					System.out.println("\t\t-->Q: " + goToIndex);
+					updateSelection(goToIndex);
+				}
 			}
 		} catch (InterruptedException e) {
 			e.printStackTrace();
@@ -785,6 +773,67 @@ public class EDDebugView extends ViewPart {
 		}
 	}
 		
+	private String getBuggyClause(int buggyNodeIndex) throws EDDException, CoreException, BadLocationException {
+		IFile erlFile = ResourcesPlugin.getWorkspace().getRoot().getFile(debugFile.getFullPath());
+		IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
+		IEditorPart editorPart = IDE.openEditor(page, erlFile);
+		ErlangEditor editor = (ErlangEditor) editorPart;
+		
+		int clause = helper.getInfoClause(buggyNodeIndex);
+		String file = helper.getInfoFile(buggyNodeIndex);
+		int line = helper.getInfoLine(buggyNodeIndex);
+		
+		String m = helper.getModule(buggyNodeIndex);
+		String f = helper.getFunction(buggyNodeIndex);
+		int a = helper.getArity(buggyNodeIndex);
+		
+		IErlModule fModule = ErlModelUtils.getModule(editor.getEditorInput());
+        if (fModule != null) {
+            fModule.open(null);
+        }
+        String buggyClause = null;
+        List<IErlElement> children = fModule.getChildren();
+        for (IErlElement erlElement : children) {
+        	ErlElementKind kind = erlElement.getKind();
+        	switch (kind) {
+				case FUNCTION: {
+					ErlFunction erlFunction = (ErlFunction) erlElement;
+					if (erlFunction.getArity() == a) {
+						List<IErlFunctionClause> erlClauses = erlFunction.getClauses();
+						if (erlClauses != null && !erlClauses.isEmpty()) {
+							int erlClausesSize = erlClauses.size();
+							if (clause <= erlClausesSize) {
+								IErlFunctionClause iErlFunctionClause = erlClauses.get(clause);
+								ISourceRange sourceRange = iErlFunctionClause.getSourceRange();
+								
+								IDocument document = editor.getDocument();
+								int offset = sourceRange.getOffset();
+								int length = sourceRange.getLength();
+								buggyClause = document.get(offset, length);
+								
+								EditorUtility.revealInEditor(editorPart, iErlFunctionClause.getSourceRange());
+							}
+						} else {
+							ISourceRange sourceRange = erlFunction.getSourceRange();
+							
+							IDocument document = editor.getDocument();
+							int offset = sourceRange.getOffset();
+							int length = sourceRange.getLength();
+							buggyClause = document.get(offset, length);
+							
+							EditorUtility.revealInEditor(editorPart, erlFunction.getSourceRange());
+						}
+					}
+				}
+				
+				default:
+					break;
+			}
+        }
+			
+		return buggyClause;
+	}
+
 	/**
 	 * Sets the debug file.
 	 * 
@@ -827,15 +876,27 @@ public class EDDebugView extends ViewPart {
 				// Forzar un changeListener()...
 				getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
 				
-				String msg = helper.getQuestion(index);
-				String questionUnformated = helper.getInfoQuestionUnformated();
-				int clause = helper.getInfoClause();
-				String file = helper.getInfoFile();
-				int line = helper.getInfoLine();
-				selectAndReveal(msg, questionUnformated, clause, file, line);
-				
-				String dotContent = helper.buildDOT(index, false);
-				writeDotFile(dotContent);
+				// Generar el archivo dot
+				if (helper.isZoomEnabled()) {
+					String dotContent = helper.buildDOT(true, index, false);
+					writeDotFile("_zoom", dotContent);
+				}
+				else {
+					// Activar selección en el editor...
+					String msg = helper.getQuestion(index);
+					String questionUnformated = helper.getInfoQuestionUnformated(index);
+					int clause = helper.getInfoClause(index);
+					String file = helper.getInfoFile(index);
+					int line = helper.getInfoLine(index);
+					String module = helper.getModule(index);
+					String function = helper.getFunction(index);
+					int arity = helper.getArity(index);
+					
+					selectAndReveal(msg, questionUnformated, clause, file, line, module, function, arity);
+					
+					String dotContent = helper.buildDOT(false, index, false);
+					writeDotFile("", dotContent);
+				}
 				
 				IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
 				if (part instanceof GraphvizView) {
@@ -852,7 +913,7 @@ public class EDDebugView extends ViewPart {
 		}
 	}
 	
-	private void selectAndReveal(String message, String questionUnformated, int clause, String file, int line) {
+	private void selectAndReveal(String message, String questionUnformated, int clause, String file, int line, String m, String f, int a) {
 		try {
 			IFile erlFile = ResourcesPlugin.getWorkspace().getRoot().getFile(debugFile.getFullPath());
 			IWorkbenchPage page = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage();
@@ -863,8 +924,9 @@ public class EDDebugView extends ViewPart {
 			int startIndex = message.indexOf("(");
 			int endIndex = message.indexOf(")");
 			String fxName = message.substring(fxIndex+1, startIndex);
+			//FIXME Editor selección... 
 			int fxArity = message.substring(startIndex+1, endIndex).split(",").length;
-			System.out.println("Function: " + fxName + "/" + fxArity);
+//			System.out.println("Function: " + fxName + "/" + fxArity);
 			
 			IErlModule fModule = ErlModelUtils.getModule(editor.getEditorInput());
             if (fModule != null) {
@@ -872,8 +934,8 @@ public class EDDebugView extends ViewPart {
             }
             List<IErlElement> children = fModule.getChildren();
             for (IErlElement erlElement : children) {
-            	String normalizedName = StringUtils.normalizeSpaces(erlElement.toString());
-				System.out.println(normalizedName);
+//            	String normalizedName = StringUtils.normalizeSpaces(erlElement.toString());
+//				System.out.println(normalizedName);
             	
             	ErlElementKind kind = erlElement.getKind();
             	String name = erlElement.getName();
@@ -883,10 +945,30 @@ public class EDDebugView extends ViewPart {
 					case EXPORT:
 						break;
 					case FUNCTION: {
-						if (name.equals(fxName)) {
+						if (name.equals(f)) {
 							ErlFunction erlFunction = (ErlFunction) erlElement;
-							if (fxArity == erlFunction.getArity()) {
-								line+= erlFunction.getLineStart();
+							if (erlFunction.getArity() == a) {
+								List<IErlFunctionClause> clauses = erlFunction.getClauses();
+								if (clauses != null && !clauses.isEmpty()) {
+									int size = clauses.size();
+									if (clause <= size) {
+										IErlFunctionClause iErlFunctionClause = clauses.get(clause);
+										int offset = iErlFunctionClause.getLineStart();
+										int length = iErlFunctionClause.getSourceRange().getLength();
+										EditorUtility.revealInEditor(editorPart, iErlFunctionClause.getSourceRange());
+										line+= offset;
+//										System.out.println(String.format("Clause[%s]: %s -> %s", message, clause, iErlFunctionClause));
+									}
+									else {
+										System.err.println(String.format("Size: %s, Search: %s", size, clause));
+									}
+								} else {
+									EditorUtility.revealInEditor(editorPart, erlFunction.getSourceRange());
+								}
+//								line+= erlFunction.getLineStart();
+							}
+							else {
+								System.err.println("Verificar aridad...");
 							}
 						}
 						break;
@@ -897,34 +979,35 @@ public class EDDebugView extends ViewPart {
 				}
             	
             	if (erlElement instanceof IParent) {
-            		IParent p = (IParent) erlElement;
-            		List<IErlElement> sub_childrens = p.getChildren();
-            		for (IErlElement child : sub_childrens) {
-            			String label = StringUtils.normalizeSpaces(child.toString());
-            			System.out.println(label);	
-					}
+//            		IParent p = (IParent) erlElement;
+//            		List<IErlElement> sub_childrens = p.getChildren();
+//            		for (IErlElement child : sub_childrens) {
+//            			String label = StringUtils.normalizeSpaces(child.toString());
+//            			System.out.println(label);	
+//					}
             	}
 			}           
             
-			final IDocument document = editor.getDocument();
-			int lines = document.getNumberOfLines();
-			if (line > 0 && line < lines) {
-				int lineStart = document.getLineOffset(line);
-				int lineLength = document.getLineLength(line);
-				EditorUtility.revealInEditor(editorPart, lineStart, lineLength);
-			}
-			else {
-				String name = erlFile.getName();
-				String modelName = name.replace(".erl", "");
-				String text = modelName;
-				FindReplaceDocumentAdapter dad = new FindReplaceDocumentAdapter(document);
-				IRegion region = dad.find(0, text, true, false, false, false);
-				EditorUtility.revealInEditor(editorPart, region);
-			}
+//			final IDocument document = editor.getDocument();
+//			int lines = document.getNumberOfLines();
+//			if (line > 0 && line < lines) {
+//				int lineStart = document.getLineOffset(line);
+//				int lineLength = document.getLineLength(line);
+//				EditorUtility.revealInEditor(editorPart, lineStart, lineLength);
+//			}
+//			else {
+//				System.out.println("Error al seleccionar la línea indicada...");
+//				String name = erlFile.getName();
+//				String modelName = name.replace(".erl", "");
+//				String text = modelName;
+//				FindReplaceDocumentAdapter dad = new FindReplaceDocumentAdapter(document);
+//				IRegion region = dad.find(0, text, true, false, false, false);
+//				EditorUtility.revealInEditor(editorPart, region);
+//			}
         } catch (PartInitException e) {
 			e.printStackTrace();
-		} catch (BadLocationException e) {
-			e.printStackTrace();
+//		} catch (BadLocationException e) {
+//			e.printStackTrace();
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
@@ -952,13 +1035,13 @@ public class EDDebugView extends ViewPart {
 		cleanQuestionSection();
 		
 		try {
-			// FIXME Erlang Server
+			// FIXME Start debugging... 
 			String folder = debugFile.getParent().getLocation().toPortableString();
 			StringBuilder sb = new StringBuilder();
 			sb.append(folder);
-			if (!folder.endsWith("/")) {
-				sb.append("/");
-			}
+//			if (!folder.endsWith("/")) {
+//				sb.append("/");
+//			}
 			String buggyCall = buggyCallText.getText();
 			String location = sb.toString();
 			assert (buggyCall != null && location != null) : "Los parámetros de entrada no pueden ser nulos";
@@ -972,11 +1055,12 @@ public class EDDebugView extends ViewPart {
 				sectionQuestion.setExpanded(true);
 				
 				int goToIndex = helper.getCurrentQuestion();
+				System.out.println("\t\tView Q: " + goToIndex);
 				updateSelection(goToIndex);
 				
-				writeJsonFile();
-				writeDiagramFiles();
-//				writeEmf2Graphviz();
+				writeJsonFile("");
+				writeDiagramFiles("");
+//				writeEmf2Graphviz("");
 				
 				return true;
 			}
@@ -992,49 +1076,89 @@ public class EDDebugView extends ViewPart {
 		
 		return false;
 	}
+	
+	private boolean startZoomDebugger() {
+		cleanQuestionSection();
+		
+		try {
+			// FIXME Revisar código con zoom...
+			boolean wasOK = helper.startZoomDebugger();
+			if (wasOK) {
+				TimeUnit.MILLISECONDS.sleep(100);
+				index = 0;
+				total = helper.getQuestionsSize();
+				createPlainTabs(contentQuestion, total);
+				sectionDebugger.setExpanded(false);
+				sectionQuestion.setVisible(true);
+				sectionQuestion.setExpanded(true);
+				
+				int goToIndex = helper.getCurrentQuestion();
+				System.out.println("\t\tView ZQ: " + goToIndex);
+				updateSelection(goToIndex);
+				
+				writeJsonFile("_zoom");
+				writeDiagramFiles("_zoom");
+//				writeEmf2Graphviz("_zoom");
+				
+				return true;
+			}
+			else {
+				MessageDialog.openError(getSite().getShell(), "EDD - Error", "Ha ocurrido un error interno al intentar cargar el servidor de depuración con zoom...");
+				Activator.logUnexpected("Revisar consola de servidor con zoom...", new EDDException());
+			}
+		} catch (EDDException e) {
+			e.printStackTrace();
+		} catch (CoreException e) {
+			e.printStackTrace();
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		return false;
+	}
 
-	private void writeJsonFile() throws EDDException, CoreException {
-		IProject iProject = debugFile.getProject();
-		IFolder eddFolder = iProject.getFolder("edd");
-		String jsonFile = debugFile.getName().replace(".erl", ".json");
-		IPath jsonPath = new Path(eddFolder.getFullPath() + File.separator + jsonFile);
-//		FIXME helper.writeJsonDocument(jsonPath);
+	private void writeJsonFile(String suffix) throws EDDException, CoreException {
+//		IProject iProject = debugFile.getProject();
+//		IFolder eddFolder = iProject.getFolder("edd");
+//		String jsonFile = debugFile.getName().replace(".erl", suffix + ".json");
+//		IPath jsonPath = new Path(eddFolder.getFullPath() + File.separator + jsonFile);
+//		helper.writeJsonDocument(jsonPath);
 	}
 	
-	private void writeDotFile(String dotContent) throws EDDException, CoreException {
+	private void writeDotFile(String suffix, String dotContent) throws EDDException, CoreException {
 		IProject iProject = debugFile.getProject();
 		IFolder eddFolder = iProject.getFolder("edd");
-		String dotFile = debugFile.getName().replace(".erl", ".dot");
+		String dotFile = debugFile.getName().replace(".erl", suffix + ".dot");
 		IPath dotPath = new Path(eddFolder.getFullPath() + File.separator + dotFile);
 		helper.writeFile(dotContent , dotPath);
 	}
 	
-	private void writeDiagramFiles() throws EDDException {
+	private void writeDiagramFiles(String suffix) throws EDDException {
 		IProject iProject = debugFile.getProject();
 		IFolder eddFolder = iProject.getFolder("edd");
 		String name = debugFile.getName();
 		String modelName = name.replace(".erl", "");
-		String ed2File = name.replace(".erl", ".ed2");
+		String ed2File = name.replace(".erl", suffix +".ed2");
 		IPath ed2Path = new Path(eddFolder.getFullPath() + File.separator + ed2File);
-		String ed2DiagramFile = name.replace(".erl", ".ed2_diagram");
+		String ed2DiagramFile = name.replace(".erl", suffix + ".ed2_diagram");
 		IPath ed2DiagramPath = new Path(eddFolder.getFullPath() + File.separator + ed2DiagramFile);
 		
 		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(EDDTreeView.ID);
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
-//			System.out.println(modelName);
-			Model model = helper.buildEMF(modelName, ed2Path, ed2DiagramPath);
+			boolean isZoom = suffix != null && suffix.contains("zoom") ? true : false;
+			Model model = helper.buildEMF(isZoom, modelName, ed2Path, ed2DiagramPath);
 			view.updateContent(model);
 		}
 	}
 	
-	private void writeEmf2Graphviz() {
+	protected void writeEmf2Graphviz(String suffix) {
 		IProject iProject = debugFile.getProject();
 		IFolder eddFolder = iProject.getFolder("edd");
 		String name = debugFile.getName();
 		String model = debugFile.getLocation().toPortableString();
 		String workDirectory = eddFolder.getLocation().toPortableString();
-		String graphFilename = name.replace(".erl", ".jpg");
+		String graphFilename = name.replace(".erl", suffix + ".jpg");
 		
 		StandaloneApp app = new StandaloneApp(model, workDirectory, graphFilename);
 		app.execute();

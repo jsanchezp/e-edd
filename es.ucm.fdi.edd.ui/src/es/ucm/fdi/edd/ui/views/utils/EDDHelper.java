@@ -11,10 +11,12 @@ import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
+import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.commands.operations.OperationHistoryFactory;
@@ -65,6 +67,8 @@ import es.ucm.fdi.edd.core.erlang.model.EddInfo;
 import es.ucm.fdi.edd.core.erlang.model.EddModel;
 import es.ucm.fdi.edd.core.erlang.model.EddState;
 import es.ucm.fdi.edd.core.erlang.model.EddVertex;
+import es.ucm.fdi.edd.core.erlang.model.MFA;
+import es.ucm.fdi.edd.core.erlang.model.ZoomDebugTree;
 import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.core.graphviz.GraphViz;
 import es.ucm.fdi.edd.core.json.model.JsonDocument;
@@ -88,7 +92,7 @@ import es.ucm.fdi.emf.model.ed2.presentation.Ed2EditorPlugin;
  */
 public class EDDHelper {
 	
-	private static final int TMAX = 20; // 10 seconds.
+	private static final int TMAX = 10; // 10 seconds.
 	
 	private Erlang2Java e2j;
 	private EddModel eddModel;
@@ -97,10 +101,10 @@ public class EDDHelper {
 	 * 
 	 */
 	public EDDHelper() {
-		 
+		 //
 	}
 	
-	public void restartDebugger(String buggyCall, String location) {
+	protected void restartDebugger(String buggyCall, String location) {
 		e2j.restartDebugger(buggyCall, location);
 	}
 
@@ -112,7 +116,7 @@ public class EDDHelper {
 		e2j.initialize(buggyCall, location);
 //		if (e2j.isLoaded()) {
 		{
-			// FIXME Revisar éste algoritmo, espera 5s. 
+			// FIXME Revisar éste algoritmo, espera 10s. 
 			boolean finished = false;
 			int wait = 0;
 			while(!finished && wait<TMAX) {
@@ -123,7 +127,7 @@ public class EDDHelper {
 				}
 				
 				try {
-					Thread.sleep(1000);
+					TimeUnit.SECONDS.sleep(1);
 				} catch (InterruptedException e) {
 					e.printStackTrace();
 				}
@@ -147,27 +151,27 @@ public class EDDHelper {
 		}
 	}
 	
-	protected JsonDocument getJsonDocument(String debugTree) {
-		try {
-			JsonDocument document = (JsonDocument) JsonHelper.readJsonFromString(debugTree, JsonDocument.class);	
-			return document;
-		} catch (IOException e) {
-			e.printStackTrace();
+	public boolean startZoomDebugger() throws EDDException {
+		validateEddModel();
+		
+		String buggyErrorCall = eddModel.getBuggyErrorCall();
+		if (buggyErrorCall != null) {
+			e2j.startZoomDebug(buggyErrorCall);
+		}
+		else {
+			System.err.println("The zoom debugger cannot be initialized correctly");
+			return false;
 		}
 		
-		return null;
+		return true;
 	}
 	
-	protected void writeJsonDocument(JsonDocument document, IPath path) throws EDDException {
-		if (document == null) {
-			throw new EDDException("The json document must not be null");
-		}
-		
-		JsonUtils jsu = new JsonUtils();
-		String content = jsu.toString(document);
-		writeFile(content, path);
-	}
 	
+	
+	/**
+	 * @param content
+	 * @param path
+	 */
 	public void writeFile(String content, IPath path) {
 		try {
 			IFile iFile = Activator.getRoot().getFile(path);
@@ -185,18 +189,28 @@ public class EDDHelper {
 	
 	/**
 	 * @return
+	 * @throws EDDException 
 	 */
-	public Integer getQuestionsSize() {
-		if (eddModel != null) {
+	public Integer getQuestionsSize() throws EDDException {
+		validateEddModel();
+		
+		List<EddEdge> edgesMap;
+		if (isZoomEnabled()) {
+			ZoomDebugTree zoomDebugTree = eddModel.getZoomDebugTree();
+			edgesMap = zoomDebugTree.getEdgesMap();
+		}
+		else {
 			DebugTree debugTree = eddModel.getDebugTree();
-			if (debugTree != null) {
-				return debugTree.getEdgesMap().size();
-			}
+			edgesMap = debugTree.getEdgesMap();
+		}
+		
+		if (edgesMap != null) {
+			return edgesMap.size();
 		}
 		
 		return 0;
 	}
-
+	
 	/**
 	 * @param i
 	 * @return
@@ -204,51 +218,130 @@ public class EDDHelper {
 	 * @throws EDDException 
 	 */
 	public String getQuestion(int index) throws EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
+		validateEddModel();
+		Map<Integer, EddVertex> vertices;
+		if (isZoomEnabled()) {
+			vertices = eddModel.getZoomDebugTree().getVertexesMap();	
+		} 
+		else {
+			vertices = eddModel.getDebugTree().getVertexesMap();	
+		}
+		EddVertex vertex = vertices.get(index);
+		if (vertex != null) {
+			String question = vertex.getQuestion();
+			String fixQuestion = question.replace("\\l", "\n");
+			return fixQuestion;
 		}
 		
-		Map<Integer, EddVertex> vertices = eddModel.getDebugTree().getVertexesMap();
-		EddVertex vertex = vertices.get(index);
-		return vertex.getQuestion();
+		return "";
 	}
 	
 	public Integer getCurrentQuestion() throws EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
+		validateEddModel();
+		if (isZoomEnabled()) {
+			return eddModel.getCurrentZoomQuestionIndex();	
 		}
+		else {
+			return eddModel.getCurrentQuestionIndex();	
+		}
+	}
+	
+	
+	public boolean isZoomEnabled() throws EDDException {
+		validateEddModel();
 		
-		return eddModel.getCurrentQuestionIndex();
+		return eddModel.getZoomDebugTree() != null;
 	}
 
-	private EddInfo getInfo() throws EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
+	private EddInfo getInfo(int index) throws EDDException {
+		validateEddModel();
+		
+		EddVertex vertex;
+		if (isZoomEnabled()) {
+			vertex = eddModel.getZoomDebugTree().getVertexesMap().get(index);
+		}
+		else {
+			vertex = eddModel.getDebugTree().getVertexesMap().get(index);	
 		}
 		
-		Integer qIndex = getCurrentQuestion();
-		EddVertex vertex = eddModel.getDebugTree().getVertexesMap().get(qIndex);
 		return vertex.getInfo();
 	}
 	
-	public String getInfoQuestionUnformated() throws EDDException {
-		EddInfo info = getInfo();
-		return info.getQuestionUnformatted();
+	private MFA getMfa(int index) throws EDDException {
+		validateEddModel();
+		
+		EddVertex vertex;
+		if (isZoomEnabled()) {
+			vertex = eddModel.getZoomDebugTree().getVertexesMap().get(index);
+		}
+		else {
+			vertex = eddModel.getDebugTree().getVertexesMap().get(index);	
+		}
+		
+		return vertex.getMfa();
 	}
 	
-	public int getInfoClause() throws EDDException {
-		EddInfo info = getInfo();
-		return info.getClause().intValue();
+	public String getInfoQuestionUnformated(int index) throws EDDException {
+		EddInfo info = getInfo(index);
+		if (info != null) {
+			return info.getQuestionUnformatted();
+		}
+		
+		return null;
 	}
 	
-	public String getInfoFile() throws EDDException {
-		EddInfo info = getInfo();
-		return info.getFile();
+	public int getInfoClause(int index) throws EDDException {
+		EddInfo info = getInfo(index);
+		if (info != null) {
+			return info.getClause().intValue()-1;
+		}
+		
+		return -1;
 	}
 	
-	public int getInfoLine() throws EDDException {
-		EddInfo info = getInfo();
-		return info.getLine().intValue();
+	public String getInfoFile(int index) throws EDDException {
+		EddInfo info = getInfo(index);
+		if (info != null) {
+			return info.getFile();
+		}
+		
+		return null;
+	}
+	
+	public int getInfoLine(int index) throws EDDException {
+		EddInfo info = getInfo(index);
+		if (info != null) {
+			return info.getLine().intValue()-1;
+		}
+		
+		return -1;
+	}
+	
+	public String getModule(int index) throws EDDException {
+		MFA mfa = getMfa(index);
+		if (mfa != null) {
+			return mfa.getModule();
+		}
+		
+		return null;
+	}
+
+	public String getFunction(int index) throws EDDException {
+		MFA mfa = getMfa(index);
+		if (mfa != null) {
+			return mfa.getFunction();
+		}
+		
+		return null;
+	}
+
+	public int getArity(int index) throws EDDException {
+		MFA mfa = getMfa(index);
+		if (mfa != null) {
+			return mfa.getArity().intValue();
+		}
+		
+		return -1;
 	}
 	
 	public boolean setAnswer(String reply) throws EDDException {
@@ -256,6 +349,13 @@ public class EDDHelper {
 		Integer buggyNode = getBuggyNode();
 		if (buggyNode != null && buggyNode != -1) {
 			return true;
+		}
+		
+		try {
+			int node = Integer.parseInt(reply);
+		}
+		catch(NumberFormatException e) {
+			//
 		}
 		
 		e2j.sendAnswer(reply);
@@ -269,29 +369,74 @@ public class EDDHelper {
 	}
 	
 	public boolean isBuggyNode() throws EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
-		}
+		validateEddModel();
 		Integer buggyNode = eddModel.getBuggyNodeIndex();
 		return buggyNode != null && buggyNode != -1  ? true : false;
 	}
 	
 	public Integer getBuggyNode() throws EDDException {
+		validateEddModel();
+		
+		return eddModel.getBuggyNodeIndex();
+	}
+	
+	public Map<String, String> getZoomAnswers() {
+		try {
+			validateEddModel();
+		} catch (EDDException e) {
+			e.printStackTrace();
+		}
+		
+		LinkedList<String> answerList = eddModel.getAnswerList();
+		if (answerList != null) {
+			Map<String, String> answersMap = new LinkedHashMap<String, String>();
+			for (String key : answerList) {
+				switch (key) {
+					case "y":
+						answersMap.put("y", "Yes");		
+						break;
+					case "n":	
+						answersMap.put("n", "No");
+						break;
+					case "t":
+						answersMap.put("t", "Trusted");
+						break;
+					case "d":
+						answersMap.put("d", "Don't know");
+						break;
+					case "i":
+						answersMap.put("i", "Inadmissible");
+						break;
+					case "u":
+						answersMap.put("u", "Undo ");
+						break;
+					case "a":
+						answersMap.put("a", "Abort");
+						break;
+					default:
+						answersMap.put(key, key);
+						break;
+				}
+			}
+			
+			return answersMap;
+		}
+		
+		return null;
+	}
+
+	private void validateEddModel() throws EDDException {
 		if (eddModel == null) {
 			throw new EDDException("The 'eddModel' must not be null");
 		}
-		
-		return eddModel.getBuggyNodeIndex();
 	}
 	
 	/**
 	 * @throws IOException 
 	 * @throws EDDException 
 	 */
-	public String buildDOT(Integer highlightNode, boolean cw) throws IOException, EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
-		}
+	public String buildDOT(boolean isZoom, Integer highlightNode, boolean cw) throws IOException, EDDException {
+		validateEddModel();
 		
 		GraphViz gv = new GraphViz();
 		gv.addln(gv.start_graph());
@@ -311,30 +456,43 @@ public class EDDHelper {
 		List<Integer> notCorrectList = state.getNotCorrectList();
 		List<Integer> unknownList = state.getUnknownList();
 		
-		DebugTree debugTree = eddModel.getDebugTree();
-		Map<Integer, EddVertex> vertices = debugTree.getVertexesMap();
+		Map<Integer, EddVertex> vertexesMap;
+		List<EddEdge> edgesMap;
+		if (isZoom) {
+			ZoomDebugTree debugTree = eddModel.getZoomDebugTree();
+			vertexesMap = debugTree.getVertexesMap();
+			edgesMap = debugTree.getEdgesMap();
+		}
+		else {
+			DebugTree debugTree = eddModel.getDebugTree();
+			vertexesMap = debugTree.getVertexesMap();
+			edgesMap = debugTree.getEdgesMap();
+		}
+			
+		Map<Integer, EddVertex> vertices = vertexesMap;
 		for (int i=0; i<vertices.size(); i++) {
 			EddVertex vertice = vertices.get(i);
 			Integer node = vertice.getNode();
+			String question = vertice.getQuestion();
 			
 //			if (highlightNode !=null && node == highlightNode) {
-//				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#ED1C3A\"];");
+//				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];");
 //			}
 			
 			/*if (vertexList.contains(node)) {
-				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#ED1C3A\"];");
+				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];");
 			} else*/ if (correctList.contains(node)) {
-				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#80FF80\"];"); // Verde
+				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#80FF80\"];"); // Verde
 			} else if (notCorrectList.contains(node)) {
-				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#ED1C3A\"];"); // Rojo
+				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];"); // Rojo
 			} else if (unknownList.contains(node)) {
-				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\", style=filled, fillcolor=\"#FFFF80\"];"); // Amarillo
+				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#FFFF80\"];"); // Amarillo
 			} else {
-				gv.addln(node + " [label=\"" + node + ". " + vertice.getQuestion() + "\"];");
+				gv.addln(node + " [label=\"" + node + ". " + question + "\"];");
 			}
 		}
 		
-		List<EddEdge> edges = debugTree.getEdgesMap();
+		List<EddEdge> edges = edgesMap;
 		for (EddEdge edge : edges) {
 			int from = edge.getFrom();
 			int to = edge.getTo();
@@ -372,7 +530,7 @@ public class EDDHelper {
 		return dotSource;
 	}
 	
-	public Model buildEMF(String modelName, IPath ed2Path, IPath ed2DiagramPath) throws EDDException {
+	public Model buildEMF(boolean isZoom, String modelName, IPath ed2Path, IPath ed2DiagramPath) throws EDDException {
 		WorkspaceModifyOperation operation = new WorkspaceModifyOperation() {
 			@Override
 			protected void execute(IProgressMonitor progressMonitor) {
@@ -412,19 +570,33 @@ public class EDDHelper {
 				ed2.setName(modelName);
 				model.setEd2(ed2);
 				
+				Map<Integer, EddVertex> vertexesMap;
+				List<EddEdge> edgesMap;
+				if (isZoom) {
+					ZoomDebugTree debugTree = eddModel.getZoomDebugTree();
+					vertexesMap = debugTree.getVertexesMap();
+					edgesMap = debugTree.getEdgesMap();
+				}
+				else {
+					DebugTree debugTree = eddModel.getDebugTree();
+					vertexesMap = debugTree.getVertexesMap();
+					edgesMap = debugTree.getEdgesMap();
+				}
+				
 				Map<Integer, Node> nodesMap = new HashMap<Integer, Node>();
-				Map<Integer, EddVertex> vertices = eddModel.getDebugTree().getVertexesMap();
-				for (Entry<Integer, EddVertex> entry : vertices.entrySet()) {
+				for (Entry<Integer, EddVertex> entry : vertexesMap.entrySet()) {
 					EddVertex vertice = entry.getValue();
 					Node node = Ed2Factory.eINSTANCE.createNode();
 					int index = vertice.getNode();
+					String question = vertice.getQuestion();
+					String fixQuestion = question.replace("\\l", "\n");
 					node.setIndex(index);
-					node.setName(index + ": " +vertice.getQuestion());
+					node.setName(index + ": " + fixQuestion);
 					
 					nodesMap.put(index, node);
 				}
 				
-				List<EddEdge> edges = eddModel.getDebugTree().getEdgesMap();
+				List<EddEdge> edges = edgesMap;
 				for (EddEdge edge : edges) {
 					int from = edge.getFrom();
 					int to = edge.getTo();
@@ -434,7 +606,7 @@ public class EDDHelper {
 					source.getNodes().add(target);
 				}
 				
-				int root = eddModel.getDebugTree().getEdgesMap().size();
+				int root = edges.size();
 				EList<TreeElement> elements = ed2.getTreeElements();
 				elements.add(nodesMap.get(root));
 				
@@ -462,9 +634,7 @@ public class EDDHelper {
 	}
 	
 	protected Model buildEMF2(String modelName, IPath ed2Path, IPath ed2DiagramPath) throws EDDException {
-		if (eddModel == null) {
-			throw new EDDException("The 'eddModel' must not be null");
-		}
+		validateEddModel();
 		
 		Model model = Ed2Factory.eINSTANCE.createModel();
 		ED2 ed2 = Ed2Factory.eINSTANCE.createED2();
@@ -477,8 +647,10 @@ public class EDDHelper {
 			EddVertex vertice = entry.getValue();
 			Node node = Ed2Factory.eINSTANCE.createNode();
 			int index = vertice.getNode();
+			String question = vertice.getQuestion();
+			String fixQuestion = question.replace("\\l", "\n");
 			node.setIndex(index);
-			node.setName(index + ": " +vertice.getQuestion());
+			node.setName(index + ": " +fixQuestion);
 			
 			nodesMap.put(index, node);
 		}
@@ -495,12 +667,8 @@ public class EDDHelper {
 		
 		
 		EList<TreeElement> elements = ed2.getTreeElements();
-//		elements.addAll(nodesMap.values());
-//		elements.add(nodesMap.get(90)); //FIXME Obtener nodos raíz...
-		
-		int root = nodesMap.size();
-		int root2 = eddModel.getDebugTree().getEdgesMap().size();
-		elements.add(nodesMap.get(root2));
+		int root = edges.size();
+		elements.add(nodesMap.get(root));
 		
 		try {
 			saveModel(ed2Path.toPortableString(), model);
@@ -519,10 +687,18 @@ public class EDDHelper {
 	public boolean performFinish(IPath ed2Path, IPath ed2DiagramPath) {
 		List<EObject> root = null;
 		try {
-			IFile ed2File = Activator.getRoot().getFile(ed2Path);  
+			IFile ed2File = Activator.getRoot().getFile(ed2Path);
+			if (ed2File.exists()) {
+				if (false) {
+					ed2File.delete(IResource.NONE, new NullProgressMonitor());
+				}
+			}
 			root = loadModel(ed2File.getLocation().toPortableString());
 		} catch (IOException e1) {
 			e1.printStackTrace();
+			return false;
+		} catch (CoreException e) {
+			e.printStackTrace();
 			return false;
 		}
 		
@@ -607,6 +783,63 @@ public class EDDHelper {
 		Resource resource = resSet.createResource(URI.createFileURI(fileName));
 		resource.getContents().add(data);
 		resource.save(Collections.EMPTY_MAP);
+	}
+	
+	/**
+	 * @param path
+	 * @return
+	 */
+	public IFile createNewFile(String path) {
+		final IPath filePath = new Path(path);
+		final IFile newFile = Activator.getRoot().getFile(filePath);
+		final InputStream initialContents = new ByteArrayInputStream(new byte[0]);
+		
+		try {
+			CreateFileOperation op = new CreateFileOperation(newFile, null, initialContents, "New File");
+			op.execute(new NullProgressMonitor(), WorkspaceUndoUtil.getUIInfoAdapter(new Shell()));
+		} catch (ExecutionException e) {
+			e.printStackTrace();
+		}
+		
+		return newFile;
+	}
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	
+	/*
+	 * ======================================================================================================================= 
+	 */
+	
+	
+	protected JsonDocument getJsonDocument(String debugTree) {
+		try {
+			JsonDocument document = (JsonDocument) JsonHelper.readJsonFromString(debugTree, JsonDocument.class);	
+			return document;
+		} catch (IOException e) {
+			e.printStackTrace();
+		}
+		
+		return null;
+	}
+	
+	protected void writeJsonDocument(JsonDocument document, IPath path) throws EDDException {
+		if (document == null) {
+			throw new EDDException("The json document must not be null");
+		}
+		
+		JsonUtils jsu = new JsonUtils();
+		String content = jsu.toString(document);
+		writeFile(content, path);
 	}
 	
 	private Resource buildGMF(String name) {
@@ -710,7 +943,7 @@ public class EDDHelper {
 	    
 	    return edge;
 	}
-
+	
 	/**
 	 * @param model
 	 * @param diagramPath
@@ -754,23 +987,4 @@ public class EDDHelper {
 			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
 		}
 	}
-	
-	/**
-	 * @param path
-	 * @return
-	 */
-	public IFile createNewFile(String path) {
-		final IPath filePath = new Path(path);
-		final IFile newFile = Activator.getRoot().getFile(filePath);
-		final InputStream initialContents = new ByteArrayInputStream(new byte[0]);
-		
-		try {
-			CreateFileOperation op = new CreateFileOperation(newFile, null, initialContents, "New File");
-			op.execute(new NullProgressMonitor(), WorkspaceUndoUtil.getUIInfoAdapter(new Shell()));
-		} catch (ExecutionException e) {
-			e.printStackTrace();
-		}
-		
-		return newFile;
-	}	
 }
