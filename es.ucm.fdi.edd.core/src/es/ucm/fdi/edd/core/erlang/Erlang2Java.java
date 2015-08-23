@@ -19,9 +19,6 @@ public class Erlang2Java {
 	private static final String THREAD_CLIENT_NAME = "EDD-Client";
 	private static final String THREAD_SERVER_NAME = "EDD-Server";
 	
-	/** The Erlang/OTP node. */
-//	private OtpNode node;
-	
 	private ErlangClient erlangClient;
 	private ErlangServer erlangServer;
 	
@@ -120,15 +117,6 @@ public class Erlang2Java {
 	}
 	
 	/**
-	 * Returns the Erlang/OTP node.
-	 * 
-	 * @return node the java node.
-	 */
-//	public OtpNode getNode() {
-//		return node;
-//	}	
-	
-	/**
 	 * Stops the server.
 	 * 
 	 * @throws Exception
@@ -158,5 +146,9 @@ public class Erlang2Java {
 	
 	public void sendAnswer(String reply) {
 		erlangClient.setAnswer(reply, new CountDownLatch(1));
+	}
+	
+	public void startZoomDebug(String buggyErrorCall) {
+		erlangClient.startZoomDebug(buggyErrorCall);
 	}
 }

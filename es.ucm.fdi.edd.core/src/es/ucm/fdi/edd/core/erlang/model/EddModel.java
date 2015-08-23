@@ -1,14 +1,21 @@
 package es.ucm.fdi.edd.core.erlang.model;
 
+import java.util.LinkedList;
+
 public class EddModel {
 
 	private DebugTree debugTree;
+	private ZoomDebugTree zoomDebugTree;
 	private EddState state;
 	private Integer currentQuestionIndex;
+	private Integer currentZoomQuestionIndex;
 	private Integer buggyNodeIndex;
+	private String buggyErrorCall;
+	
+	private LinkedList<String> answerList;
 	
 	public EddModel() {
-		buggyNodeIndex = -1;
+		//buggyNodeIndex = -1;
 	}
 
 	public DebugTree getDebugTree() {
@@ -17,6 +24,14 @@ public class EddModel {
 
 	public void setDebugTree(DebugTree debugTree) {
 		this.debugTree = debugTree;
+	}
+	
+	public ZoomDebugTree getZoomDebugTree() {
+		return zoomDebugTree;
+	}
+
+	public void setZoomDebugTree(ZoomDebugTree zoomDebugTree) {
+		this.zoomDebugTree = zoomDebugTree;
 	}
 
 	public EddState getState() {
@@ -35,11 +50,35 @@ public class EddModel {
 		this.currentQuestionIndex = currentQuestionIndex;
 	}
 
+	public Integer getCurrentZoomQuestionIndex() {
+		return currentZoomQuestionIndex;
+	}
+
+	public void setCurrentZoomQuestionIndex(Integer currentZoomQuestionIndex) {
+		this.currentZoomQuestionIndex = currentZoomQuestionIndex;
+	}
+
 	public Integer getBuggyNodeIndex() {
 		return buggyNodeIndex;
 	}
 
 	public void setBuggyNodeIndex(Integer buggyNodeIndex) {
 		this.buggyNodeIndex = buggyNodeIndex;
+	}
+
+	public String getBuggyErrorCall() {
+		return buggyErrorCall;
+	}
+
+	public void setBuggyErrorCall(String buggyErrorCall) {
+		this.buggyErrorCall = buggyErrorCall;
+	}
+
+	public LinkedList<String> getAnswerList() {
+		return answerList;
+	}
+
+	public void setAnswerList(LinkedList<String> answerList) {
+		this.answerList = answerList;
 	}
 }

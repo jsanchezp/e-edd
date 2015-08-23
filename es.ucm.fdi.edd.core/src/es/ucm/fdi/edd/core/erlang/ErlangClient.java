@@ -1,9 +1,12 @@
 package es.ucm.fdi.edd.core.erlang;
 
+import java.util.Arrays;
+import java.util.LinkedList;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpErlangAtom;
+import com.ericsson.otp.erlang.OtpErlangList;
 import com.ericsson.otp.erlang.OtpErlangLong;
 import com.ericsson.otp.erlang.OtpErlangObject;
 import com.ericsson.otp.erlang.OtpErlangPid;
@@ -16,6 +19,7 @@ import com.ericsson.otp.erlang.OtpNode;
 import es.ucm.fdi.edd.core.erlang.model.DebugTree;
 import es.ucm.fdi.edd.core.erlang.model.EddModel;
 import es.ucm.fdi.edd.core.erlang.model.EddState;
+import es.ucm.fdi.edd.core.erlang.model.ZoomDebugTree;
 
 /**
  * Para probar la comunicación erlang<->java, debes ejecutar la aplicación java y luego abrir una consola erlang para el paso de mensajes.  
@@ -37,7 +41,6 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	private OtpMbox mailbox;
 	
 	private OtpErlangPid pidServer;
-	/** state: none | {vertices, correct, notCorrect, unknown} */
 	private OtpErlangObject erlState;
 	
 	private EddModel eddModel;
@@ -82,17 +85,25 @@ public class ErlangClient implements Runnable, AutoCloseable {
 		while (!stop) {
 			try {
 				OtpErlangObject message = mailbox.receive();
-				System.out.println("<<<<< Received message: " + message);
+				System.out.println("<-- RECEIVED message: " + message);
 				if (message instanceof OtpErlangTuple) {
 					OtpErlangTuple tuple = (OtpErlangTuple) message;
 					int arity = tuple.arity();
 					if (tuple.elementAt(0) instanceof OtpErlangAtom) {
 						OtpErlangAtom command = (OtpErlangAtom) tuple.elementAt(0);
-						if (arity == 2) {
-							processMessage(command, tuple.elementAt(1));
-						}
-						if (arity == 3) {
-							processMessage(command, tuple.elementAt(1), tuple.elementAt(2));
+						switch (arity) {
+							case 2:
+								processMessage(command, tuple.elementAt(1));
+								break;
+							case 3:
+								processMessage(command, tuple.elementAt(1), tuple.elementAt(2));
+								break;
+							case 4:
+								processMessage(command, tuple.elementAt(1), tuple.elementAt(2), tuple.elementAt(3));
+								break;
+								
+							default:
+								break;
 						}
 					}
 				}
@@ -124,7 +135,7 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 */
 	private void processMessage(OtpErlangAtom command, OtpErlangObject... args) throws OtpException {
 		String key = command.atomValue();
-//		int size = args.length;
+		int size = args.length;
 		switch(key) {
 			case "ready": {
 				proccessReady(command, args[0]);
@@ -138,15 +149,24 @@ public class ErlangClient implements Runnable, AutoCloseable {
 				break;
 			
 			case "question":
-				processQuestion(command, args[0], args[1]);
+				if (size == 2) {
+					processQuestion(command, args[0], args[1]);
+				}
+				else if (size == 3) {
+					processZoomQuestion(command, args[0], args[1], args[2]);
+				}
 				break;
 			
 			case "buggy_node":
-				processBuggyNode(command, args[0]);
+				processBuggyNode(command, args[0], args[1]);
 				break;
-			
+				
 			case "aborted":
-				processAborted();
+				processAborted(command);
+				break;
+				
+			case "error":
+				processError(command, args[0]);
 				break;
 				
 			default:
@@ -193,8 +213,7 @@ public class ErlangClient implements Runnable, AutoCloseable {
 			e.printStackTrace();
 		}
 		
-		sendMessage(pidServer, reply);		
-		System.out.println(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>> + se envía el buggy_call");
+		sendMessage(pidServer, reply);
 	}
 	
 	/**
@@ -208,7 +227,26 @@ public class ErlangClient implements Runnable, AutoCloseable {
 		if (otpErlangObject instanceof OtpErlangTuple) {
 			OtpErlangTuple dbgTreeTuple = (OtpErlangTuple) otpErlangObject;
 			if (dbgTreeTuple.arity() == 2) {
-				eddModel.setDebugTree(new DebugTree(dbgTreeTuple));
+				OtpErlangTuple vertextesTuple = (OtpErlangTuple) dbgTreeTuple.elementAt(0);
+				if (vertextesTuple.arity() == 2) {
+					OtpErlangList vertexesList = (OtpErlangList) vertextesTuple.elementAt(1);
+					// Diferenciar el tipo de depuración por el primer elemento de la lista 
+					OtpErlangObject firstElement = vertexesList.elementAt(0);
+					if (firstElement instanceof OtpErlangTuple) {
+						OtpErlangTuple vertexTuple = (OtpErlangTuple) firstElement;
+						if (vertexTuple.arity() == 4) {
+							// Normal debugging
+							eddModel.setDebugTree(new DebugTree(dbgTreeTuple));
+						}
+						else if (vertexTuple.arity() == 2) {
+							// Zoom debugging
+							eddModel.setZoomDebugTree(new ZoomDebugTree(dbgTreeTuple));
+						}
+						else {
+							System.out.println("The 'vertex' arity is malformmed...");
+						}
+					}
+				}
 			}
 			else {
 				System.out.println("The 'dbg_tree' tuple is malformmed...");
@@ -233,17 +271,61 @@ public class ErlangClient implements Runnable, AutoCloseable {
 			OtpErlangTuple stateTuple = (OtpErlangTuple) arg2;
 			if (stateTuple.arity() == 4) {
 				eddModel.setCurrentQuestionIndex((int) qIndex.longValue());
+				eddModel.setCurrentZoomQuestionIndex((int) qIndex.longValue());
 				eddModel.setState(new EddState(stateTuple));
-				
-				// FIXME Descomentada sirve para avanzar en la búsqueda del buggy_node...
-//				 sendAnswer("n");
+				System.out.println("\tCurrent Question:" + qIndex.longValue());
+				// Avanzar en la búsqueda del buggy_node...
+				//sendAnswer("n");
 			}
 			else {
 				System.out.println("The tuple is malformmed...");
 			}
 		}
 		else {
-			System.out.println("The 'dbg_tree' tuple is malformmed...");
+			System.out.println("The 'question' tuple is malformmed...");
+		}
+	}
+	
+	/**
+	 * @param command
+	 * @param arg1
+	 * @param arg2
+	 * @param arg3
+	 */
+	private void processZoomQuestion(OtpErlangAtom command, OtpErlangObject arg1, OtpErlangObject arg2, OtpErlangObject arg3) {
+		if (arg1 instanceof OtpErlangLong && arg2 instanceof OtpErlangList && arg3 instanceof OtpErlangTuple) {
+			OtpErlangLong qIndex = (OtpErlangLong) arg1;
+			OtpErlangList zoomAnswers = (OtpErlangList) arg2;
+			
+			LinkedList<String> answersList = new LinkedList<String>();
+			for (OtpErlangObject otpErlangObject : zoomAnswers) {
+				if (otpErlangObject instanceof OtpErlangAtom) {
+					OtpErlangAtom atom = (OtpErlangAtom) otpErlangObject;
+					answersList.add(atom.atomValue());
+				}
+				else {
+					System.out.println("The 'answer' is malformmed, it will be ignored...");	
+				}
+			}
+			eddModel.setAnswerList(answersList);
+			
+			OtpErlangTuple stateTuple = (OtpErlangTuple) arg3;
+			if (stateTuple.arity() == 4) {
+				//FIXME Clear the buggy_node
+				eddModel.setBuggyNodeIndex(-1);
+				eddModel.setBuggyErrorCall(null);
+				
+				eddModel.setCurrentQuestionIndex((int) qIndex.longValue());
+				eddModel.setCurrentZoomQuestionIndex((int) qIndex.longValue());
+				eddModel.setState(new EddState(stateTuple));
+				System.out.println("\tCurrent Zoom Question:" + qIndex.longValue());
+			}
+			else {
+				System.out.println("The tuple is malformmed...");
+			}
+		}
+		else {
+			System.out.println("The 'question' tuple is malformmed...");
 		}
 	}
 
@@ -272,31 +354,77 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 * @param command
 	 * @param otpErlangObject
 	 */
-	private void processBuggyNode(OtpErlangAtom command, OtpErlangObject otpErlangObject) {
-		if (otpErlangObject instanceof OtpErlangLong) {
-			OtpErlangLong buggyNode = (OtpErlangLong) otpErlangObject;
+	private void processBuggyNode(OtpErlangAtom command, OtpErlangObject arg1, OtpErlangObject arg2) {
+		if (arg1 instanceof OtpErlangLong && arg2 instanceof OtpErlangString) {
+			OtpErlangLong buggyNode = (OtpErlangLong) arg1;
+			OtpErlangString buggyCall = (OtpErlangString) arg2;
 			int buggyNodeIndex = (int) buggyNode.longValue();
-			System.out.println("Buggy node: " + buggyNodeIndex);
+			String buggyErrorCall = buggyCall.stringValue();
+			System.out.println(String.format("Buggy node: %s Error call: %s", buggyNodeIndex, buggyErrorCall));
 			eddModel.setBuggyNodeIndex(buggyNodeIndex);
-			
-			try {
-				close();
-			} catch (Exception e) {
-				e.printStackTrace();
-			}
+			eddModel.setBuggyErrorCall(buggyErrorCall);
 		}
 		else {
 			System.out.println("The 'buggy_node' tuple is malformmed...");
 		}
-	}	
-
+	}
+	
+	/**
+	 * @param buggyErrorCall
+	 */
+	private void sendZoomDebug(String buggyErrorCall) {
+		OtpErlangObject[]  reply = new OtpErlangObject[4];
+		reply[0] = new OtpErlangAtom("zoom_dbg");
+		reply[1] = new OtpErlangString(buggyErrorCall);
+		reply[2] = new OtpErlangString(location);
+		reply[3] = new OtpErlangAtom("none");
+		sendMessage(pidServer, reply);
+	}
+	
 	/**
 	 * Finish the communication with the server.
 	 * 
 	 * @throws OtpException
 	 */
-	private void processAborted() throws OtpException {
+	private void processAborted(OtpErlangAtom command) throws OtpException {
 		System.out.println("Aborted...");
+	}
+	
+	/**
+	 * @throws OtpException
+	 */
+	private void processError(OtpErlangAtom command, OtpErlangObject arg1) throws OtpException {
+		if (arg1 instanceof OtpErlangTuple) {
+			OtpErlangTuple errorTuple = (OtpErlangTuple)arg1;
+			if (errorTuple.arity() == 2) {
+				OtpErlangAtom errorMsg1 = (OtpErlangAtom) errorTuple.elementAt(0);
+				OtpErlangObject errorObj = errorTuple.elementAt(1);
+				if (errorObj instanceof OtpErlangAtom) {
+					OtpErlangAtom errorMsg2 = (OtpErlangAtom) errorObj;
+					System.out.println(String.format("Error node: %s, %s", errorMsg1.atomValue(), errorMsg2.atomValue()));
+				} else if (errorObj instanceof OtpErlangTuple) {
+					OtpErlangTuple errorMsgTuple = (OtpErlangTuple) errorObj;
+					OtpErlangObject[] elements = errorMsgTuple.elements();
+					System.out.println(String.format("Error node: %s, %s", errorMsg1.atomValue(), Arrays.toString(elements)));
+					
+				} else {
+					System.out.println(String.format("Error node: %s, %s", errorMsg1.atomValue(), errorObj.toString()));
+				}
+				
+				// FIXME ¿Debería cerrar el cliente...?
+				try {
+					close();
+				} catch (Exception e) {
+					e.printStackTrace();
+				}
+			}
+			else {
+				System.out.println("Unknown 'error' arity...");
+			}
+		}
+		else {
+			System.out.println("The 'error' tuple is malformmed...");
+		}
 	}
 	
 	/**
@@ -312,8 +440,8 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 */
 	private void errorResponse(OtpErlangPid pidSender, OtpErlangTuple message) {
 		System.err.println("An unknown error has occurred trying to execute the command: " + message.toString());
-//		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
-//		OtpErlangObject[] response = new OtpErlangObject[] {errorAtom, message};
+		OtpErlangAtom errorAtom = new OtpErlangAtom("error");
+		OtpErlangObject[] response = new OtpErlangObject[] {errorAtom, message};
 //		sendMessage(pidSender, response);
 	}
 
@@ -326,7 +454,7 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	 * 			The message.
 	 */
 	private void sendMessage(OtpErlangPid pidSender, OtpErlangObject[] message) {
-		System.out.println(">>>>>>>>>> Send message [" + pidSender + "]: " + message);
+		System.out.println("--> SEND message [" + pidSender + "]: " + message);
 		OtpErlangTuple tuple = new OtpErlangTuple(message);
 		mailbox.send(pidSender, tuple);
 	}
@@ -361,6 +489,10 @@ public class ErlangClient implements Runnable, AutoCloseable {
 	public void setAnswer(String reply, CountDownLatch countDownLatch) {
 		sendAnswer(reply);		
 		countDownLatch.countDown(); //reduce count of CountDownLatch by 1
+	}
+	
+	public void startZoomDebug(String buggyErrorCall) {
+		sendZoomDebug(buggyErrorCall);
 	}
 
 	public void stopClient() throws Exception {
