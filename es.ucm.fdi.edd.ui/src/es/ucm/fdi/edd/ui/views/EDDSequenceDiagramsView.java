@@ -6,12 +6,17 @@ import java.net.URISyntaxException;
 import java.net.URL;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IProject;
+import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IResourceChangeEvent;
 import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.resources.IResourceDelta;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.FileLocator;
+import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.NullProgressMonitor;
+import org.eclipse.core.runtime.Path;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.jface.viewers.ISelection;
@@ -31,6 +36,10 @@ import es.ucm.fdi.edd.ui.Activator;
 public class EDDSequenceDiagramsView extends ViewPart implements IResourceChangeListener, IPartListener2, ISelectionListener {
 	
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.EDDSequenceDiagramsView";
+	
+	private static final String EDD_PROJECT = "E-EDD";
+	private static final String SANDBOX = "es.ucm.fdi.edd.sandbox";
+	private static final String SAMPLE_FILE = "graphviz/Sample.dot";
 
 	private String basePartName;
 	private IFile selectedFile;
@@ -67,9 +76,8 @@ public class EDDSequenceDiagramsView extends ViewPart implements IResourceChange
 	}
 	
 	private void initialize() {
-		// FIXME 
-		Bundle bundle = Platform.getBundle("es.ucm.fdi.edd.graphiti");
-		URL fileURL = bundle.getEntry("diagram/Sample.dot");
+		Bundle bundle = Platform.getBundle(SANDBOX);
+		URL fileURL = bundle.getEntry(SAMPLE_FILE);
 		File file = null;
 		try {
 		    file = new File(FileLocator.resolve(fileURL).toURI());
@@ -79,9 +87,55 @@ public class EDDSequenceDiagramsView extends ViewPart implements IResourceChange
 		    e.printStackTrace();
 		}
 		
-		IFile iFile = null;
+		updateGraphContent(file);		
+	}
+	
+	public void updateGraphContent(File file) {
+		IFile iFile = createIFile(file);
 		selectedFile = iFile;
-		requestUpdate();		
+		requestUpdate();
+	}
+	
+	public void updateGraphContent(IFile iFile) {
+		selectedFile = iFile;
+		requestUpdate();
+	}
+	
+	private IFile createIFile(File file) {
+		validateProject();
+		try {
+			IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(EDD_PROJECT); //External Files 
+			IPath location = new Path(file.getAbsolutePath());
+			IFile iFile = project.getFile(location.lastSegment());
+			if (!iFile.exists()) {
+				iFile.createLink(location, IResource.NONE, null);
+			}
+			else {
+				iFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+			}
+			return iFile;
+		} catch (CoreException e) {
+    		e.printStackTrace();
+    		return null;
+		}
+	}
+	
+	private void validateProject() {
+		IProject project = ResourcesPlugin.getWorkspace().getRoot().getProject(EDD_PROJECT); //External Files 
+		try {
+			if (!project.exists()) {
+				project.create(new NullProgressMonitor());
+			}
+			else {
+				project.refreshLocal(IResource.DEPTH_INFINITE, null);
+			}
+			
+			if (!project.isOpen()) {
+			    project.open(new NullProgressMonitor());
+			}
+		} catch (CoreException e) {
+    		e.printStackTrace();
+		}	
 	}
 
 	@Override

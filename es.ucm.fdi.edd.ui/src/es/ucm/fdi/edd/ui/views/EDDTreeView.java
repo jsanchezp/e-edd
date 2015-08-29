@@ -141,7 +141,8 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 		
 		viewer.setContentProvider(new MNViewContentProvider());
 		viewer.setLabelProvider(new MNViewLabelProvider());
-		viewer.setInput(getDataModel());
+//		viewer.setInput(getDataModel());
+		viewer.setInput(null);
 		
 		viewer.setSorter(new NameSorter());
 
@@ -508,5 +509,9 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 		// important: We need do unregister our listener when the view is disposed
 		getSite().getWorkbenchWindow().getSelectionService().removeSelectionListener(listener);
 		super.dispose();
+	}
+
+	public void cleanInput() {
+		viewer.setInput(null);
 	}
 }

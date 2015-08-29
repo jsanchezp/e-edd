@@ -1,6 +1,8 @@
 package es.ucm.fdi.edd.ui.views;
 
 import org.eclipse.core.resources.IFile;
+import org.eclipse.core.resources.IResourceChangeEvent;
+import org.eclipse.core.resources.IResourceChangeListener;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
@@ -15,7 +17,12 @@ import org.eclipse.gmf.runtime.common.core.util.Trace;
 import org.eclipse.gmf.runtime.diagram.ui.internal.DiagramUIDebugOptions;
 import org.eclipse.gmf.runtime.diagram.ui.internal.DiagramUIPlugin;
 import org.eclipse.gmf.runtime.diagram.ui.internal.DiagramUIStatusCodes;
+import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.swt.widgets.Composite;
+import org.eclipse.ui.IPartListener2;
+import org.eclipse.ui.ISelectionListener;
+import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartReference;
 import org.eclipse.ui.part.ViewPart;
 
 import com.abstratt.content.ContentSupport;
@@ -30,7 +37,8 @@ import es.ucm.fdi.emf.model.ed2.Model;
 import es.ucm.fdi.emf.model.ed2.Node;
 import es.ucm.fdi.emf.model.ed2.TreeElement;
 
-public class DiagramView extends ViewPart implements IAdaptable {
+@SuppressWarnings("restriction")
+public class DiagramView extends ViewPart implements IAdaptable, IResourceChangeListener, IPartListener2, ISelectionListener {
 
 	private GraphicalViewer viewer;
 	
@@ -46,7 +54,7 @@ public class DiagramView extends ViewPart implements IAdaptable {
 //		URI modelURI = URI.createPlatformResourceURI("/E-EDD/ed2/testGMF.ed2", false);
 //		Resource diagramResource = Ed2DiagramEditorUtil.createDiagram(diagramURI, modelURI, new NullProgressMonitor());
 //		Diagram diagram = (Diagram) diagramResource.getContents().get(0);
-
+		
 		try {
 			final IPath filePath = new Path("/E-EDD/ed2/testAutoGMF.ed2_diagram");
 			final IFile file = Activator.getRoot().getFile(filePath);
@@ -62,7 +70,6 @@ public class DiagramView extends ViewPart implements IAdaptable {
 		} catch (CoreException e) {
 			e.printStackTrace();
 		}
-		
 		
 //		IProviderDescription providerDefinition =
 //				ContentSupport.getContentProviderRegistry().findContentProvider(
@@ -262,4 +269,54 @@ public class DiagramView extends ViewPart implements IAdaptable {
 		
 		return model;
 	}
+
+	@Override
+	public void selectionChanged(IWorkbenchPart part, ISelection selection) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partActivated(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partBroughtToTop(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partClosed(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partDeactivated(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partOpened(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partHidden(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partVisible(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void partInputChanged(IWorkbenchPartReference partRef) {
+		// TODO Auto-generated method stub
+	}
+
+	@Override
+	public void resourceChanged(IResourceChangeEvent event) {
+		// TODO Auto-generated method stub	
+	}	
 }

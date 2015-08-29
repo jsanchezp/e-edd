@@ -54,6 +54,7 @@ import org.eclipse.gmf.runtime.notation.NotationPackage;
 import org.eclipse.gmf.runtime.notation.RelativeBendpoints;
 import org.eclipse.gmf.runtime.notation.datatype.RelativeBendpoint;
 import org.eclipse.jface.dialogs.ProgressMonitorDialog;
+import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.actions.WorkspaceModifyOperation;
@@ -75,6 +76,7 @@ import es.ucm.fdi.edd.core.json.model.JsonDocument;
 import es.ucm.fdi.edd.core.json.utils.JsonHelper;
 import es.ucm.fdi.edd.core.json.utils.JsonUtils;
 import es.ucm.fdi.edd.ui.Activator;
+import es.ucm.fdi.edd.ui.preferences.PreferenceConstants;
 import es.ucm.fdi.emf.model.ed2.ED2;
 import es.ucm.fdi.emf.model.ed2.Ed2Factory;
 import es.ucm.fdi.emf.model.ed2.Leaf;
@@ -112,7 +114,9 @@ public class EDDHelper {
 	 * @throws Exception 
 	 */
 	public boolean startEDDebugger(String buggyCall, String location) {
-		e2j = new Erlang2Java();
+		IPreferenceStore store = Activator.getDefault().getPreferenceStore();
+		String eddPath = store.getString(PreferenceConstants.JSERVER_PATH); 
+		e2j = new Erlang2Java(eddPath);
 		e2j.initialize(buggyCall, location);
 //		if (e2j.isLoaded()) {
 		{
@@ -155,7 +159,7 @@ public class EDDHelper {
 		validateEddModel();
 		
 		String buggyErrorCall = eddModel.getBuggyErrorCall();
-		if (buggyErrorCall != null) {
+		if (e2j != null && buggyErrorCall != null) {
 			e2j.startZoomDebug(buggyErrorCall);
 		}
 		else {
@@ -489,9 +493,9 @@ public class EDDHelper {
 			edgesMap = debugTree.getEdgesMap();
 		}
 			
-		Map<Integer, EddVertex> vertices = vertexesMap;
-		for (int i=0; i<vertices.size(); i++) {
-			EddVertex vertice = vertices.get(i);
+		for (Entry<Integer, EddVertex> entry : vertexesMap.entrySet()) {
+			Integer key = entry.getKey();
+			EddVertex vertice = entry.getValue();
 			Integer node = vertice.getNode();
 			String question = vertice.getQuestion();
 			
@@ -512,8 +516,7 @@ public class EDDHelper {
 			}
 		}
 		
-		List<EddEdge> edges = edgesMap;
-		for (EddEdge edge : edges) {
+		for (EddEdge edge : edgesMap) {
 			int from = edge.getFrom();
 			int to = edge.getTo();
 			
@@ -605,6 +608,7 @@ public class EDDHelper {
 				
 				Map<Integer, Node> nodesMap = new HashMap<Integer, Node>();
 				for (Entry<Integer, EddVertex> entry : vertexesMap.entrySet()) {
+					Integer key = entry.getKey();
 					EddVertex vertice = entry.getValue();
 					Node node = Ed2Factory.eINSTANCE.createNode();
 					int index = vertice.getNode();
@@ -626,7 +630,8 @@ public class EDDHelper {
 					source.getNodes().add(target);
 				}
 				
-				int root = edges.size();
+//				int root = edges.size();
+				int root = nodesMap.size();
 				EList<TreeElement> elements = ed2.getTreeElements();
 				elements.add(nodesMap.get(root));
 				

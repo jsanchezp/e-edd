@@ -45,22 +45,27 @@ import es.ucm.fdi.edd.ui.Activator;
 public class GraphvizView extends ViewPart implements IResourceChangeListener, IPartListener2, ISelectionListener {
 	
 	public final static String VIEW_ID = "es.ucm.fdi.edd.ui.views.GraphvizView";
+	
+	private static final String SANDBOX = "es.ucm.fdi.edd.sandbox";
+	private static final String SAMPLE_FILE = "graphviz/Sample.dot";
+	private static final String SAMPLE_URI = "platform:/plugin/es.ucm.fdi.edd.sandbox/graphviz/Sample.dot";
 
 	private static final String EDD_PROJECT = "E-EDD";
-//	private static final String SAMPLE_URI = "platform:/plugin/es.ucm.fdi.edd.graphiti/diagram/Sample.dot";
+	
 	
 	private GraphicalViewer viewer;
 	private String basePartName;
 	private IFile selectedFile;
 	private IProviderDescription providerDefinition;
 	
-	private boolean isLinkedActive = false;
+	private boolean isLinkedActive;
 
 	/**
 	 * The constructor.
 	 */
 	public GraphvizView() {
 		super();
+		isLinkedActive = false;
 	}
 
 	/**
@@ -79,8 +84,8 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	}
 	
 	private void initialize() {
-		Bundle bundle = Platform.getBundle("es.ucm.fdi.edd.graphiti");
-		URL fileURL = bundle.getEntry("diagram/Sample.dot");
+		Bundle bundle = Platform.getBundle(SANDBOX);
+		URL fileURL = bundle.getEntry(SAMPLE_FILE);
 		File file = null;
 		try {
 		    file = new File(FileLocator.resolve(fileURL).toURI());
@@ -89,9 +94,17 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 		} catch (IOException e) {
 		    e.printStackTrace();
 		}
-		
-		file = new File("D:/workspace/runtime-tests/E-EDD/tmp/ackermann.dot");
+				
+		updateGraphContent(file);
+	}
+
+	public void updateGraphContent(File file) {
 		IFile iFile = createIFile(file);
+		selectedFile = iFile;
+		requestUpdate();
+	}
+	
+	public void updateGraphContent(IFile iFile) {
 		selectedFile = iFile;
 		requestUpdate();
 	}
@@ -236,8 +249,18 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	private void reload(IFile file) {
 		setPartName(basePartName);
 		this.providerDefinition = null;
+		if (file !=null && file.isLinked()) {
+			System.out.println("Linked: " + file);
+		}
 		if (file == null || !file.exists())
 			return;
+		
+		try {
+			file.refreshLocal(IResource.DEPTH_ZERO, null);
+		} catch (CoreException e) {
+			e.printStackTrace();
+		}
+		
 		selectedFile = null;
 		if (viewer.getContentProvider() != null)
 			// to avoid one provider trying to interpret an incompatible input
@@ -269,9 +292,10 @@ public class GraphvizView extends ViewPart implements IResourceChangeListener, I
 	public void requestUpdate() {
 		Display.getDefault().asyncExec(new Runnable() {
 			public void run() {
-				if (getSite() == null || !GraphvizView.this.getSite().getPage().isPartVisible(GraphvizView.this))
+				if (getSite() == null || !GraphvizView.this.getSite().getPage().isPartVisible(GraphvizView.this)) {
 					// don't do anything if we are not showing
 					return;
+				}
 				reload(selectedFile);
 			}
 		});

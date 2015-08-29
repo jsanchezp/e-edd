@@ -388,32 +388,37 @@
                disabledIcon="icons/resume_co_disable.gif"
                icon="icons/resume_co.gif"
                label="Start"
-               style="push">
+               style="push"
+               tooltip="Start debugging">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugBack"
                icon="icons/prev.gif"
                label="Back"
-               style="push">
+               style="push"
+               tooltip="Go to previous question">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugNext"
                icon="icons/next.gif"
                label="Next"
-               style="push">
+               style="push"
+               tooltip="Go to next question">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugFinish"
                icon="icons/validate.gif"
-               label="Finish"
-               style="push">
+               label="Review"
+               style="push"
+               tooltip="Go to current question">
          </command>
          <command
                commandId="es.ucm.fdi.edd.ui.commands.debugCancel"
                disabledIcon="icons/stop_disable.gif"
                icon="icons/stop.gif"
                label="Cancel"
-               style="push">
+               style="push"
+               tooltip="Stop debugging">
          </command>
       </menuContribution>
       <menuContribution

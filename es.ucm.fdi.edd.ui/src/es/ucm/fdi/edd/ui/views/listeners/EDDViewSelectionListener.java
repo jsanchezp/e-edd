@@ -50,11 +50,11 @@ public class EDDViewSelectionListener implements ISelectionListener {
 	public void showSelection(IWorkbenchPart sourcepart, ISelection selection) {
 		if (view instanceof EDDebugView) {
 			EDDebugView edDebugView = (EDDebugView) view;
-			edDebugView.setContentDescription(sourcepart.getClass().getSimpleName() + " (" + selection.getClass().getSimpleName() + " - " + selection +")");
+//			edDebugView.setContentDescription(sourcepart.getClass().getSimpleName() + " (" + selection.getClass().getSimpleName() + " - " + selection +")");
 		}
 		if (view instanceof EDDTreeView) {
 			EDDTreeView eddTreeView = (EDDTreeView) view;
-			eddTreeView.setContentDescription(sourcepart.getClass().getSimpleName() + " (" + selection.getClass().getSimpleName() + " - " + selection +")");
+//			eddTreeView.setContentDescription(sourcepart.getClass().getSimpleName() + " (" + selection.getClass().getSimpleName() + " - " + selection +")");
 		}
 //		view.setContentDescription(sourcepart.getTitle() + " (" + selection.getClass().getName() + ")");
 		
@@ -88,7 +88,7 @@ public class EDDViewSelectionListener implements ISelectionListener {
 			}
 			else if (object instanceof Integer) {
 				Integer index = (Integer) object;
-//				updateEDDTreeView(index);
+				updateEDDTreeView(index);
 			}
 		}
 		

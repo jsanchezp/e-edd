@@ -92,11 +92,14 @@ final class ErlangViewerFilter extends ViewerFilter {
 				IResource[] members;
 				members = iFolder.members();
 //				return members.length > 0;
+				boolean hasErlangFiles = false;
 				for (IResource iResource : members) {
 					String extension = iResource.getFileExtension();
-					return extension == null ? false : extension.equals(ERL);
+					if (extension != null && extension.equals(ERL)) {
+						hasErlangFiles = true;
+					}
 				}
-				return false;
+				return hasErlangFiles;
 			}
 
 			if (element instanceof IFile) {

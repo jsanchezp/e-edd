@@ -7,9 +7,11 @@ import org.eclipse.core.commands.AbstractHandler;
 import org.eclipse.core.commands.ExecutionEvent;
 import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.jface.dialogs.MessageDialog;
+import org.eclipse.ui.IViewPart;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import es.ucm.fdi.edd.ui.connection.ConnectionManager;
+import es.ucm.fdi.edd.ui.views.EDDebugView;
 
 public class FinishCommand extends AbstractHandler implements Observer {
 	
@@ -21,7 +23,15 @@ public class FinishCommand extends AbstractHandler implements Observer {
 
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
-		MessageDialog.openInformation(HandlerUtil.getActiveWorkbenchWindow(event).getShell(), "Finish", "Pressed finish button");
+//		MessageDialog.openInformation(HandlerUtil.getActiveWorkbenchWindow(event).getShell(), "Finish", "Pressed finish button");
+		IViewPart part = HandlerUtil.getActiveWorkbenchWindow(event).getActivePage().findView(EDDebugView.VIEW_ID);
+		if (part instanceof EDDebugView) {
+			EDDebugView view = (EDDebugView)part;
+			if (view.isQuestionPanelVisible()) {
+				view.goToCurrentQuestion();
+			}
+		}
+		
 		return null;
 	}
 

@@ -13,6 +13,7 @@ import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.handlers.HandlerUtil;
 
 import es.ucm.fdi.edd.ui.connection.ConnectionManager;
+import es.ucm.fdi.edd.ui.views.EDDTreeView;
 import es.ucm.fdi.edd.ui.views.EDDebugView;
 
 /**
@@ -47,12 +48,21 @@ public class StopDebugServer extends AbstractHandler implements Observer {
 				} else {
 					MessageDialog.openError(shell, "EDD - Error", "EDD server cannot be correctly disconnected...");
 				}
+				cleanEDDTreeView(activeWorkbenchWindow);
 			}
 		} catch (Exception e) {
 			e.printStackTrace();
 		}
 		
 		return null;
+	}
+
+	private void cleanEDDTreeView(IWorkbenchWindow activeWorkbenchWindow) {
+		IViewPart part = activeWorkbenchWindow.getActivePage().findView(EDDTreeView.ID);
+		if (part instanceof EDDTreeView) {
+			EDDTreeView view = (EDDTreeView)part;
+			view.cleanInput();
+		}
 	}
 
 	/* (non-Javadoc)

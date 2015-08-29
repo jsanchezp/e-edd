@@ -21,6 +21,9 @@ import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IPath;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.emf.common.util.BasicEList;
+import org.eclipse.emf.common.util.EList;
+import org.eclipse.emf.common.util.URI;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.bindings.keys.KeyStroke;
@@ -103,7 +106,11 @@ import es.ucm.fdi.edd.ui.dialogs.ErlangFileDialog;
 import es.ucm.fdi.edd.ui.emf2gv.StandaloneApp;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
+import es.ucm.fdi.emf.model.ed2.Leaf;
 import es.ucm.fdi.emf.model.ed2.Model;
+import es.ucm.fdi.emf.model.ed2.Node;
+import es.ucm.fdi.emf.model.ed2.TreeElement;
+import es.ucm.fdi.emf.model.ed2.TreeElementType;
 
 @SuppressWarnings("restriction")
 public class EDDebugView extends ViewPart {
@@ -127,6 +134,7 @@ public class EDDebugView extends ViewPart {
 	
 	private IFile debugFile;
 	private EDDHelper helper;
+	private Model emfModel;
 	
 	// the listener we register with the selection service 
 	private ISelectionListener listener;
@@ -733,9 +741,77 @@ public class EDDebugView extends ViewPart {
 				public void handleEvent(Event e) {
 					switch (e.type) {
 					case SWT.Selection:
+						updateDecorator(key);
 						waitForNextQuestionAndUpdate(key);
 						break;
 					}
+				}
+
+				private void updateDecorator(String key) {
+					if (emfModel != null) {
+						EList<TreeElement> treeElements = emfModel.getEd2().getTreeElements();
+						TreeElement node = findNode(treeElements, index);
+						if (node != null) {
+							switch (key) {
+								case "y":
+									node.setType(TreeElementType.YES);
+									break;
+								case "n":
+									node.setType(TreeElementType.NO);
+									break;
+								case "t":
+									node.setType(TreeElementType.TRUSTED);
+									break;
+								case "d":
+									node.setType(TreeElementType.DONT_KNOW);
+									break;
+								case "i":
+									node.setType(TreeElementType.INADMISSIBLE);
+									break;
+								
+								default:
+									node.setType(TreeElementType.EMPTY);
+									break;
+							}
+						}
+					}
+				}
+				
+				/**
+				 * @param list
+				 */
+				private TreeElement findNode(EList<TreeElement> list, int index) {
+					TreeElement searched = null;
+					if (list == null)
+						return searched;
+					for (TreeElement item : list) {
+						if (item instanceof Node) {
+							Node node = (Node) item;
+//							System.out.println("Node: " + node.getIndex() + " :: " + node.getName());
+							if (node.getIndex().equals(index)) {
+								return item;
+							}
+//							nodesContentList.put(node.getIndex(), node);
+							EList<Node> nodes = node.getNodes();
+							EList<Leaf> leaves = node.getLeaves();
+							EList<TreeElement> treeElementsList = new BasicEList<TreeElement>();
+							treeElementsList.addAll(nodes);
+							treeElementsList.addAll(leaves);
+							searched = findNode(treeElementsList, index);
+							if(searched != null ) {
+				                break;
+				            }
+						} else if (item instanceof Leaf) {
+							Leaf leaf = (Leaf) item;
+//							System.out.println("Leaf: " + leaf.getIndex() + " :: " + leaf.getName());
+							if (leaf.getIndex().equals(index)) {
+								return leaf;
+							}
+//							nodesContentList.put(leaf.getIndex(), leaf);
+						}
+					}
+					
+					return searched;
 				}
 			});
 		}
@@ -785,7 +861,7 @@ public class EDDebugView extends ViewPart {
 					
 					TimeUnit.MILLISECONDS.sleep(100);
 					int goToIndex = helper.getCurrentQuestion();
-					System.out.println("\t\t-->Q: " + goToIndex);
+//					System.out.println("\t\t-->Q: " + goToIndex);
 					updateSelection(goToIndex);
 					
 					Composite page = (Composite)pageBook.getCurrentPage();
@@ -920,6 +996,7 @@ public class EDDebugView extends ViewPart {
 					this.index = index;
 					pageBook.showPage(index);
 					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title"));
+					enableButtons();
 					
 					Composite page = (Composite)pageBook.getCurrentPage();
 					Control[] children = page.getChildren();
@@ -935,6 +1012,7 @@ public class EDDebugView extends ViewPart {
 					this.index = index;
 					pageBook.showPage(index);
 					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title") + " " + index + "/" + total );
+					enableButtons();
 					
 					// Forzar un changeListener()...
 					getSite().getSelectionProvider().setSelection(new StructuredSelection(index));
@@ -960,12 +1038,6 @@ public class EDDebugView extends ViewPart {
 						String dotContent = helper.buildDOT(false, index, false);
 						writeDotFile("", dotContent);
 					}
-					
-					IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
-					if (part instanceof GraphvizView) {
-						GraphvizView view = (GraphvizView) part;
-						view.requestUpdate();
-					}
 				}
 			} catch (IOException e) {
 				e.printStackTrace();
@@ -977,6 +1049,36 @@ public class EDDebugView extends ViewPart {
 		}
 	}
 	
+	private void enableButtons() throws EDDException {
+		Integer currentIndex = helper.getCurrentQuestion();
+		boolean enabled = index.equals(currentIndex);
+		
+		Control currentPage = pageBook.getCurrentPage();
+		Composite page = (Composite)currentPage;
+		Control[] children = page.getChildren();
+		for (Control control : children) {
+			if (control instanceof Composite) {
+				Composite composite  = (Composite)control;
+				Control[] layoutComposite = composite.getChildren();
+				for (Control child : layoutComposite) {
+					if (child instanceof Button) {
+						Button button = (Button) child;
+						button.setEnabled(enabled);
+						button.setVisible(enabled);
+					}	
+				}
+			}
+		}
+	}
+	
+	public void goToCurrentQuestion() {
+		try {
+			updateSelection(helper.getCurrentQuestion());
+		} catch (EDDException e) {
+			// ignore
+		}
+	}
+
 	private void selectAndReveal(String message, String questionUnformated, int clause, String file, int line, String m, String f, int a) {
 		try {
 			IFile erlFile = ResourcesPlugin.getWorkspace().getRoot().getFile(debugFile.getFullPath());
@@ -1157,7 +1259,7 @@ public class EDDebugView extends ViewPart {
 				sectionQuestion.setExpanded(true);
 				
 				int goToIndex = helper.getCurrentQuestion();
-				System.out.println("\t\tView ZQ: " + goToIndex);
+//				System.out.println("\t\tView ZQ: " + goToIndex);
 				updateSelection(goToIndex);
 				
 				writeJsonFile("_zoom");
@@ -1195,6 +1297,16 @@ public class EDDebugView extends ViewPart {
 		String dotFile = debugFile.getName().replace(".erl", suffix + ".dot");
 		IPath dotPath = new Path(eddFolder.getFullPath() + File.separator + dotFile);
 		helper.writeFile(dotContent , dotPath);
+		
+		IViewPart part = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().findView(GraphvizView.VIEW_ID);
+		if (part instanceof GraphvizView) {
+			GraphvizView view = (GraphvizView) part;
+			
+			IFile dotIFile = eddFolder.getFile(dotFile);
+			if (dotFile != null ) {
+				view.updateGraphContent(dotIFile);
+			}
+		}
 	}
 	
 	private void writeDiagramFiles(String suffix) throws EDDException {
@@ -1211,8 +1323,8 @@ public class EDDebugView extends ViewPart {
 		if (part instanceof EDDTreeView) {
 			EDDTreeView view = (EDDTreeView) part;
 			boolean isZoom = suffix != null && suffix.contains("zoom") ? true : false;
-			Model model = helper.buildEMF(isZoom, modelName, ed2Path, ed2DiagramPath);
-			view.updateContent(model);
+			emfModel = helper.buildEMF(isZoom, modelName, ed2Path, ed2DiagramPath);
+			view.updateContent(emfModel);
 		}
 	}
 	
@@ -1226,8 +1338,10 @@ public class EDDebugView extends ViewPart {
 		IFile model = eddFolder.getFile(ed2Filename);
 		
 		if (model.exists() && model.isAccessible()) {
-			String modelPath = model.getLocation().toPortableString();
-			StandaloneApp app = new StandaloneApp(modelPath, workDirectory, graphFilename);
+			String modelPath = model.getFullPath().toPortableString();
+			
+			URI modelURI = URI.createPlatformResourceURI(modelPath, true);
+			StandaloneApp app = new StandaloneApp(modelURI, workDirectory, graphFilename);
 			app.execute();
 		}
 		else {
