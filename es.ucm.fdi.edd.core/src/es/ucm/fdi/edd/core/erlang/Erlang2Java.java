@@ -21,6 +21,7 @@ public class Erlang2Java {
 	
 	private ErlangClient erlangClient;
 	private ErlangServer erlangServer;
+	private String eddInitialPath;
 	
 	/**
 	 * @param args
@@ -36,7 +37,7 @@ public class Erlang2Java {
 			case 2: {
 				String buggyCall = args[0];
 				String location = args[1];
-				Erlang2Java main = new Erlang2Java();
+				Erlang2Java main = new Erlang2Java(ErlangServer.WORKING_DIRECTORY);
 				main.initialize(buggyCall, location);
 				
 				try {
@@ -52,7 +53,7 @@ public class Erlang2Java {
 						System.out.println("=============== START [" + i + "]===============\n");
 						TimeUnit.SECONDS.sleep(5);
 						main = null;
-						main = new Erlang2Java();
+						main = new Erlang2Java(ErlangServer.WORKING_DIRECTORY);
 						main.initialize(buggyCall, location);
 						TimeUnit.SECONDS.sleep(5);
 						main.stopServer();	
@@ -72,8 +73,8 @@ public class Erlang2Java {
 		}
 	}
 	
-	public Erlang2Java() {
-		//
+	public Erlang2Java(String eddPath) {
+		eddInitialPath = eddPath;
 	}
 	
 	/**
@@ -95,7 +96,7 @@ public class Erlang2Java {
 			erlangClient = new ErlangClient(startSignal, doneSignal, buggyCall, location, node);
 			Thread erlClient = new Thread(erlangClient, THREAD_CLIENT_NAME);
 			
-			erlangServer = new ErlangServer(startSignal, doneSignal);
+			erlangServer = new ErlangServer(startSignal, doneSignal, eddInitialPath);
 			Thread erlServer = new Thread(erlangServer, THREAD_SERVER_NAME);
 			
 			erlClient.start();

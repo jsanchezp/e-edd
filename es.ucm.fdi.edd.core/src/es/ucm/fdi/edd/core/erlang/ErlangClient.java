@@ -505,8 +505,8 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 	 * 			The message.
 	 */
 	private void sendMessage(OtpErlangPid pidSender, OtpErlangObject[] message) {
-		System.out.println("--> SEND message [" + pidSender + "]: " + message);
 		OtpErlangTuple tuple = new OtpErlangTuple(message);
+		System.out.println("--> SEND message [" + pidSender + "]: " + tuple.toString());
 		mailbox.send(pidSender, tuple);
 	}
 	

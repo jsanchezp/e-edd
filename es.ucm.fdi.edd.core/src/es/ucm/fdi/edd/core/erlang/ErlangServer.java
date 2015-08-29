@@ -23,8 +23,13 @@ import es.ucm.fdi.edd.core.exception.EDDException;
 public class ErlangServer implements Runnable, AutoCloseable, Observer {
 
 	/** The working directory (Must contain the 'edd_jserver.beam' file). */
-	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd/ebin";
+//	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd/ebin";
+//	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd";
+	public static final String WORKING_DIRECTORY = "D:/workspace/runtime-tests/EDD/ebin";
+	
 	/** The 'edd_jserver.beam' filename. */
+	private static final String EDD_COMP_SRC_FILE = "edd_comp.erl";
+	private static final String EDD_COMP_BIN_FILE = "edd_comp.beam";
 	private static final String JSERVER_FILE = "edd_jserver.beam";
 
 	public static final String NODE = "edderlang@localhost";
@@ -42,15 +47,18 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 	
 	private final CountDownLatch startSignal;
 	private final CountDownLatch doneSignal;
+	private final String eddInitialPath;
 
 	/**
 	 * @param doneSignal
+	 * @param eddInitialPath 
 	 */
-	public ErlangServer(CountDownLatch startSignal, CountDownLatch doneSignal) {
+	public ErlangServer(CountDownLatch startSignal, CountDownLatch doneSignal, String eddInitialPath) {
 		ErlConnectionManager.getInstance().addObserver(this); 
 		
 		this.startSignal = startSignal;
 		this.doneSignal = doneSignal;
+		this.eddInitialPath = eddInitialPath;
 
 		shutdownHook();
 		exitCode = -1;
@@ -98,12 +106,15 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 			// processBuilder.redirectErrorStream(true);
 			// processBuilder.redirectError(Redirect.INHERIT);
 			// processBuilder.redirectOutput(Redirect.INHERIT);
-			processBuilder.directory(new File(WORKING_DIRECTORY));
+			processBuilder.directory(new File(eddInitialPath + "/ebin"));
 			File workDir = processBuilder.directory();
-			boolean check = new File(workDir, JSERVER_FILE).exists();
-			if (check) {
+			boolean check1 = new File(eddInitialPath, EDD_COMP_SRC_FILE).exists();
+			boolean check2 = new File(eddInitialPath, EDD_COMP_BIN_FILE).exists();
+			boolean check3 = new File(workDir, JSERVER_FILE).exists();
+			if (check1 && check2 && check3) {
 				System.out.println("Working directory: " + workDir);
 			} else {
+				System.err.println(String.format("edd_comp.erl: %b, edd_comp.beam: %b, edd_jserver.beam: %b", check1, check2, check3));
 				throw new EDDException(
 						"The working directory must contain the 'edd_jserver.beam' file");
 			}
@@ -171,9 +182,11 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 			e.printStackTrace();
 		} finally {
 			try {
-				process.destroy();
-				process.destroyForcibly();
-				process = null;
+				if (process != null) {
+					process.destroy();
+					process.destroyForcibly();
+					process = null;
+				}
 			} catch (Exception e) {
 				e.printStackTrace();
 			}
