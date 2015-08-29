@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.eclipse.draw2d.IFigure;
 import org.eclipse.draw2d.Label;
+import org.eclipse.draw2d.geometry.Dimension;
 import org.eclipse.draw2d.geometry.Point;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.ecore.EObject;
@@ -106,10 +107,15 @@ public class NodeNameEditPart extends CompartmentEditPart implements
 	}
 
 	/**
-	 * @generated
+	 * @generated NOT
 	 */
 	protected String getLabelTextHelper(IFigure figure) {
 		if (figure instanceof WrappingLabel) {
+			//FIXME Multiline...
+			WrappingLabel wl = (WrappingLabel) figure;
+			wl.setTextWrap(true); 
+			wl.setMinimumSize(new Dimension());
+			wl.setPreferredSize(new Dimension());
 			return ((WrappingLabel) figure).getText();
 		} else if (figure instanceof Label) {
 			return ((Label) figure).getText();
