@@ -35,23 +35,27 @@ import es.ucm.fdi.edd.core.erlang.model.ZoomDebugTree;
  */
 public class ErlangClient implements Runnable, AutoCloseable, Observer {
 	
+//	private static final Logger log = Logger.getLogger(ErlangClient.class.getName());
+	
 	public static final int UNKNOWN_CURRENT_QUESTION_INDEX = -100;
 
 	/** The Erlang/OTP mailbox. */
 	private static final String MAILBOX = "edd";
 	
+	private static final int recTime = 2000;
+	
 	private String buggyCall;
 	private String location;
 	private OtpNode node;
 	private OtpMbox mailbox;
-	
+	 
 	private OtpErlangPid pidServer;
 	private OtpErlangObject erlState;
 	
 	private EddModel eddModel;
 	private boolean firstTime;
 	
-	private volatile boolean stop = false;
+	private volatile boolean stopFlag = false;
 	
 	private final CountDownLatch startSignal;
 	private final CountDownLatch doneSignal;
@@ -83,34 +87,38 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 		firstTime = true;
 	}
 
-	/* (non-Javadoc)
+	/**
 	 * @see java.lang.Runnable#run()
 	 */
 	@Override
 	public void run() {
 		System.out.println("Erlang EDD server running...");
-		while (!stop) {
+		while (!stopFlag) {
 			try {
-				OtpErlangObject message = mailbox.receive();
-				System.out.println("<-- RECEIVED message: " + message);
-				if (message instanceof OtpErlangTuple) {
-					OtpErlangTuple tuple = (OtpErlangTuple) message;
-					int arity = tuple.arity();
-					if (tuple.elementAt(0) instanceof OtpErlangAtom) {
-						OtpErlangAtom command = (OtpErlangAtom) tuple.elementAt(0);
-						switch (arity) {
-							case 2:
-								processMessage(command, tuple.elementAt(1));
-								break;
-							case 3:
-								processMessage(command, tuple.elementAt(1), tuple.elementAt(2));
-								break;
-							case 4:
-								processMessage(command, tuple.elementAt(1), tuple.elementAt(2), tuple.elementAt(3));
-								break;
-								
-							default:
-								break;
+				if (ErlConnectionManager.getInstance().isServerConnected()) {
+					OtpErlangObject message = mailbox.receive(recTime);
+					if (message != null) {
+						System.out.println("<-- RECEIVED message: " + message);
+					}
+					if (message instanceof OtpErlangTuple) {
+						OtpErlangTuple tuple = (OtpErlangTuple) message;
+						int arity = tuple.arity();
+						if (tuple.elementAt(0) instanceof OtpErlangAtom) {
+							OtpErlangAtom command = (OtpErlangAtom) tuple.elementAt(0);
+							switch (arity) {
+								case 2:
+									processMessage(command, tuple.elementAt(1));
+									break;
+								case 3:
+									processMessage(command, tuple.elementAt(1), tuple.elementAt(2));
+									break;
+								case 4:
+									processMessage(command, tuple.elementAt(1), tuple.elementAt(2), tuple.elementAt(3));
+									break;
+									
+								default:
+									break;
+							}
 						}
 					}
 				}
@@ -127,7 +135,8 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 		}
 		node.close();
 		mailbox.close();
-		System.err.println("\t--> Client closed!");
+		ErlConnectionManager.getInstance().clientDisconnect();
+		System.out.println("\n\t--> Client closed! *******************************************************");
 	}
 
 	/**
@@ -146,7 +155,7 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 		switch(key) {
 			case "ready": {
 				proccessReady(command, args[0]);
-	    		System.err.println("\t--> " + Thread.currentThread().getName() + " is Up");
+	    		System.out.println("\n\t--> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + Thread.currentThread().getName() + " is Up\n");
 	    		ErlConnectionManager.getInstance().clientConnect();
 	    		doneSignal.countDown(); //reduce count of CountDownLatch by 1
 				break;
@@ -201,10 +210,9 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 	}
 
 	/**
-	 * 
+	 * Send reply with buggy call and its location
 	 */
 	private void sendBuggyCall() {
-		// Send reply with buggy call and its location
 		OtpErlangObject[] reply = new OtpErlangObject[4];
 		reply[0] = new OtpErlangAtom("buggy_call");
 		reply[1] = new OtpErlangString(buggyCall);
@@ -319,7 +327,7 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 			eddModel.setAnswerList(answersList);
 			
 			if (stateTuple.arity() == 4) {
-				//FIXME Clear the buggy_node
+				// Clear the buggy_node
 				eddModel.setBuggyNodeIndex(-1);
 				eddModel.setBuggyErrorCall(null);
 				
@@ -352,7 +360,7 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 			eddModel.setAnswerList(answersList);
 			
 			if (stateTuple.arity() == 4) {
-				//FIXME Clear the buggy_node
+				// Clear the buggy_node
 				eddModel.setBuggyNodeIndex(-1);
 				eddModel.setBuggyErrorCall(null);
 				
@@ -381,13 +389,12 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 		OtpErlangObject[]  reply = new OtpErlangObject[2];
 		reply[0] = new OtpErlangAtom("answer");
 		reply[1] = new OtpErlangAtom(response);
-//		sendMessage(mailbox.self(), reply);
 		if (eddModel.getBuggyNodeIndex() == null || eddModel.getBuggyNodeIndex() == -1) {
 			sendMessage(pidServer, reply);
 			if (response.equals("a")) {
 				System.out.println("Abortar...");
 				try {
-					// TODO Auto-generated catch block
+					// FIXME ¿Debería cerrar el cliente...?
 					close();
 				} catch (Exception e) {
 					e.printStackTrace();
@@ -552,14 +559,12 @@ public class ErlangClient implements Runnable, AutoCloseable, Observer {
 	
 	@Override
 	public void close() throws Exception {
-		stop = true;
-		ErlConnectionManager.getInstance().clientDisconnect();
+		stopFlag = true;
 	}
 
 	@Override
 	public void update(Observable o, Object arg) {
-		// TODO Auto-generated method stub
 		ErlConnectionManager connectionManager = (ErlConnectionManager) o;
-		System.err.println(String.format("\tClient: %s, Server: %s", connectionManager.isClientConnected(), connectionManager.isServerConnected()));
+//		System.err.println(String.format("\tClient: %s, Server: %s", connectionManager.isClientConnected(), connectionManager.isServerConnected()));
 	}
 }

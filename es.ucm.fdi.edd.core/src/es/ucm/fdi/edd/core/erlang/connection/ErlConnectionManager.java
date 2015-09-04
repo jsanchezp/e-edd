@@ -6,26 +6,29 @@ import java.util.Observable;
  * The {@link ErlConnectionManager} will notify its subscribers upon connection/disconnection.
  */
 public class ErlConnectionManager extends Observable {
-
+	
 	private boolean clientConnected;
 	private boolean serverConnected;
 
+	/** Create the singleton. */
 	private static final ErlConnectionManager instance = new ErlConnectionManager();
 
 	/**
-	 * 
+	 * Private constructor
 	 */
 	private ErlConnectionManager() {
 		// empty
 	}
 
 	/**
+	 * Get the only object available.
+	 * 
 	 * @return
 	 */
 	public static ErlConnectionManager getInstance() {
 		return instance;
 	}
-
+	
 	/**
 	 * @return
 	 */
@@ -38,6 +41,13 @@ public class ErlConnectionManager extends Observable {
 	 */
 	public boolean isServerConnected() {
 		return serverConnected;
+	}
+	
+	/**
+	 * @return
+	 */
+	public boolean areBothConnected() {
+		return serverConnected & clientConnected;
 	}
 
 	/**

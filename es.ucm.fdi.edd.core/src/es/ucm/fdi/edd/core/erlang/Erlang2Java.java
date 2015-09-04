@@ -1,23 +1,31 @@
 package es.ucm.fdi.edd.core.erlang;
 
 import java.io.IOException;
+import java.util.Observable;
+import java.util.Observer;
 import java.util.concurrent.CountDownLatch;
 import java.util.concurrent.TimeUnit;
 
 import com.ericsson.otp.erlang.OtpNode;
 
+import es.ucm.fdi.edd.core.erlang.connection.ErlConnectionManager;
 import es.ucm.fdi.edd.core.erlang.model.EddModel;
 
 /**
  * Erlang to Java communication. 
  */
-public class Erlang2Java {
+public class Erlang2Java implements Observer {
+	
+//	private static final Logger log = Logger.getLogger(Erlang2Java.class.getName());
 
 	public static final String NODE = "eddjava@localhost";
 	public static final String COOKIE = "erlide";
 	
 	private static final String THREAD_CLIENT_NAME = "EDD-Client";
 	private static final String THREAD_SERVER_NAME = "EDD-Server";
+	
+	private Thread clientThread;
+	private Thread serverThread;
 	
 	private ErlangClient erlangClient;
 	private ErlangServer erlangServer;
@@ -73,7 +81,13 @@ public class Erlang2Java {
 		}
 	}
 	
+	/**
+	 * Constructor 
+	 * 
+	 * @param eddPath
+	 */
 	public Erlang2Java(String eddPath) {
+		ErlConnectionManager.getInstance().addObserver(this);
 		eddInitialPath = eddPath;
 	}
 	
@@ -87,6 +101,8 @@ public class Erlang2Java {
 	 */
 	public void initialize(String buggyCall, String location) {
 		try {
+			verifyConnection();
+			
 			OtpNode node = new OtpNode(NODE);
 			node.setCookie(COOKIE);
 			
@@ -94,17 +110,17 @@ public class Erlang2Java {
 			final CountDownLatch doneSignal = new CountDownLatch(2);
 			
 			erlangClient = new ErlangClient(startSignal, doneSignal, buggyCall, location, node);
-			Thread erlClient = new Thread(erlangClient, THREAD_CLIENT_NAME);
+			clientThread = new Thread(erlangClient, THREAD_CLIENT_NAME);
 			
 			erlangServer = new ErlangServer(startSignal, doneSignal, eddInitialPath);
-			Thread erlServer = new Thread(erlangServer, THREAD_SERVER_NAME);
+			serverThread = new Thread(erlangServer, THREAD_SERVER_NAME);
 			
-			erlClient.start();
-			erlServer.start();
+			clientThread.start();
+			serverThread.start();
 					
 			// main thread is waiting on CountDownLatch to finish
 			doneSignal.await(); 
-			System.err.println("\t--> All services are up, Application is starting now");
+			System.out.println("\n\t--> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> All services are up, Application is starting now\n");
 			
 //			erlClient.join();
 //			erlServer.join();
@@ -113,6 +129,34 @@ public class Erlang2Java {
 			System.out.println("No se puede iniciar nodo. Has arrancado epmd?");
 			e.printStackTrace();
 		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+	}
+
+	private void verifyConnection() {
+		if (ErlConnectionManager.getInstance().isServerConnected() || ErlConnectionManager.getInstance().isClientConnected()) {
+			try {
+				System.out.println("Verificar conexión...");
+				stopServer();
+			} catch (Exception e) {
+				e.printStackTrace();
+			}
+		}
+	}
+	
+	@Override
+	public void update(Observable o, Object arg) {
+		try {
+			ErlConnectionManager connectionManager = (ErlConnectionManager) o;
+			boolean clientConnected = connectionManager.isClientConnected();
+			boolean serverConnected = connectionManager.isServerConnected();
+			if (connectionManager.areBothConnected()) {
+//				log.info(String.format("\tClient: %s, Server: %s", clientConnected, serverConnected));
+			} 
+			else {
+//				log.info(String.format("\tSOMEONE IS DISCONNECTED -> Client: %s, Server: %s", clientConnected, serverConnected));
+			}
+		} catch (Exception e) {
 			e.printStackTrace();
 		}
 	}
@@ -125,6 +169,17 @@ public class Erlang2Java {
 	public void stopServer() throws Exception {
 		erlangClient.stopClient();
 		erlangServer.stopServer();
+	}
+
+	private void interruptWhenIsAlive() {
+		if (clientThread.isAlive()) {
+			System.out.println("KILL: Client");
+			clientThread.interrupt();
+		}
+		if (serverThread.isAlive()) {
+			serverThread.interrupt();
+			System.out.println("KILL: Server");
+		}
 	}
 	
 	/**

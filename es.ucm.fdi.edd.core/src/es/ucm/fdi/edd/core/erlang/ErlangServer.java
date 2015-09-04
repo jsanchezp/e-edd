@@ -21,11 +21,13 @@ import es.ucm.fdi.edd.core.exception.EDDException;
  * EDD server.
  */
 public class ErlangServer implements Runnable, AutoCloseable, Observer {
+	
+//	private static final Logger log = Logger.getLogger(ErlangServer.class.getName());
 
 	/** The working directory (Must contain the 'edd_jserver.beam' file). */
 //	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd/ebin";
 //	private static final String WORKING_DIRECTORY = "D:/workspace/git/edd";
-	public static final String WORKING_DIRECTORY = "D:/workspace/runtime-tests/EDD/ebin";
+	public static final String WORKING_DIRECTORY = "D:/workspace/runtime-tests/EDD";
 	
 	/** The 'edd_jserver.beam' filename. */
 	private static final String EDD_COMP_SRC_FILE = "edd_comp.erl";
@@ -134,10 +136,10 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 			process = processBuilder.inheritIO().start();
 
 			System.out.printf("Output of running %s is:\n", Arrays.toString(commands));
-			System.out.println("Echo process input:\n");
+//			System.out.println("Echo process input:\n");
 			IOThreadHandler inputHandler = new IOThreadHandler(process.getInputStream(), new CountDownLatch(1));
 			inputHandler.start();
-			System.out.println("Echo process error:\n");
+//			System.out.println("Echo process error:\n");
 			IOThreadHandler errorHandler = new IOThreadHandler(process.getErrorStream(), new CountDownLatch(1));
 			errorHandler.start();
 
@@ -152,7 +154,7 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 			// System.out.println("Echo process error:\n" +
 			// input(process.getErrorStream()));
 
-			System.err.println("\t--> " + Thread.currentThread().getName() + " is Up");
+			System.out.println("\n\t--> >>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>> " + Thread.currentThread().getName() + " is Up\n");
 			ErlConnectionManager.getInstance().serverConnect();
 			startSignal.countDown();
 			doneSignal.countDown(); // reduce count of CountDownLatch by 1
@@ -172,8 +174,8 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 			// Wait to get exit value
 			exitCode = process.waitFor();
 			System.out.println("Echo command executed, any errors? " + (exitCode == 0 ? "No" : "Yes"));
-			System.err.println("INPUT HANDLER: " + inputHandler.getOutput());
-			System.err.println("OUTPUT HANDLER: " + errorHandler.getOutput());
+//			System.out.println("INPUT HANDLER: " + inputHandler.getOutput());
+//			System.out.println("OUTPUT HANDLER: " + errorHandler.getOutput());
 		} catch (InterruptedException e) {
 			System.out.println("The process has been interrupted");
 			e.printStackTrace();
@@ -245,8 +247,9 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 		} catch (EDDException e) {
 			System.out.println("Can't load erlang module.\n" + e.getMessage());
 			e.printStackTrace();
-		}
-		System.err.println("\t--> Server closed!");
+		} 
+		ErlConnectionManager.getInstance().serverDisconnect();
+		System.out.println("\n\t--> Server closed! *******************************************************");
 	}
 
 
@@ -269,7 +272,6 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 		} else {
 			System.err.println("El nodo '" + NODE + "' no esta en ejecución");
 		}
-		ErlConnectionManager.getInstance().serverDisconnect();
 	}
 
 	protected static void printFile(File file) {
@@ -300,6 +302,6 @@ public class ErlangServer implements Runnable, AutoCloseable, Observer {
 	public void update(Observable o, Object arg) {
 		// TODO Auto-generated method stub
 		ErlConnectionManager connectionManager = (ErlConnectionManager) o;
-		System.err.println(String.format("\tClient: %s, Server: %s", connectionManager.isClientConnected(), connectionManager.isServerConnected()));
+//		System.err.println(String.format("\tClient: %s, Server: %s", connectionManager.isClientConnected(), connectionManager.isServerConnected()));
 	}
 }
