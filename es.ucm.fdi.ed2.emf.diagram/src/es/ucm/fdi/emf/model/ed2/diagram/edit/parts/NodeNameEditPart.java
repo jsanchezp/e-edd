@@ -113,7 +113,7 @@ public class NodeNameEditPart extends CompartmentEditPart implements
 		if (figure instanceof WrappingLabel) {
 			//FIXME Multiline...
 			WrappingLabel wl = (WrappingLabel) figure;
-			wl.setTextWrap(true); 
+			wl.setTextWrap(true);
 			wl.setMinimumSize(new Dimension());
 			wl.setPreferredSize(new Dimension());
 			return ((WrappingLabel) figure).getText();

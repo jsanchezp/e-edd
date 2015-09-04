@@ -91,8 +91,7 @@
           className="NodeFigure"
           classBody="&#xA;/**&#xA; * @generated&#xA; */&#xA;public class NodeFigure extends org.eclipse.draw2d.RectangleFigure {&#xA;&#xA;&#xA;&#x9;/**&#xA;&#x9; * @generated&#xA;&#x9; */&#xA;&#x9;private org.eclipse.gmf.runtime.draw2d.ui.figures.WrappingLabel fFigureNodeNameFigure; &#xA;&#xA;&#xA;&#xA;&#xA;&#x9;/**&#xA;&#x9; * @generated&#xA;&#x9; */&#xA;&#x9;public NodeFigure() {&#xA;&#x9;&#x9;&#xA;&#x9;org.eclipse.draw2d.FlowLayout layoutThis = new org.eclipse.draw2d.FlowLayout();&#xA;&#x9;layoutThis.setStretchMinorAxis(false);&#xA;&#x9;layoutThis.setMinorAlignment(org.eclipse.draw2d.FlowLayout.ALIGN_LEFTTOP&#xA;);&#xA;&#xA;&#x9;layoutThis.setMajorAlignment(org.eclipse.draw2d.FlowLayout.ALIGN_LEFTTOP&#xA;);&#xA;&#x9;layoutThis.setMajorSpacing(5);&#xA;&#x9;layoutThis.setMinorSpacing(5);&#xA;&#x9;layoutThis.setHorizontal(true);&#xA;&#xA;&#x9;this.setLayoutManager(layoutThis);&#xA;&#xA;&#x9;&#x9;&#x9;this.setBackgroundColor(org.eclipse.draw2d.ColorConstants.yellow);&#xA;&#x9;&#x9;createContents();&#xA;&#x9;}&#xA;&#x9;/**&#xA;&#x9; * @generated&#xA;&#x9; */&#xA;&#x9;private void createContents(){&#xA;&#xA;&#xA;fFigureNodeNameFigure = new org.eclipse.gmf.runtime.draw2d.ui.figures.WrappingLabel();&#xA;&#xA;fFigureNodeNameFigure.setText(&quot;&lt;...>&quot;);&#xA;&#xA;this.add(fFigureNodeNameFigure);&#xA;&#xA;&#xA;&#x9;}&#xA;&#xA;&#xA;&#xA;&#xA;&#xA;&#x9;/**&#xA;&#x9; * @generated&#xA;&#x9; */&#xA;&#x9;public org.eclipse.gmf.runtime.draw2d.ui.figures.WrappingLabel getFigureNodeNameFigure() {&#xA;&#x9;&#x9;return fFigureNodeNameFigure;&#xA;&#x9;}&#xA;&#xA;&#xA;}&#xA;&#xA;">
         <attributes
-            xsi:type="gmfgen:StyleAttributes"
-            fixedBackground="true"/>
+            xsi:type="gmfgen:StyleAttributes"/>
       </viewmap>
       <modelFacet>
         <metaClass
