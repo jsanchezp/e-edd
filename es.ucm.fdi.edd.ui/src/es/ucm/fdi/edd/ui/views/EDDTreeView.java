@@ -171,12 +171,15 @@ public class EDDTreeView extends ViewPart implements IAdaptable {
 	 * @param model
 	 */
 	public void updateContent(Model model) {
-		if (viewer != null) {
+		if (viewer != null && model != null) {
 			viewer.setInput(model);
 			viewer.expandAll();
 			
 			nodesContentList.clear();
-			walk(model.getEd2().getTreeElements());
+			ED2 ed2 = model.getEd2();
+			if (ed2 != null) {
+				walk(ed2.getTreeElements());
+			}
 		}
 	}
 	

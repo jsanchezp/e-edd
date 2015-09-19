@@ -83,6 +83,7 @@ import es.ucm.fdi.emf.model.ed2.Leaf;
 import es.ucm.fdi.emf.model.ed2.Model;
 import es.ucm.fdi.emf.model.ed2.Node;
 import es.ucm.fdi.emf.model.ed2.TreeElement;
+import es.ucm.fdi.emf.model.ed2.TreeElementType;
 import es.ucm.fdi.emf.model.ed2.diagram.edit.parts.ModelEditPart;
 import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorPlugin;
 import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditorUtil;
@@ -399,6 +400,12 @@ public class EDDHelper {
 		return eddModel.getBuggyErrorCall();
 	}
 	
+	public EddState getState() throws EDDException {
+		validateEddModel();
+		
+		return eddModel.getState();
+	}
+	
 	public LinkedHashMap<String, String> getZoomAnswers() {
 		try {
 			validateEddModel();
@@ -408,6 +415,21 @@ public class EDDHelper {
 		
 		LinkedList<String> answerList = eddModel.getAnswerList();
 		if (answerList != null) {
+			
+			LinkedList<String> answerListTmp = new LinkedList<String>();
+			for (String key : new LinkedList<String>(answerList)) {
+				try {
+					Integer.parseInt(key);
+					answerList.remove(key);
+					answerListTmp.add(key);
+				}
+				catch (NumberFormatException e) {
+					// continue
+				}
+			}
+			Collections.sort(answerListTmp);
+			answerList.addAll(0, answerListTmp);
+			
 			LinkedHashMap<String, String> answersMap = new LinkedHashMap<String, String>();
 			for (String key : answerList) {
 				switch (key) {
@@ -499,13 +521,12 @@ public class EDDHelper {
 			Integer node = vertice.getNode();
 			String question = vertice.getQuestion();
 			
-//			if (highlightNode !=null && node == highlightNode) {
-//				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];");
-//			}
-			
+			if (highlightNode !=null && node == highlightNode) {
+				gv.addln(node + " [label=\"" + node + ". " + question + "\", shape=rectangle, style=filled, fillcolor=\"#C0C0FF\"];");
+			}
 			/*if (vertexList.contains(node)) {
 				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];");
-			} else*/ if (correctList.contains(node)) {
+			}*/ else if (correctList.contains(node)) {
 				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#80FF80\"];"); // Verde
 			} else if (notCorrectList.contains(node)) {
 				gv.addln(node + " [label=\"" + node + ". " + question + "\", style=filled, fillcolor=\"#ED1C3A\"];"); // Rojo
@@ -520,13 +541,12 @@ public class EDDHelper {
 			int from = edge.getFrom();
 			int to = edge.getTo();
 			
-//			if (highlightNode !=null && from == highlightNode) {
-//				gv.addln(from + " -> "+ to + " [style=filled, color=\"#ED1C3A\", fillcolor=\"#ED1C3A\"];");
-//			}
-			
+			if (highlightNode !=null && from == highlightNode) {
+				gv.addln(from + " -> "+ to + " [style=filled, color=\"#ED1C3A\", fillcolor=\"#C0C0FF\"];");
+			}
 			/*if (vertexList.contains(node)) {
 				gv.addln(from + " -> "+ to + " [style=filled, color=\"#ED1C3A\", fillcolor=\"#ED1C3A\"];");
-			} else*/ if (correctList.contains(from)) {
+			}*/ else if (correctList.contains(from)) {
 				gv.addln(from + " -> "+ to + " [style=filled, color=\"#80FF80\", fillcolor=\"#80FF80\"];"); // Verde
 			} else if (notCorrectList.contains(from)) {
 				gv.addln(from + " -> "+ to + " [style=filled, color=\"#ED1C3A\", fillcolor=\"#ED1C3A\"];"); // Rojo
@@ -630,10 +650,11 @@ public class EDDHelper {
 					source.getNodes().add(target);
 				}
 				
-//				int root = edges.size();
-				int root = nodesMap.size();
+				int root = Collections.max(nodesMap.keySet()); 
 				EList<TreeElement> elements = ed2.getTreeElements();
-				elements.add(nodesMap.get(root));
+				Node eRoot = nodesMap.get(root);
+				eRoot.setType(TreeElementType.NO);
+				elements.add(eRoot);
 				
 				return model;
 			}
@@ -691,9 +712,11 @@ public class EDDHelper {
 		}
 		
 		
+		int root = nodesMap.size();
 		EList<TreeElement> elements = ed2.getTreeElements();
-		int root = edges.size();
-		elements.add(nodesMap.get(root));
+		Node eRoot = nodesMap.get(root);
+		eRoot.setType(TreeElementType.NO);
+		elements.add(eRoot);
 		
 		try {
 			saveModel(ed2Path.toPortableString(), model);
@@ -752,14 +775,14 @@ public class EDDHelper {
 		try {
 			OperationHistoryFactory.getOperationHistory().execute(command, new NullProgressMonitor(), null);
 			diagramResource.save(Ed2DiagramEditorUtil.getSaveOptions());
-//			TODO Ed2DiagramEditorUtil.openDiagram(diagramResource);
+			Ed2DiagramEditorUtil.openDiagram(diagramResource);
 		} catch (ExecutionException e) {
 			Ed2DiagramEditorPlugin.getInstance().logError("Unable to create model and diagram", e);
 		} catch (IOException ex) {
 			Ed2DiagramEditorPlugin.getInstance().logError("Save operation failed for: " + diagramModelURI, ex);
-		} /*catch (PartInitException ex) {
+		} catch (PartInitException ex) {
 			Ed2DiagramEditorPlugin.getInstance().logError("Unable to open editor", ex);
-		}*/
+		}
 		
 		return true;
 	}
@@ -830,22 +853,9 @@ public class EDDHelper {
 	}
 	
 	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
-	
 	/*
 	 * ======================================================================================================================= 
 	 */
-	
-	
 	protected JsonDocument getJsonDocument(String debugTree) {
 		try {
 			JsonDocument document = (JsonDocument) JsonHelper.readJsonFromString(debugTree, JsonDocument.class);	

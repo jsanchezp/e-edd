@@ -12,6 +12,7 @@ import java.util.Map.Entry;
 import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
+import org.eclipse.core.commands.ExecutionException;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -19,11 +20,26 @@ import org.eclipse.core.resources.IResource;
 import org.eclipse.core.resources.IWorkspaceRoot;
 import org.eclipse.core.resources.ResourcesPlugin;
 import org.eclipse.core.runtime.CoreException;
+import org.eclipse.core.runtime.IAdaptable;
 import org.eclipse.core.runtime.IPath;
+import org.eclipse.core.runtime.IProgressMonitor;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.NullProgressMonitor;
 import org.eclipse.core.runtime.Path;
+import org.eclipse.core.runtime.Status;
 import org.eclipse.emf.common.util.BasicEList;
 import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.common.util.URI;
+import org.eclipse.emf.ecore.EObject;
+import org.eclipse.emf.workspace.AbstractEMFOperation;
+import org.eclipse.gef.commands.Command;
+import org.eclipse.gmf.runtime.common.core.util.StringStatics;
+import org.eclipse.gmf.runtime.diagram.ui.editparts.IGraphicalEditPart;
+import org.eclipse.gmf.runtime.diagram.ui.figures.DiagramColorConstants;
+import org.eclipse.gmf.runtime.diagram.ui.internal.properties.Properties;
+import org.eclipse.gmf.runtime.diagram.ui.requests.ChangePropertyValueRequest;
+import org.eclipse.gmf.runtime.draw2d.ui.figures.FigureUtilities;
+import org.eclipse.gmf.runtime.emf.core.util.EMFCoreUtil;
 import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.bindings.keys.KeyStroke;
@@ -52,6 +68,7 @@ import org.eclipse.swt.events.SelectionAdapter;
 import org.eclipse.swt.events.SelectionEvent;
 import org.eclipse.swt.graphics.Image;
 import org.eclipse.swt.graphics.Point;
+import org.eclipse.swt.graphics.Rectangle;
 import org.eclipse.swt.layout.FillLayout;
 import org.eclipse.swt.layout.GridData;
 import org.eclipse.swt.layout.GridLayout;
@@ -62,7 +79,10 @@ import org.eclipse.swt.widgets.Event;
 import org.eclipse.swt.widgets.Listener;
 import org.eclipse.swt.widgets.Shell;
 import org.eclipse.swt.widgets.Text;
+import org.eclipse.ui.IEditorInput;
 import org.eclipse.ui.IEditorPart;
+import org.eclipse.ui.IEditorReference;
+import org.eclipse.ui.IFileEditorInput;
 import org.eclipse.ui.ISelectionListener;
 import org.eclipse.ui.ISharedImages;
 import org.eclipse.ui.IViewPart;
@@ -99,6 +119,7 @@ import org.erlide.ui.editors.util.EditorUtility;
 import org.erlide.ui.util.ErlModelUtils;
 
 import es.ucm.fdi.edd.core.erlang.ErlangClient;
+import es.ucm.fdi.edd.core.erlang.model.EddState;
 import es.ucm.fdi.edd.core.exception.EDDException;
 import es.ucm.fdi.edd.ui.Activator;
 import es.ucm.fdi.edd.ui.Messages;
@@ -111,6 +132,8 @@ import es.ucm.fdi.emf.model.ed2.Model;
 import es.ucm.fdi.emf.model.ed2.Node;
 import es.ucm.fdi.emf.model.ed2.TreeElement;
 import es.ucm.fdi.emf.model.ed2.TreeElementType;
+import es.ucm.fdi.emf.model.ed2.diagram.edit.parts.NodeEditPart;
+import es.ucm.fdi.emf.model.ed2.diagram.part.Ed2DiagramEditor;
 
 @SuppressWarnings("restriction")
 public class EDDebugView extends ViewPart {
@@ -441,7 +464,7 @@ public class EDDebugView extends ViewPart {
 			@SuppressWarnings("unused")
 			ContentProposalAdapter adapter = new ContentProposalAdapter(buggyCallText, 
 				  new TextContentAdapter(), 
-				  new SimpleContentProposalProvider(new String[] {"ackermann:main([3,4])", "merge:mergesort([b,a], fun merge:comp/2)", "merge:mergesort([o,h,i,o], fun merge:comp/2)", "ProposalOne", "ProposalTwo", "ProposalThree"}),
+				  new SimpleContentProposalProvider(new String[] {"ackermann:main([3,4])", "merge:mergesort([b,a], fun merge:comp/2)", "merge:mergesort([o,h,i,o], fun merge:comp/2)"}),
 				  keyStroke, autoActivationCharacters);
 		} catch (ParseException e) {
 			e.printStackTrace();
@@ -673,7 +696,7 @@ public class EDDebugView extends ViewPart {
 			pageBook.registerPage(i, createTabContent(pageContainer, question));
 //			pageContainer.setBackground(Display.getDefault().getSystemColor(SWT.COLOR_YELLOW));	        
 	    }
-	    //FIXME contenido extra para cuando no se tiene un indice...
+	    // Contenido extra para cuando no se tiene un indice...
 	    pageBook.registerPage(ErlangClient.UNKNOWN_CURRENT_QUESTION_INDEX, createTabContent(pageBook.getContainer(), ""));
 	 
 	    // Force to display the first tab
@@ -817,6 +840,149 @@ public class EDDebugView extends ViewPart {
 		}
 	}
 	
+	private void updateGraphicalEditor() throws EDDException {
+		IEditorReference editorReference = null;
+		IEditorReference[] editorReferences = PlatformUI.getWorkbench().getActiveWorkbenchWindow().getActivePage().getEditorReferences();
+		for (IEditorReference reference : editorReferences) {
+			String name = debugFile.getName();
+			String suffix = "";
+			if (helper.isZoomEnabled()) {
+				suffix = "_zoom";
+			}
+			String diagramFilename = name.replace(".erl", suffix + ".ed2_diagram"); 
+			if (reference.getPartName().equals(diagramFilename)) {
+				editorReference = reference;
+				break;
+			}
+		}
+		
+		if (editorReference == null)
+			return;
+		IEditorPart editorPart = editorReference.getEditor(true);		
+		if (!(editorPart instanceof Ed2DiagramEditor))
+			return;
+		Ed2DiagramEditor diagramEditor = (Ed2DiagramEditor)editorPart;
+//		final List<?> children = diagramEditor.getDiagramEditPart().getChildren();
+//		for (Object object : children) {
+//			System.out.println(object);
+//		}
+		
+		EObject element = diagramEditor.getDiagram().getElement();
+//		EObject root = element.eContents().get(0);
+//		EList<EObject> eContents = root.eContents();
+//		for (EObject eObject : eContents) {
+//			System.out.println(eObject);
+//		}
+		
+//		EObject elementToSelect = findEObject(element.eContents(), index);
+//		if (elementToSelect == null) {
+//			return;
+//		}
+//		Integer color = FigureUtilities.colorToInteger(DiagramColorConstants.blue);
+//		updateColor(diagramEditor, color, elementToSelect);
+		
+		EddState state = helper.getState();
+		List<Integer> correctList = state.getCorrectList();
+		for (Integer correctIndex : correctList) {
+			EObject eCorrectNode = findEObject(element.eContents(), correctIndex);
+			if (eCorrectNode != null) {
+				Integer color = FigureUtilities.colorToInteger(DiagramColorConstants.green);
+				updateColor(diagramEditor, color, eCorrectNode);
+			}
+		}
+		List<Integer> notCorrectList = state.getNotCorrectList();
+		for (Integer notCorrectIndex : notCorrectList) {
+			EObject eIncorrectNode = findEObject(element.eContents(), notCorrectIndex);
+			if (eIncorrectNode != null) {
+				Integer color = FigureUtilities.colorToInteger(DiagramColorConstants.red);
+				updateColor(diagramEditor, color, eIncorrectNode);
+			}
+		}
+		List<Integer> unknownList = state.getUnknownList();
+		for (Integer unknownIndex : unknownList) {
+			EObject eUnknownNode = findEObject(element.eContents(), unknownIndex);
+			if (eUnknownNode != null) {
+				Integer color = FigureUtilities.colorToInteger(DiagramColorConstants.yellow);
+				updateColor(diagramEditor, color, eUnknownNode);
+			}
+		}
+	}
+
+	private void updateColor(Ed2DiagramEditor diagramEditor, Integer color, EObject eObject) {
+		try {
+			String proxyID = EMFCoreUtil.getProxyID(eObject);
+			List<?> editParts = diagramEditor.getDiagramGraphicalViewer().findEditPartsForElement(proxyID, NodeEditPart.class);
+			if (!editParts.isEmpty()) {
+				IGraphicalEditPart editPart = (IGraphicalEditPart) editParts.get(0);
+	//			diagramEditor.getDiagramGraphicalViewer().select(editPart);
+	//			diagramEditor.getDiagramGraphicalViewer().reveal(editPart);
+				
+//				ChangePropertyValueRequest req1 = new ChangePropertyValueRequest(
+//						StringStatics.BLANK,
+//						Properties.ID_LINECOLOR,
+//						color);
+//				editPart.performRequest(req1);
+//				editPart.performRequest(new Request(RequestConstants.REQ_DIRECT_EDIT));
+				
+				ChangePropertyValueRequest req2 = new ChangePropertyValueRequest(
+						"Fill Color", Properties.ID_FILLCOLOR,
+						color);
+				
+//				ChangePropertyValueRequest request = new ChangePropertyValueRequest("Fill Color","notation.FillStyle.fillColor");
+//				request.setType("property_change");
+//				RGB rgb=new RGB(255,255,255);
+//				request.setValue(FigureUtilities.RGBToInteger(rgb));
+//				editPart.performRequest(request);
+//				editPart.performRequest(new Request(RequestConstants.REQ_DIRECT_EDIT));
+				
+				final Command cmd = editPart.getCommand(req2);
+				AbstractEMFOperation operation = new AbstractEMFOperation(((IGraphicalEditPart)editPart).getEditingDomain(), StringStatics.BLANK, null) {
+					protected IStatus doExecute(IProgressMonitor monitor, IAdaptable info) throws ExecutionException {
+						try {
+							IEditorInput editorInput = diagramEditor.getEditorInput();
+							IFile iFile = ((IFileEditorInput)editorInput).getFile();
+							iFile.refreshLocal(IResource.DEPTH_INFINITE, null);
+							cmd.execute();
+						}
+						catch (CoreException e) {
+							e.printStackTrace();
+						}
+						
+						return Status.OK_STATUS;
+					}
+				};
+				
+				operation.execute(new NullProgressMonitor(), null);
+				editPart.refresh();
+				editPart.getRoot().refresh();
+				diagramEditor.doSave(new NullProgressMonitor());
+			}
+		} catch (Exception e) {
+			e.printStackTrace();
+		}
+	}
+	
+	private EObject findEObject(EList<EObject> eList, int index) {
+		EObject searched = null;
+		if (eList == null)
+			return searched;
+		for (EObject item : eList) {
+//			System.out.println("EObject: " + item);
+			if (item instanceof TreeElement) {
+				TreeElement node = (TreeElement)item;
+				if (node.getIndex().equals(index)) {
+					return item;
+				}
+			}
+			searched = findEObject(item.eContents(), index);
+			if(searched != null ) {
+				break;
+			}
+		}
+		
+		return searched;
+	}
+	
 	private void waitForNextQuestionAndUpdate(String sentence) {
 		try {
 			if (false && helper.isBuggyNode()) {
@@ -844,7 +1010,7 @@ public class EDDebugView extends ViewPart {
 					
 					TimeUnit.MILLISECONDS.sleep(100);
 					int goToIndex = helper.getCurrentQuestion();
-					System.out.println("\t\t-->Q: " + goToIndex);
+//					System.out.println("\t\t-->Q: " + goToIndex);
 					updateSelection(goToIndex);
 				}
 				else {
@@ -883,8 +1049,11 @@ public class EDDebugView extends ViewPart {
 //					refresh();
 //					pageBook.showPage(goToIndex);
 //					sectionQuestion.redraw();
-					sectionQuestion.setExpanded(false);
-					sectionQuestion.setExpanded(true);
+					Rectangle bounds = sectionQuestion.getBounds();
+					bounds.height+= 1; 
+					sectionQuestion.setBounds(bounds);
+//					sectionQuestion.setExpanded(false);
+//					sectionQuestion.setExpanded(true);
 				}
 			}
 		} catch (InterruptedException e) {
@@ -1011,7 +1180,8 @@ public class EDDebugView extends ViewPart {
 				else {
 					this.index = index;
 					pageBook.showPage(index);
-					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title") + " " + index + "/" + total );
+					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title"));
+//					sectionQuestion.setText(Messages.getString("EDDebugView.sectionQuestion.title") + " " + index + "/" + total );
 					enableButtons();
 					
 					// Forzar un changeListener()...
@@ -1021,6 +1191,7 @@ public class EDDebugView extends ViewPart {
 					if (helper.isZoomEnabled()) {
 						String dotContent = helper.buildDOT(true, index, false);
 						writeDotFile("_zoom", dotContent);
+						updateGraphicalEditor();
 					}
 					else {
 						// Activar selección en el editor...
@@ -1037,6 +1208,7 @@ public class EDDebugView extends ViewPart {
 						
 						String dotContent = helper.buildDOT(false, index, false);
 						writeDotFile("", dotContent);
+						updateGraphicalEditor();
 					}
 				}
 			} catch (IOException e) {
@@ -1065,6 +1237,7 @@ public class EDDebugView extends ViewPart {
 						Button button = (Button) child;
 						button.setEnabled(enabled);
 						button.setVisible(enabled);
+//						System.out.println("Enabled: " + button.getText());
 					}	
 				}
 			}
