@@ -12,8 +12,8 @@ public class Help extends AbstractHandler {
 	@Override
 	public Object execute(ExecutionEvent event) throws ExecutionException {
 		Shell shell = HandlerUtil.getActiveWorkbenchWindow(event).getShell();
-		MessageDialog.openInformation(shell, "Help", "Erlang Declarative Debugger help.");
+		MessageDialog.openInformation(shell, "Help",
+				"Erlang Declarative Debugger help.\n Please visit: \"https://github.com/tamarit/edd\"");
 		return null;
 	}
-
 }
