@@ -86,6 +86,8 @@
       <import plugin="org.eclipse.e4.ui.services"/>
       <import plugin="org.emftools.validation.utils"/>
       <import plugin="org.eclipse.ocl"/>
+      <import plugin="org.eclipse.core.databinding.property"/>
+      <import plugin="org.eclipse.core.databinding.beans"/>
    </requires>
 
    <plugin
