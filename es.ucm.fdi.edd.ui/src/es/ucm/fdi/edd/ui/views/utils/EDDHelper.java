@@ -359,22 +359,15 @@ public class EDDHelper {
 	}
 	
 	public boolean setAnswer(String reply) throws EDDException {
-		// FIXME ...
-		Integer buggyNode = getBuggyNode();
-		if (buggyNode != null && buggyNode != -1) {
-			return true;
-		}
-		
-		try {
-			int node = Integer.parseInt(reply);
-		}
-		catch(NumberFormatException e) {
-			//
-		}
-		
 		e2j.sendAnswer(reply);
 		
-		buggyNode = getBuggyNode();
+		try {
+			TimeUnit.MILLISECONDS.sleep(500);
+		} catch (InterruptedException e) {
+			e.printStackTrace();
+		}
+		
+		Integer buggyNode = getBuggyNode();
 		if (buggyNode != null && buggyNode != -1) {
 			return true;
 		}

@@ -55,7 +55,9 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.e4.ui.di,
  org.eclipse.e4.ui.services,
  org.emftools.validation.utils,
- org.eclipse.ocl
+ org.eclipse.ocl,
+ org.eclipse.core.databinding.property,
+ org.eclipse.core.databinding.beans
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor

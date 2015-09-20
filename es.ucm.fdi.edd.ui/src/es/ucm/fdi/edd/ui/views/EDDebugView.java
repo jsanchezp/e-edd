@@ -13,6 +13,9 @@ import java.util.Set;
 import java.util.concurrent.TimeUnit;
 
 import org.eclipse.core.commands.ExecutionException;
+import org.eclipse.core.databinding.DataBindingContext;
+import org.eclipse.core.databinding.beans.BeanProperties;
+import org.eclipse.core.databinding.observable.value.IObservableValue;
 import org.eclipse.core.resources.IFile;
 import org.eclipse.core.resources.IFolder;
 import org.eclipse.core.resources.IProject;
@@ -44,6 +47,7 @@ import org.eclipse.jface.action.Separator;
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.bindings.keys.KeyStroke;
 import org.eclipse.jface.bindings.keys.ParseException;
+import org.eclipse.jface.databinding.swt.WidgetProperties;
 import org.eclipse.jface.dialogs.IMessageProvider;
 import org.eclipse.jface.dialogs.MessageDialog;
 import org.eclipse.jface.fieldassist.ContentProposalAdapter;
@@ -126,6 +130,7 @@ import es.ucm.fdi.edd.ui.Messages;
 import es.ucm.fdi.edd.ui.dialogs.ErlangFileDialog;
 import es.ucm.fdi.edd.ui.emf2gv.StandaloneApp;
 import es.ucm.fdi.edd.ui.views.listeners.EDDViewSelectionListener;
+import es.ucm.fdi.edd.ui.views.model.EddViewModel;
 import es.ucm.fdi.edd.ui.views.utils.EDDHelper;
 import es.ucm.fdi.emf.model.ed2.Leaf;
 import es.ucm.fdi.emf.model.ed2.Model;
@@ -158,6 +163,8 @@ public class EDDebugView extends ViewPart {
 	private IFile debugFile;
 	private EDDHelper helper;
 	private Model emfModel;
+	private EddViewModel eddViewModel;
+	private Text hideValue;
 	
 	// the listener we register with the selection service 
 	private ISelectionListener listener;
@@ -170,6 +177,11 @@ public class EDDebugView extends ViewPart {
 		super();
 		listener = new EDDViewSelectionListener(this);
 		helper = new EDDHelper();
+		createViewModel();
+	}
+
+	private void createViewModel() {
+		eddViewModel = new EddViewModel();
 	}
 	
 	/* (non-Javadoc)
@@ -233,6 +245,21 @@ public class EDDebugView extends ViewPart {
 		});
 				
 		getSite().getWorkbenchWindow().getSelectionService().addSelectionListener(listener);
+		
+		// now lets do the binding
+//	    bindValues();
+	}
+	
+	private void bindValues() {
+	    // The DataBindingContext object will manage the databindings
+	    DataBindingContext ctx = new DataBindingContext();
+	    
+	    // define the IObservables
+	    IObservableValue widgetValue = WidgetProperties.text(SWT.Modify).observe(hideValue); // target
+	    IObservableValue modelValue = BeanProperties.value(EddViewModel.class, "name").observe(eddViewModel); //source
+	        
+	    // connect them
+	    ctx.bindValue(widgetValue, modelValue);
 	}
 	
 	/* (non-Javadoc)
