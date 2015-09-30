@@ -45,8 +45,6 @@ Require-Bundle: com.abstratt.content,
  org.eclipse.gmf.runtime.diagram.ui.resources.editor,
  es.ucm.fdi.ed2.emf.editor,
  org.eclipse.core.filesystem,
- org.emftools.emf2gv.processor.core,
- org.emftools.emf2gv.util,
  org.erlide.model,
  org.eclipse.core.databinding.observable,
  org.eclipse.core.databinding,
@@ -57,7 +55,9 @@ Require-Bundle: com.abstratt.content,
  org.emftools.validation.utils,
  org.eclipse.ocl,
  org.eclipse.core.databinding.property,
- org.eclipse.core.databinding.beans
+ org.eclipse.core.databinding.beans,
+ org.emftools.emf2gv.util,
+ org.emftools.emf2gv.processor.core
 Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Bundle-Vendor: %Bundle-Vendor
